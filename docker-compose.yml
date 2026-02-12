@@ -22,11 +22,27 @@ services:
 
   backend:
     build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    command: air
     networks:
       - app-network
 
   frontend:
     build: ./frontend
+    profiles:
+      - frontend
     networks:
       - app-network
 
@@ -36,4 +52,3 @@ networks:
 
 volumes:
   mysql_data:
-

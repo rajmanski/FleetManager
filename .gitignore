@@ -14,6 +14,7 @@ coverage/
 bin/
 *.exe
 *.test
+backend/tmp/
 
 # Env & secrets
 .env

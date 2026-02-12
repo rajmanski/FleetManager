@@ -1,0 +1,31 @@
+# Project docs and Cursor config (managed outside Git)
+docs/
+.cursor/
+
+# Node / frontend
+node_modules/
+dist/
+build/
+.next/
+coverage/
+
+# Go
+bin/
+*.exe
+*.test
+
+# Env & secrets
+.env
+.env.*
+
+# Logs & OS files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+

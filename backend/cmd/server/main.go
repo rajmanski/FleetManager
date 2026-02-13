@@ -4,7 +4,10 @@ import (
 	"database/sql"
 	"log"
 
+	"fleet-management/internal/auth"
 	"fleet-management/internal/config"
+	sqlc "fleet-management/internal/db/sqlc"
+	"fleet-management/internal/repository"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -20,11 +23,16 @@ func main() {
 	r := gin.Default()
 	r.Use(cors.Default())
 
-	db, err := sql.Open("mysql", cfg.DSN())
+	dbConn, err := sql.Open("mysql", cfg.DSN())
 	if err != nil {
 		log.Fatal("db open:", err)
 	}
-	defer db.Close()
+	defer dbConn.Close()
+
+	queries := sqlc.New(dbConn)
+	authRepository := repository.NewAuthRepository(queries)
+	authService := auth.NewService(authRepository, cfg.JWTSecret)
+	authHandler := auth.NewHandler(authService)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -33,6 +41,8 @@ func main() {
 	})
 
 	api := r.Group("/api/v1")
+	api.POST("/auth/login", authHandler.Login)
+
 	api.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status": "ok",
@@ -41,7 +51,7 @@ func main() {
 
 	api.GET("/db-check", func(c *gin.Context) {
 		var one int
-		if err := db.QueryRow("SELECT 1").Scan(&one); err != nil || one != 1 {
+		if err := dbConn.QueryRow("SELECT 1").Scan(&one); err != nil || one != 1 {
 			c.JSON(500, gin.H{
 				"status": "error",
 				"error":  "database check failed",

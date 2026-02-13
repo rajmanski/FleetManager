@@ -1,11 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"log"
+
+	"fleet-management/internal/config"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"fleet-management/internal/config"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
@@ -17,9 +20,37 @@ func main() {
 	r := gin.Default()
 	r.Use(cors.Default())
 
+	db, err := sql.Open("mysql", cfg.DSN())
+	if err != nil {
+		log.Fatal("db open:", err)
+	}
+	defer db.Close()
+
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
+		})
+	})
+
+	api := r.Group("/api/v1")
+	api.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "ok",
+		})
+	})
+
+	api.GET("/db-check", func(c *gin.Context) {
+		var one int
+		if err := db.QueryRow("SELECT 1").Scan(&one); err != nil || one != 1 {
+			c.JSON(500, gin.H{
+				"status": "error",
+				"error":  "database check failed",
+			})
+			return
+		}
+
+		c.JSON(200, gin.H{
+			"status": "ok",
 		})
 	})
 

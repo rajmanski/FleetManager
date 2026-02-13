@@ -31,6 +31,11 @@ func (c *Config) DSN() string {
 		c.DBUser, c.DBPassword, c.DBHost, c.DBPort, c.DBName)
 }
 
+func (c *Config) MigrateURL() string {
+	return fmt.Sprintf("mysql://%s:%s@tcp(%s:%s)/%s?multiStatements=true",
+		c.DBUser, c.DBPassword, c.DBHost, c.DBPort, c.DBName)
+}
+
 func getEnv(key, fallback string) string {
 	if v := os.Getenv(key); v != "" {
 		return v

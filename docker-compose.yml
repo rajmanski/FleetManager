@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   mysql:
     image: mysql:8.0
@@ -41,8 +39,6 @@ services:
 
   frontend:
     build: ./frontend
-    profiles:
-      - frontend
     networks:
       - app-network
 

@@ -13,6 +13,7 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	JWTSecret  string
+	AppEnv     string
 }
 
 func Load() (*Config, error) {
@@ -24,8 +25,13 @@ func Load() (*Config, error) {
 		DBPassword: getEnv("DB_PASSWORD", ""),
 		DBName:     getEnv("DB_NAME", "fleet_management"),
 		JWTSecret:  getEnv("JWT_SECRET", "change-me-jwt-secret"),
+		AppEnv:     getEnv("APP_ENV", "development"),
 	}
 	return cfg, nil
+}
+
+func (c *Config) IsProduction() bool {
+	return c.AppEnv == "production"
 }
 
 func (c *Config) DSN() string {

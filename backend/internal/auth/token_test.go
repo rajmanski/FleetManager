@@ -48,3 +48,36 @@ func TestParseAccessTokenExpired(t *testing.T) {
 		t.Fatal("ParseAccessToken() expected error for expired token")
 	}
 }
+
+func TestGenerateAndParseRefreshToken(t *testing.T) {
+	t.Parallel()
+
+	const secret = "test-secret"
+	token, err := GenerateRefreshToken(77, "Spedytor", secret)
+	if err != nil {
+		t.Fatalf("GenerateRefreshToken() unexpected error: %v", err)
+	}
+
+	claims, err := ParseRefreshToken(token, secret)
+	if err != nil {
+		t.Fatalf("ParseRefreshToken() unexpected error: %v", err)
+	}
+
+	if claims.UserID != 77 || claims.Role != "Spedytor" || claims.Type != "refresh" {
+		t.Fatalf("ParseRefreshToken() returned unexpected claims: %+v", claims)
+	}
+}
+
+func TestParseRefreshTokenRejectsAccessToken(t *testing.T) {
+	t.Parallel()
+
+	const secret = "test-secret"
+	accessToken, err := GenerateAccessToken(1, "Administrator", secret)
+	if err != nil {
+		t.Fatalf("GenerateAccessToken() unexpected error: %v", err)
+	}
+
+	if _, err := ParseRefreshToken(accessToken, secret); err == nil {
+		t.Fatal("ParseRefreshToken() expected error for non-refresh token")
+	}
+}

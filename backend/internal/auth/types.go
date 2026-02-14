@@ -14,8 +14,14 @@ type LoginUser struct {
 }
 
 type LoginResponse struct {
-	Token string    `json:"token"`
-	User  LoginUser `json:"user"`
+	Token        string    `json:"token"`
+	User         LoginUser `json:"user"`
+	RefreshToken string    `json:"-"`
+}
+
+type RefreshResponse struct {
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int64  `json:"expires_in"`
 }
 
 type User struct {

@@ -8,11 +8,15 @@ import (
 )
 
 type Handler struct {
-	service *Service
+	service      *Service
+	cookieSecure bool
 }
 
-func NewHandler(service *Service) *Handler {
-	return &Handler{service: service}
+func NewHandler(service *Service, cookieSecure bool) *Handler {
+	return &Handler{
+		service:      service,
+		cookieSecure: cookieSecure,
+	}
 }
 
 func (h *Handler) Login(c *gin.Context) {
@@ -37,5 +41,35 @@ func (h *Handler) Login(c *gin.Context) {
 		return
 	}
 
+	h.setRefreshTokenCookie(c, resp.RefreshToken)
 	c.JSON(http.StatusOK, resp)
+}
+
+func (h *Handler) Refresh(c *gin.Context) {
+	refreshToken, err := c.Cookie("refresh_token")
+	if err != nil || refreshToken == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "missing refresh token"})
+		return
+	}
+
+	resp, err := h.service.RefreshAccessToken(refreshToken)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired refresh token"})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
+func (h *Handler) setRefreshTokenCookie(c *gin.Context, refreshToken string) {
+	c.SetSameSite(http.SameSiteStrictMode)
+	c.SetCookie(
+		"refresh_token",
+		refreshToken,
+		int(RefreshTokenTTL.Seconds()),
+		"/",
+		"",
+		h.cookieSecure,
+		true,
+	)
 }

@@ -75,13 +75,35 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (LoginResponse, e
 	if err != nil {
 		return LoginResponse{}, err
 	}
+	refreshToken, err := GenerateRefreshToken(user.ID, user.Role, s.jwtSecret)
+	if err != nil {
+		return LoginResponse{}, err
+	}
 
 	return LoginResponse{
-		Token: token,
+		Token:        token,
+		RefreshToken: refreshToken,
 		User: LoginUser{
 			ID:    user.ID,
 			Login: user.Login,
 			Role:  user.Role,
 		},
+	}, nil
+}
+
+func (s *Service) RefreshAccessToken(refreshToken string) (RefreshResponse, error) {
+	claims, err := ParseRefreshToken(refreshToken, s.jwtSecret)
+	if err != nil {
+		return RefreshResponse{}, ErrInvalidCredentials
+	}
+
+	accessToken, err := GenerateAccessToken(claims.UserID, claims.Role, s.jwtSecret)
+	if err != nil {
+		return RefreshResponse{}, err
+	}
+
+	return RefreshResponse{
+		AccessToken: accessToken,
+		ExpiresIn:   int64(AccessTokenTTL.Seconds()),
 	}, nil
 }

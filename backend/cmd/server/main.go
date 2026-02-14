@@ -32,7 +32,7 @@ func main() {
 	queries := sqlc.New(dbConn)
 	authRepository := repository.NewAuthRepository(queries)
 	authService := auth.NewService(authRepository, cfg.JWTSecret)
-	authHandler := auth.NewHandler(authService)
+	authHandler := auth.NewHandler(authService, cfg.IsProduction())
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -42,6 +42,7 @@ func main() {
 
 	api := r.Group("/api/v1")
 	api.POST("/auth/login", authHandler.Login)
+	api.POST("/auth/refresh", authHandler.Refresh)
 
 	api.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{

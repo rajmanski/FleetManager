@@ -52,7 +52,11 @@ func main() {
 
 	protected := api.Group("/")
 	protected.Use(auth.JWTMiddleware(cfg.JWTSecret))
-	protected.PUT("/users/:id/unlock", authHandler.UnlockUser)
+	protected.PUT(
+		"/users/:id/unlock",
+		auth.RBACMiddleware(auth.ResourceUsers, auth.PermissionWrite),
+		authHandler.UnlockUser,
+	)
 
 	protected.GET("/db-check", func(c *gin.Context) {
 		var one int

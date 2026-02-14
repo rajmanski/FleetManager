@@ -15,3 +15,8 @@ LIMIT 1;
 UPDATE Users
 SET failed_login_attempts = ?, locked_until = ?
 WHERE user_id = ?;
+
+-- name: UnlockUserAccount :execrows
+UPDATE Users
+SET failed_login_attempts = 0, locked_until = NULL
+WHERE user_id = ?;

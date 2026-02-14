@@ -47,6 +47,20 @@ func (q *Queries) GetUserByLogin(ctx context.Context, username string) (GetUserB
 	return i, err
 }
 
+const unlockUserAccount = `-- name: UnlockUserAccount :execrows
+UPDATE Users
+SET failed_login_attempts = 0, locked_until = NULL
+WHERE user_id = ?
+`
+
+func (q *Queries) UnlockUserAccount(ctx context.Context, userID int32) (int64, error) {
+	result, err := q.db.ExecContext(ctx, unlockUserAccount, userID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const updateUserLoginState = `-- name: UpdateUserLoginState :exec
 UPDATE Users
 SET failed_login_attempts = ?, locked_until = ?

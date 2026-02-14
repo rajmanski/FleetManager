@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -89,4 +90,40 @@ func (h *Handler) setRefreshTokenCookie(c *gin.Context, refreshToken string) {
 		h.cookieSecure,
 		true,
 	)
+}
+
+func (h *Handler) UnlockUser(c *gin.Context) {
+	roleValue, exists := c.Get(ContextRoleKey)
+	if !exists {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+	role, ok := roleValue.(string)
+	if !ok {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	userIDParam := c.Param("id")
+	userID, err := strconv.ParseInt(userIDParam, 10, 64)
+	if err != nil || userID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
+	err = h.service.UnlockUserAccount(c.Request.Context(), userID, role)
+	if err != nil {
+		if errors.Is(err, ErrForbidden) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
+		if errors.Is(err, ErrUserNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }

@@ -10,6 +10,7 @@ import (
 
 type Querier interface {
 	GetUserByLogin(ctx context.Context, username string) (GetUserByLoginRow, error)
+	UnlockUserAccount(ctx context.Context, userID int32) (int64, error)
 	UpdateUserLoginState(ctx context.Context, arg UpdateUserLoginStateParams) error
 }
 

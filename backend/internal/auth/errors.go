@@ -8,6 +8,7 @@ import (
 var ErrInvalidCredentials = errors.New("invalid credentials")
 var ErrUserNotFound = errors.New("user not found")
 var ErrPasswordTooLong = errors.New("password exceeds bcrypt maximum length of 72 bytes")
+var ErrForbidden = errors.New("forbidden")
 
 type AccountLockedError struct {
 	Until time.Time

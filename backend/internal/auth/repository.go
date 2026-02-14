@@ -8,4 +8,5 @@ import (
 type Repository interface {
 	GetUserByLogin(ctx context.Context, login string) (User, error)
 	UpdateLoginState(ctx context.Context, userID int64, failedAttempts int, lockedUntil *time.Time) error
+	UnlockUserAccount(ctx context.Context, userID int64) error
 }

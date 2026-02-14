@@ -9,8 +9,14 @@ import (
 )
 
 type Querier interface {
+	CreateAdminUser(ctx context.Context, arg CreateAdminUserParams) (int64, error)
+	GetAdminUserByID(ctx context.Context, userID int32) (GetAdminUserByIDRow, error)
+	GetRoleIDByName(ctx context.Context, roleName string) (int32, error)
 	GetUserByLogin(ctx context.Context, username string) (GetUserByLoginRow, error)
+	ListAdminUsers(ctx context.Context) ([]ListAdminUsersRow, error)
+	SoftDeleteAdminUser(ctx context.Context, userID int32) (int64, error)
 	UnlockUserAccount(ctx context.Context, userID int32) (int64, error)
+	UpdateAdminUser(ctx context.Context, arg UpdateAdminUserParams) (int64, error)
 	UpdateUserLoginState(ctx context.Context, arg UpdateUserLoginStateParams) error
 }
 

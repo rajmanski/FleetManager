@@ -8,6 +8,7 @@ import (
 	"fleet-management/internal/config"
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/repository"
+	"fleet-management/internal/users"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -33,6 +34,9 @@ func main() {
 	authRepository := repository.NewAuthRepository(queries)
 	authService := auth.NewService(authRepository, cfg.JWTSecret)
 	authHandler := auth.NewHandler(authService, cfg.IsProduction())
+	usersRepository := repository.NewUsersRepository(queries)
+	usersService := users.NewService(usersRepository)
+	usersHandler := users.NewHandler(usersService)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -52,10 +56,35 @@ func main() {
 
 	protected := api.Group("/")
 	protected.Use(auth.JWTMiddleware(cfg.JWTSecret))
+	protected.GET(
+		"/admin/users",
+		auth.RBACMiddleware(auth.ResourceUsers, auth.PermissionRead),
+		usersHandler.ListAdminUsers,
+	)
+	protected.GET(
+		"/admin/users/:id",
+		auth.RBACMiddleware(auth.ResourceUsers, auth.PermissionRead),
+		usersHandler.GetAdminUser,
+	)
+	protected.POST(
+		"/admin/users",
+		auth.RBACMiddleware(auth.ResourceUsers, auth.PermissionWrite),
+		usersHandler.CreateAdminUser,
+	)
+	protected.PUT(
+		"/admin/users/:id",
+		auth.RBACMiddleware(auth.ResourceUsers, auth.PermissionWrite),
+		usersHandler.UpdateAdminUser,
+	)
+	protected.DELETE(
+		"/admin/users/:id",
+		auth.RBACMiddleware(auth.ResourceUsers, auth.PermissionWrite),
+		usersHandler.DeleteAdminUser,
+	)
 	protected.PUT(
 		"/users/:id/unlock",
 		auth.RBACMiddleware(auth.ResourceUsers, auth.PermissionWrite),
-		authHandler.UnlockUser,
+		usersHandler.UnlockUser,
 	)
 
 	protected.GET("/db-check", func(c *gin.Context) {

@@ -113,11 +113,3 @@ func (s *Service) RefreshAccessToken(refreshToken string) (RefreshResponse, erro
 		ExpiresIn:   int64(AccessTokenTTL.Seconds()),
 	}, nil
 }
-
-func (s *Service) UnlockUserAccount(ctx context.Context, targetUserID int64, requesterRole string) error {
-	if requesterRole != "Administrator" {
-		return ErrForbidden
-	}
-
-	return s.repo.UnlockUserAccount(ctx, targetUserID)
-}

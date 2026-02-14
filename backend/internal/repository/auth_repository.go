@@ -60,14 +60,3 @@ func (r *AuthRepository) UpdateLoginState(ctx context.Context, userID int64, fai
 		UserID:      int32(userID),
 	})
 }
-
-func (r *AuthRepository) UnlockUserAccount(ctx context.Context, userID int64) error {
-	rows, err := r.queries.UnlockUserAccount(ctx, int32(userID))
-	if err != nil {
-		return err
-	}
-	if rows == 0 {
-		return auth.ErrUserNotFound
-	}
-	return nil
-}

@@ -1,7 +1,25 @@
 import { useQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
 import api from '@/services/api'
+import {
+  clearSessionExpiredMessage,
+  getSessionExpiredMessage,
+  initAuthSessionManagement,
+} from '@/services/api'
 
 function App() {
+  const [sessionMessage] = useState<string | null>(() => {
+    const message = getSessionExpiredMessage()
+    if (message) {
+      clearSessionExpiredMessage()
+    }
+    return message
+  })
+
+  useEffect(() => {
+    initAuthSessionManagement()
+  }, [])
+
   const healthQuery = useQuery({
     queryKey: ['health'],
     queryFn: async () => {
@@ -14,6 +32,11 @@ function App() {
   return (
     <div className="min-h-screen p-8">
       <h1 className="text-2xl font-semibold">Fleet Manager</h1>
+      {sessionMessage && (
+        <div className="mt-3 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {sessionMessage}
+        </div>
+      )}
       <div className="mt-4">
         <button
           type="button"

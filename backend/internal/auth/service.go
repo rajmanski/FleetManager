@@ -64,7 +64,13 @@ func (s *Service) Login(ctx context.Context, req LoginRequest) (LoginResponse, e
 		if lockUntil != nil {
 			return LoginResponse{}, &AccountLockedError{Until: *lockUntil}
 		}
-		return LoginResponse{}, ErrInvalidCredentials
+		remainingAttempts := 3 - failedAttempts
+		if remainingAttempts < 0 {
+			remainingAttempts = 0
+		}
+		return LoginResponse{}, &InvalidCredentialsError{
+			RemainingAttempts: remainingAttempts,
+		}
 	}
 
 	if err := s.repo.UpdateLoginState(ctx, user.ID, 0, nil); err != nil {

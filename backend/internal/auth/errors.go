@@ -16,3 +16,11 @@ type AccountLockedError struct {
 func (e *AccountLockedError) Error() string {
 	return "account locked"
 }
+
+type InvalidCredentialsError struct {
+	RemainingAttempts int
+}
+
+func (e *InvalidCredentialsError) Error() string {
+	return "invalid credentials"
+}

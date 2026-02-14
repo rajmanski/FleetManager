@@ -49,7 +49,10 @@ func main() {
 		})
 	})
 
-	api.GET("/db-check", func(c *gin.Context) {
+	protected := api.Group("/")
+	protected.Use(auth.JWTMiddleware(cfg.JWTSecret))
+
+	protected.GET("/db-check", func(c *gin.Context) {
 		var one int
 		if err := dbConn.QueryRow("SELECT 1").Scan(&one); err != nil || one != 1 {
 			c.JSON(500, gin.H{

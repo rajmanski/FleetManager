@@ -1,8 +1,8 @@
 import axios from 'axios'
+import { clearAccessToken, getAccessToken, saveAccessToken } from '@/services/authStorage'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 const SESSION_EXPIRED_MESSAGE_KEY = 'session_expired_message'
-const ACCESS_TOKEN_STORAGE_KEY = 'token'
 const PROACTIVE_REFRESH_BUFFER_SECONDS = 5 * 60
 
 const api = axios.create({
@@ -14,7 +14,7 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)
+  const token = getAccessToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -62,7 +62,7 @@ const scheduleProactiveRefresh = () => {
     proactiveRefreshTimeoutId = null
   }
 
-  const token = localStorage.getItem(ACCESS_TOKEN_STORAGE_KEY)
+  const token = getAccessToken()
   if (!token) return
 
   const exp = decodeTokenExp(token)
@@ -87,12 +87,12 @@ const tryRefreshAccessToken = async (): Promise<string | null> => {
     .post<RefreshResponse>('/api/v1/auth/refresh')
     .then((response) => {
       const newToken = response.data.access_token
-      localStorage.setItem(ACCESS_TOKEN_STORAGE_KEY, newToken)
+      saveAccessToken(newToken)
       scheduleProactiveRefresh()
       return newToken
     })
     .catch(() => {
-      localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY)
+      clearAccessToken()
       redirectToLogin()
       return null
     })

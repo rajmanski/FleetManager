@@ -4,8 +4,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
-import LoginPage from './pages/LoginPage'
-import RequireAuth from './routes/RequireAuth'
+import DashboardPage from './pages/DashboardPage.tsx'
+import LoginPage from './pages/LoginPage.tsx'
+import UsersPage from './pages/UsersPage.tsx'
+import RequireAuth from './routes/RequireAuth.tsx'
 
 const queryClient = new QueryClient()
 
@@ -22,7 +24,10 @@ createRoot(document.getElementById('root')!).render(
                 <App />
               </RequireAuth>
             }
-          />
+          >
+            <Route index element={<DashboardPage />} />
+            <Route path="admin/users" element={<UsersPage />} />
+          </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

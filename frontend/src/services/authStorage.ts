@@ -34,13 +34,28 @@ export const saveAccessToken = (token: string): boolean => {
   }
 }
 
+export const getStoredRole = (): string | null => {
+  const token = getAccessToken()
+  if (!token) return null
+  try {
+    const payload = token.split('.')[1]
+    if (!payload) return null
+    const decoded = JSON.parse(atob(payload)) as { role?: string }
+    return typeof decoded.role === 'string' ? decoded.role : null
+  } catch {
+    return null
+  }
+}
+
 export const clearAccessToken = () => {
   try {
     localStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY)
   } catch {
+    /* ignore */
   }
   try {
     sessionStorage.removeItem(ACCESS_TOKEN_STORAGE_KEY)
   } catch {
+    /* ignore */
   }
 }

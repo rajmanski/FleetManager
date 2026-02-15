@@ -9,6 +9,7 @@ import (
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/repository"
 	"fleet-management/internal/users"
+	"fleet-management/internal/vehicles"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -42,6 +43,9 @@ func main() {
 	usersRepository := repository.NewUsersRepository(queries)
 	usersService := users.NewService(usersRepository)
 	usersHandler := users.NewHandler(usersService)
+	vehiclesRepository := repository.NewVehiclesRepository(queries)
+	vehiclesService := vehicles.NewService(vehiclesRepository)
+	vehiclesHandler := vehicles.NewHandler(vehiclesService)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -91,6 +95,31 @@ func main() {
 		"/users/:id/unlock",
 		auth.RBACMiddleware(auth.ResourceUsers, auth.PermissionWrite),
 		usersHandler.UnlockUser,
+	)
+	protected.GET(
+		"/vehicles",
+		auth.RBACMiddleware(auth.ResourceVehicles, auth.PermissionRead),
+		vehiclesHandler.ListVehicles,
+	)
+	protected.GET(
+		"/vehicles/:id",
+		auth.RBACMiddleware(auth.ResourceVehicles, auth.PermissionRead),
+		vehiclesHandler.GetVehicle,
+	)
+	protected.POST(
+		"/vehicles",
+		auth.RBACMiddleware(auth.ResourceVehicles, auth.PermissionWrite),
+		vehiclesHandler.CreateVehicle,
+	)
+	protected.PUT(
+		"/vehicles/:id",
+		auth.RBACMiddleware(auth.ResourceVehicles, auth.PermissionWrite),
+		vehiclesHandler.UpdateVehicle,
+	)
+	protected.DELETE(
+		"/vehicles/:id",
+		auth.RBACMiddleware(auth.ResourceVehicles, auth.PermissionWrite),
+		vehiclesHandler.DeleteVehicle,
 	)
 
 	protected.GET("/db-check", func(c *gin.Context) {

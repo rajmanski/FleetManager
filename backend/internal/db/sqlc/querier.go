@@ -9,15 +9,21 @@ import (
 )
 
 type Querier interface {
+	CountVehicles(ctx context.Context, arg CountVehiclesParams) (int64, error)
 	CreateAdminUser(ctx context.Context, arg CreateAdminUserParams) (int64, error)
+	CreateVehicle(ctx context.Context, arg CreateVehicleParams) (int64, error)
 	GetAdminUserByID(ctx context.Context, userID int32) (GetAdminUserByIDRow, error)
 	GetRoleIDByName(ctx context.Context, roleName string) (int32, error)
 	GetUserByLogin(ctx context.Context, username string) (GetUserByLoginRow, error)
+	GetVehicleByID(ctx context.Context, vehicleID int32) (GetVehicleByIDRow, error)
 	ListAdminUsers(ctx context.Context) ([]ListAdminUsersRow, error)
+	ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]ListVehiclesRow, error)
 	SoftDeleteAdminUser(ctx context.Context, userID int32) (int64, error)
+	SoftDeleteVehicle(ctx context.Context, vehicleID int32) (int64, error)
 	UnlockUserAccount(ctx context.Context, userID int32) (int64, error)
 	UpdateAdminUser(ctx context.Context, arg UpdateAdminUserParams) (int64, error)
 	UpdateUserLoginState(ctx context.Context, arg UpdateUserLoginStateParams) error
+	UpdateVehicle(ctx context.Context, arg UpdateVehicleParams) (int64, error)
 }
 
 var _ Querier = (*Queries)(nil)

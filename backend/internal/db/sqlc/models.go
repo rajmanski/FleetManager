@@ -6,7 +6,53 @@ package sqlc
 
 import (
 	"database/sql"
+	"database/sql/driver"
+	"fmt"
 )
+
+type VehiclesStatus string
+
+const (
+	VehiclesStatusAvailable VehiclesStatus = "Available"
+	VehiclesStatusInRoute   VehiclesStatus = "InRoute"
+	VehiclesStatusService   VehiclesStatus = "Service"
+	VehiclesStatusInactive  VehiclesStatus = "Inactive"
+)
+
+func (e *VehiclesStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = VehiclesStatus(s)
+	case string:
+		*e = VehiclesStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for VehiclesStatus: %T", src)
+	}
+	return nil
+}
+
+type NullVehiclesStatus struct {
+	VehiclesStatus VehiclesStatus `json:"vehicles_status"`
+	Valid          bool           `json:"valid"` // Valid is true if VehiclesStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullVehiclesStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.VehiclesStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.VehiclesStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullVehiclesStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.VehiclesStatus), nil
+}
 
 type Role struct {
 	RoleID      int32          `json:"role_id"`
@@ -24,4 +70,19 @@ type User struct {
 	IsActive            sql.NullBool  `json:"is_active"`
 	FailedLoginAttempts sql.NullInt32 `json:"failed_login_attempts"`
 	LockedUntil         sql.NullTime  `json:"locked_until"`
+}
+
+type Vehicle struct {
+	VehicleID        int32              `json:"vehicle_id"`
+	Vin              string             `json:"vin"`
+	PlateNumber      sql.NullString     `json:"plate_number"`
+	Brand            sql.NullString     `json:"brand"`
+	Model            sql.NullString     `json:"model"`
+	ProductionYear   sql.NullInt16      `json:"production_year"`
+	CapacityKg       sql.NullInt32      `json:"capacity_kg"`
+	CurrentMileageKm sql.NullInt32      `json:"current_mileage_km"`
+	Status           NullVehiclesStatus `json:"status"`
+	DeletedAt        sql.NullTime       `json:"deleted_at"`
+	CreatedAt        sql.NullTime       `json:"created_at"`
+	UpdatedAt        sql.NullTime       `json:"updated_at"`
 }

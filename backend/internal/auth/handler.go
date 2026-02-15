@@ -78,12 +78,30 @@ func (h *Handler) Refresh(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+func (h *Handler) Logout(c *gin.Context) {
+	h.clearRefreshTokenCookie(c)
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
 func (h *Handler) setRefreshTokenCookie(c *gin.Context, refreshToken string) {
 	c.SetSameSite(http.SameSiteStrictMode)
 	c.SetCookie(
 		"refresh_token",
 		refreshToken,
 		int(RefreshTokenTTL.Seconds()),
+		"/",
+		"",
+		h.cookieSecure,
+		true,
+	)
+}
+
+func (h *Handler) clearRefreshTokenCookie(c *gin.Context) {
+	c.SetSameSite(http.SameSiteStrictMode)
+	c.SetCookie(
+		"refresh_token",
+		"",
+		-1,
 		"/",
 		"",
 		h.cookieSecure,

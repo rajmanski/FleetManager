@@ -1,5 +1,10 @@
 import axios from 'axios'
-import { clearAccessToken, getAccessToken, saveAccessToken } from '@/services/authStorage'
+import {
+  broadcastLogout,
+  clearAccessToken,
+  getAccessToken,
+  saveAccessToken,
+} from '@/services/authStorage'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 const SESSION_EXPIRED_MESSAGE_KEY = 'session_expired_message'
@@ -93,6 +98,7 @@ const tryRefreshAccessToken = async (): Promise<string | null> => {
     })
     .catch(() => {
       clearAccessToken()
+      broadcastLogout()
       redirectToLogin()
       return null
     })
@@ -134,5 +140,14 @@ export const getSessionExpiredMessage = () =>
 
 export const clearSessionExpiredMessage = () =>
   sessionStorage.removeItem(SESSION_EXPIRED_MESSAGE_KEY)
+
+export const logout = async () => {
+  try {
+    await refreshClient.post('/api/v1/auth/logout')
+  } finally {
+    clearAccessToken()
+    broadcastLogout()
+  }
+}
 
 export default api

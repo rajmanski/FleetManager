@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Link, Outlet, useLocation } from 'react-router-dom'
-import { BarChart3, Settings, Truck, Users } from 'lucide-react'
-import { getStoredRole } from '@/services/authStorage'
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { BarChart3, LogOut, Truck, Users } from 'lucide-react'
+import { getStoredRole, subscribeToLogout } from '@/services/authStorage'
 import {
   clearSessionExpiredMessage,
   getSessionExpiredMessage,
   initAuthSessionManagement,
+  logout,
 } from '@/services/api'
 
 const formatRole = (role: string | null): string => {
@@ -17,6 +18,7 @@ const formatRole = (role: string | null): string => {
 
 function App() {
   const location = useLocation()
+  const navigate = useNavigate()
   const role = getStoredRole()
   const [sessionMessage] = useState<string | null>(() => {
     const message = getSessionExpiredMessage()
@@ -29,6 +31,17 @@ function App() {
   useEffect(() => {
     initAuthSessionManagement()
   }, [])
+
+  useEffect(() => {
+    return subscribeToLogout(() => {
+      navigate('/login', { replace: true })
+    })
+  }, [navigate])
+
+  const handleLogout = async () => {
+    await logout()
+    navigate('/login', { replace: true })
+  }
 
   const navItemClass = (active: boolean) =>
     `w-full flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
@@ -54,8 +67,12 @@ function App() {
                 <p className="text-sm">Current user</p>
                 <p className="text-xs text-gray-600">{formatRole(role)}</p>
               </div>
-              <button className="rounded-lg p-2 transition-colors hover:bg-gray-100" type="button">
-                <Settings className="size-5 text-gray-700" />
+              <button
+                className="rounded-lg p-2 transition-colors hover:bg-gray-100"
+                type="button"
+                onClick={() => void handleLogout()}
+              >
+                <LogOut className="size-5 text-gray-700" />
               </button>
             </div>
           </div>

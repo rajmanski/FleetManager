@@ -252,3 +252,25 @@ func (q *Queries) UpdateVehicle(ctx context.Context, arg UpdateVehicleParams) (i
 	}
 	return result.RowsAffected()
 }
+
+const updateVehicleStatus = `-- name: UpdateVehicleStatus :execrows
+UPDATE Vehicles
+SET
+  status = ?,
+  updated_at = NOW()
+WHERE vehicle_id = ?
+  AND deleted_at IS NULL
+`
+
+type UpdateVehicleStatusParams struct {
+	Status    NullVehiclesStatus `json:"status"`
+	VehicleID int32              `json:"vehicle_id"`
+}
+
+func (q *Queries) UpdateVehicleStatus(ctx context.Context, arg UpdateVehicleStatusParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateVehicleStatus, arg.Status, arg.VehicleID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}

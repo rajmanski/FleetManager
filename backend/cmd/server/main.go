@@ -121,6 +121,11 @@ func main() {
 		auth.RBACMiddleware(auth.ResourceVehicles, auth.PermissionWrite),
 		vehiclesHandler.DeleteVehicle,
 	)
+	protected.PATCH(
+		"/vehicles/:id/status",
+		auth.RBACMiddleware(auth.ResourceVehicles, auth.PermissionWrite),
+		vehiclesHandler.UpdateVehicleStatus,
+	)
 
 	protected.GET("/db-check", func(c *gin.Context) {
 		var one int

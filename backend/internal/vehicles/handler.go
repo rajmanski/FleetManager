@@ -145,6 +145,37 @@ func (h *Handler) DeleteVehicle(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
+func (h *Handler) UpdateVehicleStatus(c *gin.Context) {
+	vehicleID, err := parseVehicleIDParam(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle id"})
+		return
+	}
+
+	var req UpdateVehicleStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		return
+	}
+
+	vehicle, err := h.service.UpdateVehicleStatus(c.Request.Context(), vehicleID, req)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrInvalidInput), errors.Is(err, ErrInvalidStatus):
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			return
+		case errors.Is(err, ErrVehicleNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": "vehicle not found"})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, vehicle)
+}
+
 func parseVehicleIDParam(c *gin.Context) (int64, error) {
 	value := c.Param("id")
 	vehicleID, err := strconv.ParseInt(value, 10, 64)

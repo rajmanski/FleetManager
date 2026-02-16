@@ -115,6 +115,22 @@ func (s *Service) DeleteVehicle(ctx context.Context, vehicleID int64) error {
 	return s.repo.DeleteVehicle(ctx, vehicleID)
 }
 
+func (s *Service) UpdateVehicleStatus(ctx context.Context, vehicleID int64, req UpdateVehicleStatusRequest) (Vehicle, error) {
+	if vehicleID <= 0 {
+		return Vehicle{}, ErrInvalidInput
+	}
+
+	status := normalizeStatus(req.Status)
+	if !isAllowedStatus(status) {
+		return Vehicle{}, ErrInvalidStatus
+	}
+
+	if err := s.repo.UpdateVehicleStatus(ctx, vehicleID, status); err != nil {
+		return Vehicle{}, err
+	}
+	return s.repo.GetVehicleByID(ctx, vehicleID)
+}
+
 func normalizeStatus(status string) string {
 	return strings.TrimSpace(status)
 }

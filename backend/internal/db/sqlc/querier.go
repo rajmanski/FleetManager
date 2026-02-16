@@ -24,6 +24,7 @@ type Querier interface {
 	UpdateAdminUser(ctx context.Context, arg UpdateAdminUserParams) (int64, error)
 	UpdateUserLoginState(ctx context.Context, arg UpdateUserLoginStateParams) error
 	UpdateVehicle(ctx context.Context, arg UpdateVehicleParams) (int64, error)
+	UpdateVehicleStatus(ctx context.Context, arg UpdateVehicleStatusParams) (int64, error)
 }
 
 var _ Querier = (*Queries)(nil)

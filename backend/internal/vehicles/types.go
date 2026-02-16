@@ -47,3 +47,7 @@ type UpdateVehicleRequest struct {
 	CurrentMileageKm *int32  `json:"current_mileage_km,omitempty"`
 	Status           string  `json:"status"`
 }
+
+type UpdateVehicleStatusRequest struct {
+	Status string `json:"status"`
+}

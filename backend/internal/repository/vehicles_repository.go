@@ -117,6 +117,20 @@ func (r *VehiclesRepository) DeleteVehicle(ctx context.Context, vehicleID int64)
 	return nil
 }
 
+func (r *VehiclesRepository) UpdateVehicleStatus(ctx context.Context, vehicleID int64, status string) error {
+	rows, err := r.queries.UpdateVehicleStatus(ctx, sqlc.UpdateVehicleStatusParams{
+		Status:    toNullStatus(status),
+		VehicleID: int32(vehicleID),
+	})
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return vehicles.ErrVehicleNotFound
+	}
+	return nil
+}
+
 func toNullString(value *string) sql.NullString {
 	if value == nil {
 		return sql.NullString{}

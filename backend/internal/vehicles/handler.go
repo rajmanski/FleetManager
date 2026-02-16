@@ -22,11 +22,22 @@ func (h *Handler) ListVehicles(c *gin.Context) {
 	page, _ := strconv.ParseInt(c.DefaultQuery("page", "1"), 10, 32)
 	limit, _ := strconv.ParseInt(c.DefaultQuery("limit", "50"), 10, 32)
 	status := c.Query("status")
+	includeDeleted := c.DefaultQuery("include_deleted", "false") == "true"
+
+	if includeDeleted {
+		roleValue, exists := c.Get(auth.ContextRoleKey)
+		role, roleOK := roleValue.(string)
+		if !exists || !roleOK || role != "Administrator" {
+			c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+			return
+		}
+	}
 
 	response, err := h.service.ListVehicles(c.Request.Context(), ListVehiclesQuery{
-		Status: status,
-		Page:   int32(page),
-		Limit:  int32(limit),
+		Status:         status,
+		IncludeDeleted: includeDeleted,
+		Page:           int32(page),
+		Limit:          int32(limit),
 	})
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) || errors.Is(err, ErrInvalidStatus) {

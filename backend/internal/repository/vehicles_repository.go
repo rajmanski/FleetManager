@@ -27,9 +27,14 @@ func (r *VehiclesRepository) ListVehicles(ctx context.Context, query vehicles.Li
 	if query.Status == "" {
 		filterColumnValue = ""
 	}
+	includeDeletedFilter := interface{}(0)
+	if query.IncludeDeleted {
+		includeDeletedFilter = 1
+	}
 
 	rows, err := r.queries.ListVehicles(ctx, sqlc.ListVehiclesParams{
-		Column1: filterColumnValue,
+		Column1: includeDeletedFilter,
+		Column2: filterColumnValue,
 		Status:  statusFilter,
 		Limit:   query.Limit,
 		Offset:  offset,
@@ -39,7 +44,8 @@ func (r *VehiclesRepository) ListVehicles(ctx context.Context, query vehicles.Li
 	}
 
 	total, err := r.queries.CountVehicles(ctx, sqlc.CountVehiclesParams{
-		Column1: filterColumnValue,
+		Column1: includeDeletedFilter,
+		Column2: filterColumnValue,
 		Status:  statusFilter,
 	})
 	if err != nil {
@@ -223,6 +229,10 @@ func mapVehicleRow(row sqlc.ListVehiclesRow) vehicles.Vehicle {
 	if row.CreatedAt.Valid {
 		value := row.CreatedAt.Time
 		vehicle.CreatedAt = &value
+	}
+	if row.DeletedAt.Valid {
+		value := row.DeletedAt.Time
+		vehicle.DeletedAt = &value
 	}
 	if row.UpdatedAt.Valid {
 		value := row.UpdatedAt.Time

@@ -38,9 +38,10 @@ func (s *Service) ListVehicles(ctx context.Context, query ListVehiclesQuery) (Li
 	}
 
 	rows, total, err := s.repo.ListVehicles(ctx, ListVehiclesQuery{
-		Status: status,
-		Page:   page,
-		Limit:  limit,
+		Status:         status,
+		IncludeDeleted: query.IncludeDeleted,
+		Page:           page,
+		Limit:          limit,
 	})
 	if err != nil {
 		return ListVehiclesResponse{}, err

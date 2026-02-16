@@ -13,17 +13,18 @@ import (
 const countVehicles = `-- name: CountVehicles :one
 SELECT COUNT(*)
 FROM Vehicles
-WHERE deleted_at IS NULL
+WHERE (? = 1 OR deleted_at IS NULL)
   AND (? = '' OR status = ?)
 `
 
 type CountVehiclesParams struct {
 	Column1 interface{}        `json:"column_1"`
+	Column2 interface{}        `json:"column_2"`
 	Status  NullVehiclesStatus `json:"status"`
 }
 
 func (q *Queries) CountVehicles(ctx context.Context, arg CountVehiclesParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countVehicles, arg.Column1, arg.Status)
+	row := q.db.QueryRowContext(ctx, countVehicles, arg.Column1, arg.Column2, arg.Status)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -180,10 +181,11 @@ SELECT
   capacity_kg,
   current_mileage_km,
   status,
+  deleted_at,
   created_at,
   updated_at
 FROM Vehicles
-WHERE deleted_at IS NULL
+WHERE (? = 1 OR deleted_at IS NULL)
   AND (? = '' OR status = ?)
 ORDER BY vehicle_id DESC
 LIMIT ? OFFSET ?
@@ -191,6 +193,7 @@ LIMIT ? OFFSET ?
 
 type ListVehiclesParams struct {
 	Column1 interface{}        `json:"column_1"`
+	Column2 interface{}        `json:"column_2"`
 	Status  NullVehiclesStatus `json:"status"`
 	Limit   int32              `json:"limit"`
 	Offset  int32              `json:"offset"`
@@ -205,6 +208,7 @@ type ListVehiclesRow struct {
 	CapacityKg       sql.NullInt32      `json:"capacity_kg"`
 	CurrentMileageKm sql.NullInt32      `json:"current_mileage_km"`
 	Status           NullVehiclesStatus `json:"status"`
+	DeletedAt        sql.NullTime       `json:"deleted_at"`
 	CreatedAt        sql.NullTime       `json:"created_at"`
 	UpdatedAt        sql.NullTime       `json:"updated_at"`
 }
@@ -212,6 +216,7 @@ type ListVehiclesRow struct {
 func (q *Queries) ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]ListVehiclesRow, error) {
 	rows, err := q.db.QueryContext(ctx, listVehicles,
 		arg.Column1,
+		arg.Column2,
 		arg.Status,
 		arg.Limit,
 		arg.Offset,
@@ -232,6 +237,7 @@ func (q *Queries) ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]L
 			&i.CapacityKg,
 			&i.CurrentMileageKm,
 			&i.Status,
+			&i.DeletedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {

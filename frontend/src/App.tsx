@@ -86,6 +86,13 @@ function App() {
               <BarChart3 className="size-5" />
               <span>Dashboard</span>
             </Link>
+            <Link
+              to="/vehicles"
+              className={navItemClass(location.pathname.startsWith('/vehicles'))}
+            >
+              <Truck className="size-5" />
+              <span>Vehicles</span>
+            </Link>
             {role === 'Administrator' && (
               <Link
                 to="/admin/users"

@@ -11,14 +11,16 @@ type Vehicle struct {
 	CapacityKg       *int32     `json:"capacity_kg,omitempty"`
 	CurrentMileageKm *int32     `json:"current_mileage_km,omitempty"`
 	Status           string     `json:"status"`
+	DeletedAt        *time.Time `json:"deleted_at,omitempty"`
 	CreatedAt        *time.Time `json:"created_at,omitempty"`
 	UpdatedAt        *time.Time `json:"updated_at,omitempty"`
 }
 
 type ListVehiclesQuery struct {
-	Status string
-	Page   int32
-	Limit  int32
+	Status         string
+	IncludeDeleted bool
+	Page           int32
+	Limit          int32
 }
 
 type ListVehiclesResponse struct {

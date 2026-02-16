@@ -8,10 +8,11 @@ SELECT
   capacity_kg,
   current_mileage_km,
   status,
+  deleted_at,
   created_at,
   updated_at
 FROM Vehicles
-WHERE deleted_at IS NULL
+WHERE (? = 1 OR deleted_at IS NULL)
   AND (? = '' OR status = ?)
 ORDER BY vehicle_id DESC
 LIMIT ? OFFSET ?;
@@ -19,7 +20,7 @@ LIMIT ? OFFSET ?;
 -- name: CountVehicles :one
 SELECT COUNT(*)
 FROM Vehicles
-WHERE deleted_at IS NULL
+WHERE (? = 1 OR deleted_at IS NULL)
   AND (? = '' OR status = ?);
 
 -- name: GetVehicleByID :one

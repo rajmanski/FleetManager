@@ -43,7 +43,7 @@ func main() {
 	usersRepository := repository.NewUsersRepository(queries)
 	usersService := users.NewService(usersRepository)
 	usersHandler := users.NewHandler(usersService)
-	vehiclesRepository := repository.NewVehiclesRepository(queries)
+	vehiclesRepository := repository.NewVehiclesRepository(dbConn, queries)
 	vehiclesService := vehicles.NewService(vehiclesRepository)
 	vehiclesHandler := vehicles.NewHandler(vehiclesService)
 

@@ -130,6 +130,10 @@ func (h *Handler) DeleteVehicle(c *gin.Context) {
 
 	err = h.service.DeleteVehicle(c.Request.Context(), vehicleID)
 	if err != nil {
+		if errors.Is(err, ErrVehicleHasActiveTrips) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Cannot delete vehicle with active trips"})
+			return
+		}
 		if errors.Is(err, ErrVehicleNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "vehicle not found"})
 			return

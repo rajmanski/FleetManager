@@ -13,11 +13,15 @@ import (
 )
 
 type VehiclesRepository struct {
+	db      *sql.DB
 	queries sqlc.Querier
 }
 
-func NewVehiclesRepository(queries sqlc.Querier) *VehiclesRepository {
-	return &VehiclesRepository{queries: queries}
+func NewVehiclesRepository(db *sql.DB, queries sqlc.Querier) *VehiclesRepository {
+	return &VehiclesRepository{
+		db:      db,
+		queries: queries,
+	}
 }
 
 func (r *VehiclesRepository) ListVehicles(ctx context.Context, query vehicles.ListVehiclesQuery) ([]vehicles.Vehicle, int64, error) {
@@ -115,6 +119,23 @@ func (r *VehiclesRepository) DeleteVehicle(ctx context.Context, vehicleID int64)
 		return vehicles.ErrVehicleNotFound
 	}
 	return nil
+}
+
+func (r *VehiclesRepository) HasActiveTrips(ctx context.Context, vehicleID int64) (bool, error) {
+	const query = `
+SELECT EXISTS(
+  SELECT 1
+  FROM Trips
+  WHERE vehicle_id = ?
+    AND status = 'Active'
+)
+`
+
+	var exists bool
+	if err := r.db.QueryRowContext(ctx, query, vehicleID).Scan(&exists); err != nil {
+		return false, err
+	}
+	return exists, nil
 }
 
 func (r *VehiclesRepository) UpdateVehicleStatus(ctx context.Context, vehicleID int64, status string) error {

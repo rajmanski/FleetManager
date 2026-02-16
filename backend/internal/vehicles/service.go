@@ -112,6 +112,14 @@ func (s *Service) DeleteVehicle(ctx context.Context, vehicleID int64) error {
 	if vehicleID <= 0 {
 		return ErrInvalidInput
 	}
+
+	hasActiveTrips, err := s.repo.HasActiveTrips(ctx, vehicleID)
+	if err != nil {
+		return err
+	}
+	if hasActiveTrips {
+		return ErrVehicleHasActiveTrips
+	}
 	return s.repo.DeleteVehicle(ctx, vehicleID)
 }
 

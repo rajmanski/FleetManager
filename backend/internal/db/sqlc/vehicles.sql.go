@@ -68,6 +68,21 @@ func (q *Queries) CreateVehicle(ctx context.Context, arg CreateVehicleParams) (i
 	return result.LastInsertId()
 }
 
+const getDeletedVehicleVINByID = `-- name: GetDeletedVehicleVINByID :one
+SELECT vin
+FROM Vehicles
+WHERE vehicle_id = ?
+  AND deleted_at IS NOT NULL
+LIMIT 1
+`
+
+func (q *Queries) GetDeletedVehicleVINByID(ctx context.Context, vehicleID int32) (string, error) {
+	row := q.db.QueryRowContext(ctx, getDeletedVehicleVINByID, vehicleID)
+	var vin string
+	err := row.Scan(&vin)
+	return vin, err
+}
+
 const getVehicleByID = `-- name: GetVehicleByID :one
 SELECT
   vehicle_id,
@@ -115,6 +130,44 @@ func (q *Queries) GetVehicleByID(ctx context.Context, vehicleID int32) (GetVehic
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const hasActiveTripsByVehicleID = `-- name: HasActiveTripsByVehicleID :one
+SELECT EXISTS(
+  SELECT 1
+  FROM Trips
+  WHERE vehicle_id = ?
+    AND status = 'Active'
+)
+`
+
+func (q *Queries) HasActiveTripsByVehicleID(ctx context.Context, vehicleID int32) (bool, error) {
+	row := q.db.QueryRowContext(ctx, hasActiveTripsByVehicleID, vehicleID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const hasActiveVehicleWithVINExcludingID = `-- name: HasActiveVehicleWithVINExcludingID :one
+SELECT EXISTS(
+  SELECT 1
+  FROM Vehicles
+  WHERE vin = ?
+    AND deleted_at IS NULL
+    AND vehicle_id <> ?
+)
+`
+
+type HasActiveVehicleWithVINExcludingIDParams struct {
+	Vin       string `json:"vin"`
+	VehicleID int32  `json:"vehicle_id"`
+}
+
+func (q *Queries) HasActiveVehicleWithVINExcludingID(ctx context.Context, arg HasActiveVehicleWithVINExcludingIDParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, hasActiveVehicleWithVINExcludingID, arg.Vin, arg.VehicleID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
 
 const listVehicles = `-- name: ListVehicles :many
@@ -193,6 +246,21 @@ func (q *Queries) ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]L
 		return nil, err
 	}
 	return items, nil
+}
+
+const restoreVehicleByID = `-- name: RestoreVehicleByID :execrows
+UPDATE Vehicles
+SET deleted_at = NULL, updated_at = NOW()
+WHERE vehicle_id = ?
+  AND deleted_at IS NOT NULL
+`
+
+func (q *Queries) RestoreVehicleByID(ctx context.Context, vehicleID int32) (int64, error) {
+	result, err := q.db.ExecContext(ctx, restoreVehicleByID, vehicleID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const softDeleteVehicle = `-- name: SoftDeleteVehicle :execrows

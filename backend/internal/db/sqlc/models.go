@@ -10,6 +10,50 @@ import (
 	"fmt"
 )
 
+type TripsStatus string
+
+const (
+	TripsStatusScheduled TripsStatus = "Scheduled"
+	TripsStatusActive    TripsStatus = "Active"
+	TripsStatusFinished  TripsStatus = "Finished"
+	TripsStatusAborted   TripsStatus = "Aborted"
+)
+
+func (e *TripsStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = TripsStatus(s)
+	case string:
+		*e = TripsStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for TripsStatus: %T", src)
+	}
+	return nil
+}
+
+type NullTripsStatus struct {
+	TripsStatus TripsStatus `json:"trips_status"`
+	Valid       bool        `json:"valid"` // Valid is true if TripsStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullTripsStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.TripsStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.TripsStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullTripsStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.TripsStatus), nil
+}
+
 type VehiclesStatus string
 
 const (
@@ -58,6 +102,12 @@ type Role struct {
 	RoleID      int32          `json:"role_id"`
 	RoleName    string         `json:"role_name"`
 	Description sql.NullString `json:"description"`
+}
+
+type Trip struct {
+	TripID    int32       `json:"trip_id"`
+	VehicleID int32       `json:"vehicle_id"`
+	Status    TripsStatus `json:"status"`
 }
 
 type User struct {

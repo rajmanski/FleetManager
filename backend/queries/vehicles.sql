@@ -78,3 +78,33 @@ UPDATE Vehicles
 SET deleted_at = NOW(), updated_at = NOW()
 WHERE vehicle_id = ?
   AND deleted_at IS NULL;
+
+-- name: HasActiveTripsByVehicleID :one
+SELECT EXISTS(
+  SELECT 1
+  FROM Trips
+  WHERE vehicle_id = ?
+    AND status = 'Active'
+);
+
+-- name: GetDeletedVehicleVINByID :one
+SELECT vin
+FROM Vehicles
+WHERE vehicle_id = ?
+  AND deleted_at IS NOT NULL
+LIMIT 1;
+
+-- name: HasActiveVehicleWithVINExcludingID :one
+SELECT EXISTS(
+  SELECT 1
+  FROM Vehicles
+  WHERE vin = ?
+    AND deleted_at IS NULL
+    AND vehicle_id <> ?
+);
+
+-- name: RestoreVehicleByID :execrows
+UPDATE Vehicles
+SET deleted_at = NULL, updated_at = NOW()
+WHERE vehicle_id = ?
+  AND deleted_at IS NOT NULL;

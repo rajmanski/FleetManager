@@ -13,15 +13,11 @@ import (
 )
 
 type VehiclesRepository struct {
-	db      *sql.DB
 	queries sqlc.Querier
 }
 
-func NewVehiclesRepository(db *sql.DB, queries sqlc.Querier) *VehiclesRepository {
-	return &VehiclesRepository{
-		db:      db,
-		queries: queries,
-	}
+func NewVehiclesRepository(queries sqlc.Querier) *VehiclesRepository {
+	return &VehiclesRepository{queries: queries}
 }
 
 func (r *VehiclesRepository) ListVehicles(ctx context.Context, query vehicles.ListVehiclesQuery) ([]vehicles.Vehicle, int64, error) {
@@ -122,20 +118,38 @@ func (r *VehiclesRepository) DeleteVehicle(ctx context.Context, vehicleID int64)
 }
 
 func (r *VehiclesRepository) HasActiveTrips(ctx context.Context, vehicleID int64) (bool, error) {
-	const query = `
-SELECT EXISTS(
-  SELECT 1
-  FROM Trips
-  WHERE vehicle_id = ?
-    AND status = 'Active'
-)
-`
+	return r.queries.HasActiveTripsByVehicleID(ctx, int32(vehicleID))
+}
 
-	var exists bool
-	if err := r.db.QueryRowContext(ctx, query, vehicleID).Scan(&exists); err != nil {
-		return false, err
+func (r *VehiclesRepository) RestoreVehicle(ctx context.Context, vehicleID int64) error {
+	vin, err := r.queries.GetDeletedVehicleVINByID(ctx, int32(vehicleID))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return vehicles.ErrVehicleNotFound
+		}
+		return err
 	}
-	return exists, nil
+
+	vinConflict, err := r.queries.HasActiveVehicleWithVINExcludingID(ctx, sqlc.HasActiveVehicleWithVINExcludingIDParams{
+		Vin:       vin,
+		VehicleID: int32(vehicleID),
+	})
+	if err != nil {
+		return err
+	}
+	if vinConflict {
+		return vehicles.ErrVehicleRestoreConflict
+	}
+
+	rows, err := r.queries.RestoreVehicleByID(ctx, int32(vehicleID))
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return vehicles.ErrVehicleNotFound
+	}
+
+	return nil
 }
 
 func (r *VehiclesRepository) UpdateVehicleStatus(ctx context.Context, vehicleID int64, status string) error {

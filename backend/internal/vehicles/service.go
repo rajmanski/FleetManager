@@ -139,6 +139,18 @@ func (s *Service) UpdateVehicleStatus(ctx context.Context, vehicleID int64, req 
 	return s.repo.GetVehicleByID(ctx, vehicleID)
 }
 
+func (s *Service) RestoreVehicle(ctx context.Context, vehicleID int64) (Vehicle, error) {
+	if vehicleID <= 0 {
+		return Vehicle{}, ErrInvalidInput
+	}
+
+	if err := s.repo.RestoreVehicle(ctx, vehicleID); err != nil {
+		return Vehicle{}, err
+	}
+
+	return s.repo.GetVehicleByID(ctx, vehicleID)
+}
+
 func normalizeStatus(status string) string {
 	return strings.TrimSpace(status)
 }

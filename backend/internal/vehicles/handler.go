@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"fleet-management/internal/auth"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -167,6 +169,46 @@ func (h *Handler) UpdateVehicleStatus(c *gin.Context) {
 		switch {
 		case errors.Is(err, ErrInvalidInput), errors.Is(err, ErrInvalidStatus):
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			return
+		case errors.Is(err, ErrVehicleNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": "vehicle not found"})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, vehicle)
+}
+
+func (h *Handler) RestoreVehicle(c *gin.Context) {
+	roleValue, exists := c.Get(auth.ContextRoleKey)
+	if !exists {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	role, ok := roleValue.(string)
+	if !ok || role != "Administrator" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	vehicleID, err := parseVehicleIDParam(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle id"})
+		return
+	}
+
+	vehicle, err := h.service.RestoreVehicle(c.Request.Context(), vehicleID)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrInvalidInput):
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			return
+		case errors.Is(err, ErrVehicleRestoreConflict):
+			c.JSON(http.StatusConflict, gin.H{"error": "vin conflicts with another active vehicle"})
 			return
 		case errors.Is(err, ErrVehicleNotFound):
 			c.JSON(http.StatusNotFound, gin.H{"error": "vehicle not found"})

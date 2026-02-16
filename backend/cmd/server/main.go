@@ -43,7 +43,7 @@ func main() {
 	usersRepository := repository.NewUsersRepository(queries)
 	usersService := users.NewService(usersRepository)
 	usersHandler := users.NewHandler(usersService)
-	vehiclesRepository := repository.NewVehiclesRepository(dbConn, queries)
+	vehiclesRepository := repository.NewVehiclesRepository(queries)
 	vehiclesService := vehicles.NewService(vehiclesRepository)
 	vehiclesHandler := vehicles.NewHandler(vehiclesService)
 
@@ -125,6 +125,11 @@ func main() {
 		"/vehicles/:id/status",
 		auth.RBACMiddleware(auth.ResourceVehicles, auth.PermissionWrite),
 		vehiclesHandler.UpdateVehicleStatus,
+	)
+	protected.PUT(
+		"/vehicles/:id/restore",
+		auth.RBACMiddleware(auth.ResourceVehicles, auth.PermissionWrite),
+		vehiclesHandler.RestoreVehicle,
 	)
 
 	protected.GET("/db-check", func(c *gin.Context) {

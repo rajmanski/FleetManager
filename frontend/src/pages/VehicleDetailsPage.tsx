@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
 import api from '@/services/api'
 import { getStoredRole } from '@/services/authStorage'
 import { isValidVin } from '@/utils/vin'
@@ -18,6 +19,17 @@ type Vehicle = {
   deleted_at?: string
   created_at?: string
   updated_at?: string
+}
+
+type VehicleMutationPayload = {
+  vin: string
+  plate_number?: string
+  brand: string
+  model: string
+  production_year: number
+  capacity_kg?: number
+  current_mileage_km: number
+  status: string
 }
 
 function VehicleDetailsPage() {
@@ -50,14 +62,7 @@ function VehicleDetailsPage() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: async (payload: {
-      vin: string
-      brand: string
-      model: string
-      production_year: number
-      current_mileage_km: number
-      status: string
-    }) => {
+    mutationFn: async (payload: VehicleMutationPayload) => {
       const res = await api.put<Vehicle>(`/api/v1/vehicles/${vehicleID}`, payload)
       return res.data
     },
@@ -112,8 +117,8 @@ function VehicleDetailsPage() {
           <Detail label="Mileage (km)" value={String(vehicle.current_mileage_km ?? 0)} />
           <Detail label="Capacity (kg)" value={vehicle.capacity_kg ? String(vehicle.capacity_kg) : '-'} />
           <Detail label="Plate number" value={vehicle.plate_number ?? '-'} />
-          <Detail label="Created at" value={vehicle.created_at ?? '-'} />
-          <Detail label="Updated at" value={vehicle.updated_at ?? '-'} />
+          <Detail label="Created at" value={formatDateTime(vehicle.created_at)} />
+          <Detail label="Updated at" value={formatDateTime(vehicle.updated_at)} />
         </dl>
       </div>
 
@@ -123,7 +128,7 @@ function VehicleDetailsPage() {
           <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">
             <p>Current snapshot: {vehicle.current_mileage_km} km</p>
             <p className="text-xs text-gray-500">
-              Recorded at: {vehicle.updated_at ?? vehicle.created_at ?? 'unknown'}
+              Recorded at: {formatDateTime(vehicle.updated_at ?? vehicle.created_at)}
             </p>
             <p className="mt-2 text-xs text-gray-500">Detailed mileage history is not available yet.</p>
           </div>
@@ -167,9 +172,11 @@ function VehicleDetailsPage() {
           submitLabel={updateMutation.isPending ? 'Saving...' : 'Save'}
           initialData={{
             vin: vehicle.vin,
+            plate_number: vehicle.plate_number ?? '',
             brand: vehicle.brand ?? '',
             model: vehicle.model ?? '',
             production_year: vehicle.production_year ?? new Date().getFullYear(),
+            capacity_kg: vehicle.capacity_kg?.toString() ?? '',
             current_mileage_km: vehicle.current_mileage_km ?? 0,
           }}
           status={vehicle.status}
@@ -197,23 +204,28 @@ type VehicleFormModalProps = {
   submitLabel: string
   initialData: {
     vin: string
+    plate_number: string
     brand: string
     model: string
     production_year: number
+    capacity_kg: string
     current_mileage_km: number
   }
   status: string
   onClose: () => void
-  onSubmit: (payload: {
-    vin: string
-    brand: string
-    model: string
-    production_year: number
-    current_mileage_km: number
-    status: string
-  }) => void
+  onSubmit: (payload: VehicleMutationPayload) => void
   isSubmitting: boolean
   errorMessage: string | null
+}
+
+type VehicleFormValues = {
+  vin: string
+  plate_number: string
+  brand: string
+  model: string
+  production_year: number
+  capacity_kg: string
+  current_mileage_km: number
 }
 
 function VehicleFormModal({
@@ -226,41 +238,33 @@ function VehicleFormModal({
   isSubmitting,
   errorMessage,
 }: VehicleFormModalProps) {
-  const [vin, setVin] = useState(initialData.vin)
-  const [brand, setBrand] = useState(initialData.brand)
-  const [model, setModel] = useState(initialData.model)
-  const [productionYear, setProductionYear] = useState(initialData.production_year.toString())
-  const [mileage, setMileage] = useState(initialData.current_mileage_km.toString())
-  const [localError, setLocalError] = useState<string | null>(null)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<VehicleFormValues>({
+    defaultValues: {
+      vin: initialData.vin,
+      plate_number: initialData.plate_number,
+      brand: initialData.brand,
+      model: initialData.model,
+      production_year: initialData.production_year,
+      capacity_kg: initialData.capacity_kg,
+      current_mileage_km: initialData.current_mileage_km,
+    },
+  })
 
-  const handleSubmit = () => {
-    const normalizedVIN = vin.trim().toUpperCase()
-    if (!isValidVin(normalizedVIN)) {
-      setLocalError('Invalid VIN format or checksum.')
-      return
-    }
-    if (!brand.trim() || !model.trim()) {
-      setLocalError('Brand and model are required.')
-      return
-    }
-    const yearNumber = Number(productionYear)
-    const mileageNumber = Number(mileage)
-    if (!Number.isInteger(yearNumber) || yearNumber < 1900 || yearNumber > 2100) {
-      setLocalError('Production year must be between 1900 and 2100.')
-      return
-    }
-    if (!Number.isFinite(mileageNumber) || mileageNumber < 0) {
-      setLocalError('Mileage must be a non-negative number.')
-      return
-    }
-
-    setLocalError(null)
+  const onFormSubmit = (data: VehicleFormValues) => {
+    const normalizedVIN = data.vin.trim().toUpperCase()
+    const capacityValue = data.capacity_kg.trim()
     onSubmit({
       vin: normalizedVIN,
-      brand: brand.trim(),
-      model: model.trim(),
-      production_year: yearNumber,
-      current_mileage_km: mileageNumber,
+      plate_number: data.plate_number.trim() === '' ? undefined : data.plate_number.trim(),
+      brand: data.brand.trim(),
+      model: data.model.trim(),
+      production_year: data.production_year,
+      capacity_kg: capacityValue === '' ? undefined : Number(capacityValue),
+      current_mileage_km: data.current_mileage_km,
       status,
     })
   }
@@ -269,46 +273,118 @@ function VehicleFormModal({
     <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-lg">
         <h2 className="text-lg font-semibold">{title}</h2>
-        <div className="mt-4 space-y-3">
-          <Field label="VIN">
-            <input value={vin} onChange={(e) => setVin(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+        <form className="mt-4 space-y-3" onSubmit={handleSubmit(onFormSubmit)}>
+          <Field label="VIN" error={errors.vin?.message}>
+            <input
+              {...register('vin', {
+                validate: (value) =>
+                  isValidVin(value.trim().toUpperCase()) || 'Invalid VIN format or checksum.',
+              })}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+            />
           </Field>
-          <Field label="Brand">
-            <input value={brand} onChange={(e) => setBrand(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+          <Field label="Plate number" error={errors.plate_number?.message}>
+            <input
+              {...register('plate_number')}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+            />
           </Field>
-          <Field label="Model">
-            <input value={model} onChange={(e) => setModel(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+          <Field label="Brand" error={errors.brand?.message}>
+            <input
+              {...register('brand', {
+                validate: (value) => value.trim() !== '' || 'Brand is required.',
+              })}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+            />
           </Field>
-          <Field label="Production year">
-            <input type="number" value={productionYear} onChange={(e) => setProductionYear(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+          <Field label="Model" error={errors.model?.message}>
+            <input
+              {...register('model', {
+                validate: (value) => value.trim() !== '' || 'Model is required.',
+              })}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+            />
           </Field>
-          <Field label="Mileage (km)">
-            <input type="number" value={mileage} onChange={(e) => setMileage(e.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm" />
+          <Field label="Production year" error={errors.production_year?.message}>
+            <input
+              type="number"
+              {...register('production_year', {
+                valueAsNumber: true,
+                validate: (value) =>
+                  (Number.isInteger(value) && value >= 1900 && value <= 2100) ||
+                  'Production year must be between 1900 and 2100.',
+              })}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+            />
           </Field>
-        </div>
-        {(localError || errorMessage) && (
-          <p className="mt-3 text-sm text-red-600">{localError ?? errorMessage}</p>
-        )}
-        <div className="mt-5 flex justify-end gap-2">
-          <button type="button" onClick={onClose} className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+          <Field label="Capacity (kg)" error={errors.capacity_kg?.message}>
+            <input
+              type="number"
+              {...register('capacity_kg', {
+                validate: (value) =>
+                  value.trim() === '' ||
+                  (Number.isInteger(Number(value)) && Number(value) >= 0) ||
+                  'Capacity must be a non-negative integer.',
+              })}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+            />
+          </Field>
+          <Field label="Mileage (km)" error={errors.current_mileage_km?.message}>
+            <input
+              type="number"
+              {...register('current_mileage_km', {
+                valueAsNumber: true,
+                validate: (value) =>
+                  (Number.isFinite(value) && value >= 0) || 'Mileage must be a non-negative number.',
+              })}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+            />
+          </Field>
+          {errorMessage && <p className="mt-1 text-sm text-red-600">{errorMessage}</p>}
+          <div className="mt-5 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
             Cancel
-          </button>
-          <button type="button" onClick={handleSubmit} disabled={isSubmitting} className="rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60">
-            {submitLabel}
-          </button>
-        </div>
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
+            >
+              {submitLabel}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <div>
       <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
       {children}
+      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   )
+}
+
+function formatDateTime(value?: string): string {
+  if (!value) return '-'
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return value
+  return parsed.toLocaleString('pl-PL', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  })
 }
 
 function extractApiError(error: unknown): string | null {

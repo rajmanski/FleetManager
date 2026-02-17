@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
 import api from '@/services/api'
 import { getStoredRole } from '@/services/authStorage'
 import { isValidVin } from '@/utils/vin'
@@ -24,6 +25,16 @@ type ListVehiclesResponse = {
   page: number
   limit: number
   total: number
+}
+
+type VehicleMutationPayload = {
+  vin: string
+  plate_number?: string
+  brand: string
+  model: string
+  production_year: number
+  capacity_kg?: number
+  current_mileage_km: number
 }
 
 function VehiclesPage() {
@@ -65,13 +76,7 @@ function VehiclesPage() {
   })
 
   const createMutation = useMutation({
-    mutationFn: async (payload: {
-      vin: string
-      brand: string
-      model: string
-      production_year: number
-      current_mileage_km: number
-    }) => {
+    mutationFn: async (payload: VehicleMutationPayload) => {
       const res = await api.post<Vehicle>('/api/v1/vehicles', payload)
       return res.data
     },
@@ -87,14 +92,7 @@ function VehiclesPage() {
       payload,
     }: {
       id: number
-      payload: {
-        vin: string
-        brand: string
-        model: string
-        production_year: number
-        current_mileage_km: number
-        status: string
-      }
+      payload: VehicleMutationPayload & { status: string }
     }) => {
       const res = await api.put<Vehicle>(`/api/v1/vehicles/${id}`, payload)
       return res.data
@@ -333,9 +331,11 @@ function VehiclesPage() {
           submitLabel={updateMutation.isPending ? 'Saving...' : 'Save'}
           initialData={{
             vin: editVehicle.vin,
+            plate_number: editVehicle.plate_number ?? '',
             brand: editVehicle.brand ?? '',
             model: editVehicle.model ?? '',
             production_year: editVehicle.production_year ?? new Date().getFullYear(),
+            capacity_kg: editVehicle.capacity_kg?.toString() ?? '',
             current_mileage_km: editVehicle.current_mileage_km ?? 0,
           }}
           onClose={() => setEditVehicle(null)}
@@ -361,21 +361,27 @@ type VehicleFormModalProps = {
   submitLabel: string
   initialData?: {
     vin: string
+    plate_number: string
     brand: string
     model: string
     production_year: number
+    capacity_kg: string
     current_mileage_km: number
   }
   onClose: () => void
-  onSubmit: (payload: {
-    vin: string
-    brand: string
-    model: string
-    production_year: number
-    current_mileage_km: number
-  }) => void
+  onSubmit: (payload: VehicleMutationPayload) => void
   isSubmitting: boolean
   errorMessage: string | null
+}
+
+type VehicleFormValues = {
+  vin: string
+  plate_number: string
+  brand: string
+  model: string
+  production_year: number
+  capacity_kg: string
+  current_mileage_km: number
 }
 
 function VehicleFormModal({
@@ -387,44 +393,50 @@ function VehicleFormModal({
   isSubmitting,
   errorMessage,
 }: VehicleFormModalProps) {
-  const [vin, setVin] = useState(initialData?.vin ?? '')
-  const [brand, setBrand] = useState(initialData?.brand ?? '')
-  const [model, setModel] = useState(initialData?.model ?? '')
-  const [productionYear, setProductionYear] = useState(
-    initialData?.production_year?.toString() ?? String(new Date().getFullYear()),
-  )
-  const [mileage, setMileage] = useState(initialData?.current_mileage_km?.toString() ?? '0')
-  const [localError, setLocalError] = useState<string | null>(null)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<VehicleFormValues>({
+    defaultValues: {
+      vin: initialData?.vin ?? '',
+      plate_number: initialData?.plate_number ?? '',
+      brand: initialData?.brand ?? '',
+      model: initialData?.model ?? '',
+      production_year: initialData?.production_year ?? new Date().getFullYear(),
+      capacity_kg: initialData?.capacity_kg ?? '',
+      current_mileage_km: initialData?.current_mileage_km ?? 0,
+    },
+  })
 
-  const handleSubmit = () => {
-    const normalizedVIN = vin.trim().toUpperCase()
+  const onFormSubmit = (data: VehicleFormValues) => {
+    const normalizedVIN = data.vin.trim().toUpperCase()
     if (!isValidVin(normalizedVIN)) {
-      setLocalError('Invalid VIN format or checksum.')
       return
     }
-    if (!brand.trim() || !model.trim()) {
-      setLocalError('Brand and model are required.')
-      return
-    }
-
-    const yearNumber = Number(productionYear)
-    const mileageNumber = Number(mileage)
-    if (!Number.isInteger(yearNumber) || yearNumber < 1900 || yearNumber > 2100) {
-      setLocalError('Production year must be between 1900 and 2100.')
-      return
-    }
-    if (!Number.isFinite(mileageNumber) || mileageNumber < 0) {
-      setLocalError('Mileage must be a non-negative number.')
+    if (!data.brand.trim() || !data.model.trim()) {
       return
     }
 
-    setLocalError(null)
+    if (!Number.isInteger(data.production_year) || data.production_year < 1900 || data.production_year > 2100) {
+      return
+    }
+    if (!Number.isFinite(data.current_mileage_km) || data.current_mileage_km < 0) {
+      return
+    }
+    const capacityValue = data.capacity_kg.trim()
+    if (capacityValue !== '' && (!Number.isInteger(Number(capacityValue)) || Number(capacityValue) < 0)) {
+      return
+    }
+
     onSubmit({
       vin: normalizedVIN,
-      brand: brand.trim(),
-      model: model.trim(),
-      production_year: yearNumber,
-      current_mileage_km: mileageNumber,
+      plate_number: data.plate_number.trim() === '' ? undefined : data.plate_number.trim(),
+      brand: data.brand.trim(),
+      model: data.model.trim(),
+      production_year: data.production_year,
+      capacity_kg: capacityValue === '' ? undefined : Number(capacityValue),
+      current_mileage_km: data.current_mileage_km,
     })
   }
 
@@ -432,52 +444,79 @@ function VehicleFormModal({
     <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-lg">
         <h2 className="text-lg font-semibold">{title}</h2>
-        <div className="mt-4 space-y-3">
-          <FormField label="VIN">
+        <form className="mt-4 space-y-3" onSubmit={handleSubmit(onFormSubmit)}>
+          <FormField label="VIN" error={errors.vin?.message}>
             <input
               type="text"
-              value={vin}
-              onChange={(event) => setVin(event.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              {...register('vin', {
+                validate: (value) =>
+                  isValidVin(value.trim().toUpperCase()) || 'Invalid VIN format or checksum.',
+              })}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
             />
           </FormField>
-          <FormField label="Brand">
+          <FormField label="Plate number" error={errors.plate_number?.message}>
             <input
               type="text"
-              value={brand}
-              onChange={(event) => setBrand(event.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              {...register('plate_number')}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
             />
           </FormField>
-          <FormField label="Model">
+          <FormField label="Brand" error={errors.brand?.message}>
             <input
               type="text"
-              value={model}
-              onChange={(event) => setModel(event.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              {...register('brand', {
+                validate: (value) => value.trim() !== '' || 'Brand is required.',
+              })}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
             />
           </FormField>
-          <FormField label="Production year">
+          <FormField label="Model" error={errors.model?.message}>
+            <input
+              type="text"
+              {...register('model', {
+                validate: (value) => value.trim() !== '' || 'Model is required.',
+              })}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+            />
+          </FormField>
+          <FormField label="Production year" error={errors.production_year?.message}>
             <input
               type="number"
-              value={productionYear}
-              onChange={(event) => setProductionYear(event.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              {...register('production_year', {
+                valueAsNumber: true,
+                validate: (value) =>
+                  (Number.isInteger(value) && value >= 1900 && value <= 2100) ||
+                  'Production year must be between 1900 and 2100.',
+              })}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
             />
           </FormField>
-          <FormField label="Mileage (km)">
+          <FormField label="Capacity (kg)" error={errors.capacity_kg?.message}>
             <input
               type="number"
-              value={mileage}
-              onChange={(event) => setMileage(event.target.value)}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              {...register('capacity_kg', {
+                validate: (value) =>
+                  value.trim() === '' ||
+                  (Number.isInteger(Number(value)) && Number(value) >= 0) ||
+                  'Capacity must be a non-negative integer.',
+              })}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
             />
           </FormField>
-        </div>
-        {(localError || errorMessage) && (
-          <p className="mt-3 text-sm text-red-600">{localError ?? errorMessage}</p>
-        )}
-        <div className="mt-5 flex justify-end gap-2">
+          <FormField label="Mileage (km)" error={errors.current_mileage_km?.message}>
+            <input
+              type="number"
+              {...register('current_mileage_km', {
+                valueAsNumber: true,
+                validate: (value) =>
+                  (Number.isFinite(value) && value >= 0) || 'Mileage must be a non-negative number.',
+              })}
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+            />
+          </FormField>
+          {errorMessage && <p className="mt-1 text-sm text-red-600">{errorMessage}</p>}
+          <div className="mt-5 flex justify-end gap-2">
           <button
             type="button"
             onClick={onClose}
@@ -486,14 +525,14 @@ function VehicleFormModal({
             Cancel
           </button>
           <button
-            type="button"
-            onClick={handleSubmit}
+            type="submit"
             disabled={isSubmitting}
             className="rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
           >
             {submitLabel}
           </button>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   )
@@ -501,15 +540,18 @@ function VehicleFormModal({
 
 function FormField({
   label,
+  error,
   children,
 }: {
   label: string
+  error?: string
   children: React.ReactNode
 }) {
   return (
     <div>
       <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
       {children}
+      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   )
 }

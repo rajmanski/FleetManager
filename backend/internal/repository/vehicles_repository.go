@@ -137,7 +137,14 @@ func (r *VehiclesRepository) DeleteVehicle(ctx context.Context, vehicleID int64)
 }
 
 func (r *VehiclesRepository) HasActiveTrips(ctx context.Context, vehicleID int64) (bool, error) {
-	return r.queries.HasActiveTripsByVehicleID(ctx, int32(vehicleID))
+	hasActive, err := r.queries.HasActiveTripsByVehicleID(ctx, int32(vehicleID))
+	if err != nil {
+		if isTableNotFoundError(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	return hasActive, nil
 }
 
 func (r *VehiclesRepository) RestoreVehicle(ctx context.Context, vehicleID int64) error {
@@ -309,4 +316,9 @@ func mapGetVehicleRow(row sqlc.GetVehicleByIDRow) vehicles.Vehicle {
 func isDuplicateEntryError(err error) bool {
 	var mysqlErr *mysqlDriver.MySQLError
 	return errors.As(err, &mysqlErr) && mysqlErr.Number == 1062
+}
+
+func isTableNotFoundError(err error) bool {
+	var mysqlErr *mysqlDriver.MySQLError
+	return errors.As(err, &mysqlErr) && mysqlErr.Number == 1146
 }

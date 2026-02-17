@@ -22,6 +22,7 @@ func (h *Handler) ListVehicles(c *gin.Context) {
 	page, _ := strconv.ParseInt(c.DefaultQuery("page", "1"), 10, 32)
 	limit, _ := strconv.ParseInt(c.DefaultQuery("limit", "50"), 10, 32)
 	status := c.Query("status")
+	search := c.Query("q")
 	includeDeleted := c.DefaultQuery("include_deleted", "false") == "true"
 
 	if includeDeleted {
@@ -35,6 +36,7 @@ func (h *Handler) ListVehicles(c *gin.Context) {
 
 	response, err := h.service.ListVehicles(c.Request.Context(), ListVehiclesQuery{
 		Status:         status,
+		Search:         search,
 		IncludeDeleted: includeDeleted,
 		Page:           int32(page),
 		Limit:          int32(limit),

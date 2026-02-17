@@ -36,9 +36,11 @@ func (s *Service) ListVehicles(ctx context.Context, query ListVehiclesQuery) (Li
 	if status != "" && !isAllowedStatus(status) {
 		return ListVehiclesResponse{}, ErrInvalidStatus
 	}
+	search := strings.TrimSpace(query.Search)
 
 	rows, total, err := s.repo.ListVehicles(ctx, ListVehiclesQuery{
 		Status:         status,
+		Search:         search,
 		IncludeDeleted: query.IncludeDeleted,
 		Page:           page,
 		Limit:          limit,

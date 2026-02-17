@@ -27,15 +27,21 @@ function VehiclesPage() {
   const role = getStoredRole()
   const isAdmin = role === 'Administrator'
   const [showDeleted, setShowDeleted] = useState(false)
+  const [statusFilter, setStatusFilter] = useState('')
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(20)
   const queryClient = useQueryClient()
 
   const vehiclesQuery = useQuery({
-    queryKey: ['vehicles', { showDeleted }],
+    queryKey: ['vehicles', { showDeleted, statusFilter, search, page, limit }],
     queryFn: async () => {
       const res = await api.get<ListVehiclesResponse>('/api/v1/vehicles', {
         params: {
-          page: 1,
-          limit: 100,
+          page,
+          limit,
+          status: statusFilter,
+          q: search.trim(),
           include_deleted: isAdmin && showDeleted ? 'true' : 'false',
         },
       })
@@ -54,6 +60,33 @@ function VehiclesPage() {
   })
 
   const vehicles = useMemo(() => vehiclesQuery.data?.data ?? [], [vehiclesQuery.data])
+  const total = vehiclesQuery.data?.total ?? 0
+  const totalPages = Math.max(1, Math.ceil(total / limit))
+  const canGoPrev = page > 1
+  const canGoNext = page < totalPages
+
+  const handlePrevPage = () => {
+    if (canGoPrev) setPage((prev) => prev - 1)
+  }
+
+  const handleNextPage = () => {
+    if (canGoNext) setPage((prev) => prev + 1)
+  }
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value)
+    setPage(1)
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    setPage(1)
+  }
+
+  const handleLimitChange = (value: number) => {
+    setLimit(value)
+    setPage(1)
+  }
 
   return (
     <div className="space-y-6">
@@ -62,12 +95,63 @@ function VehiclesPage() {
           <h2>Vehicles</h2>
           <p className="text-gray-600">Fleet vehicles list with archived records handling</p>
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-4">
+        <div className="min-w-44">
+          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+            Status
+          </label>
+          <select
+            value={statusFilter}
+            onChange={(event) => handleStatusFilterChange(event.target.value)}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+          >
+            <option value="">All</option>
+            <option value="Available">Available</option>
+            <option value="InRoute">InRoute</option>
+            <option value="Service">Service</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+        </div>
+
+        <div className="min-w-56 flex-1">
+          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+            Search
+          </label>
+          <input
+            type="text"
+            value={search}
+            onChange={(event) => handleSearchChange(event.target.value)}
+            placeholder="Search by VIN or brand"
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="min-w-32">
+          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
+            Rows
+          </label>
+          <select
+            value={limit}
+            onChange={(event) => handleLimitChange(Number(event.target.value))}
+            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+          >
+            <option value={20}>20</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select>
+        </div>
+
         {isAdmin && (
           <label className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700">
             <input
               type="checkbox"
               checked={showDeleted}
-              onChange={(event) => setShowDeleted(event.target.checked)}
+              onChange={(event) => {
+                setShowDeleted(event.target.checked)
+                setPage(1)
+              }}
             />
             Show deleted
           </label>
@@ -82,7 +166,11 @@ function VehiclesPage() {
       )}
 
       {vehiclesQuery.isSuccess && (
-        <div className="rounded-lg border border-gray-200 bg-white">
+        <div className="space-y-3">
+          <div className="text-sm text-gray-600">
+            Showing page {page} of {totalPages} ({total} results)
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
               <thead className="bg-gray-50">
@@ -129,6 +217,25 @@ function VehiclesPage() {
                 })}
               </tbody>
             </table>
+          </div>
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={handlePrevPage}
+              disabled={!canGoPrev}
+              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              onClick={handleNextPage}
+              disabled={!canGoNext}
+              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 disabled:opacity-50"
+            >
+              Next
+            </button>
           </div>
         </div>
       )}

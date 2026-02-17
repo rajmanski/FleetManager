@@ -18,6 +18,7 @@ type Vehicle struct {
 
 type ListVehiclesQuery struct {
 	Status         string
+	Search         string
 	IncludeDeleted bool
 	Page           int32
 	Limit          int32

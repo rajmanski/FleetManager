@@ -14,17 +14,28 @@ const countVehicles = `-- name: CountVehicles :one
 SELECT COUNT(*)
 FROM Vehicles
 WHERE (? = 1 OR deleted_at IS NULL)
+  AND (? = '' OR LOWER(vin) LIKE CONCAT('%', LOWER(?), '%') OR LOWER(brand) LIKE CONCAT('%', LOWER(?), '%'))
   AND (? = '' OR status = ?)
 `
 
 type CountVehiclesParams struct {
 	Column1 interface{}        `json:"column_1"`
 	Column2 interface{}        `json:"column_2"`
+	LOWER   string             `json:"LOWER"`
+	LOWER_2 string             `json:"LOWER_2"`
+	Column5 interface{}        `json:"column_5"`
 	Status  NullVehiclesStatus `json:"status"`
 }
 
 func (q *Queries) CountVehicles(ctx context.Context, arg CountVehiclesParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countVehicles, arg.Column1, arg.Column2, arg.Status)
+	row := q.db.QueryRowContext(ctx, countVehicles,
+		arg.Column1,
+		arg.Column2,
+		arg.LOWER,
+		arg.LOWER_2,
+		arg.Column5,
+		arg.Status,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -186,6 +197,7 @@ SELECT
   updated_at
 FROM Vehicles
 WHERE (? = 1 OR deleted_at IS NULL)
+  AND (? = '' OR LOWER(vin) LIKE CONCAT('%', LOWER(?), '%') OR LOWER(brand) LIKE CONCAT('%', LOWER(?), '%'))
   AND (? = '' OR status = ?)
 ORDER BY vehicle_id DESC
 LIMIT ? OFFSET ?
@@ -194,6 +206,9 @@ LIMIT ? OFFSET ?
 type ListVehiclesParams struct {
 	Column1 interface{}        `json:"column_1"`
 	Column2 interface{}        `json:"column_2"`
+	LOWER   string             `json:"LOWER"`
+	LOWER_2 string             `json:"LOWER_2"`
+	Column5 interface{}        `json:"column_5"`
 	Status  NullVehiclesStatus `json:"status"`
 	Limit   int32              `json:"limit"`
 	Offset  int32              `json:"offset"`
@@ -217,6 +232,9 @@ func (q *Queries) ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]L
 	rows, err := q.db.QueryContext(ctx, listVehicles,
 		arg.Column1,
 		arg.Column2,
+		arg.LOWER,
+		arg.LOWER_2,
+		arg.Column5,
 		arg.Status,
 		arg.Limit,
 		arg.Offset,

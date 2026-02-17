@@ -13,6 +13,7 @@ SELECT
   updated_at
 FROM Vehicles
 WHERE (? = 1 OR deleted_at IS NULL)
+  AND (? = '' OR LOWER(vin) LIKE CONCAT('%', LOWER(?), '%') OR LOWER(brand) LIKE CONCAT('%', LOWER(?), '%'))
   AND (? = '' OR status = ?)
 ORDER BY vehicle_id DESC
 LIMIT ? OFFSET ?;
@@ -21,6 +22,7 @@ LIMIT ? OFFSET ?;
 SELECT COUNT(*)
 FROM Vehicles
 WHERE (? = 1 OR deleted_at IS NULL)
+  AND (? = '' OR LOWER(vin) LIKE CONCAT('%', LOWER(?), '%') OR LOWER(brand) LIKE CONCAT('%', LOWER(?), '%'))
   AND (? = '' OR status = ?);
 
 -- name: GetVehicleByID :one

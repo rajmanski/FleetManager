@@ -23,9 +23,14 @@ func NewVehiclesRepository(queries sqlc.Querier) *VehiclesRepository {
 func (r *VehiclesRepository) ListVehicles(ctx context.Context, query vehicles.ListVehiclesQuery) ([]vehicles.Vehicle, int64, error) {
 	offset := (query.Page - 1) * query.Limit
 	statusFilter := toNullStatus(query.Status)
-	filterColumnValue := interface{}(query.Status)
+	statusColumnValue := interface{}(query.Status)
 	if query.Status == "" {
-		filterColumnValue = ""
+		statusColumnValue = ""
+	}
+	searchFilter := query.Search
+	searchColumnValue := interface{}(searchFilter)
+	if searchFilter == "" {
+		searchColumnValue = ""
 	}
 	includeDeletedFilter := interface{}(0)
 	if query.IncludeDeleted {
@@ -34,7 +39,10 @@ func (r *VehiclesRepository) ListVehicles(ctx context.Context, query vehicles.Li
 
 	rows, err := r.queries.ListVehicles(ctx, sqlc.ListVehiclesParams{
 		Column1: includeDeletedFilter,
-		Column2: filterColumnValue,
+		Column2: searchColumnValue,
+		LOWER:   searchFilter,
+		LOWER_2: searchFilter,
+		Column5: statusColumnValue,
 		Status:  statusFilter,
 		Limit:   query.Limit,
 		Offset:  offset,
@@ -45,7 +53,10 @@ func (r *VehiclesRepository) ListVehicles(ctx context.Context, query vehicles.Li
 
 	total, err := r.queries.CountVehicles(ctx, sqlc.CountVehiclesParams{
 		Column1: includeDeletedFilter,
-		Column2: filterColumnValue,
+		Column2: searchColumnValue,
+		LOWER:   searchFilter,
+		LOWER_2: searchFilter,
+		Column5: statusColumnValue,
 		Status:  statusFilter,
 	})
 	if err != nil {

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trash2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import api from '@/services/api'
 import { getStoredRole } from '@/services/authStorage'
 import { isValidVin } from '@/utils/vin'
@@ -243,7 +244,14 @@ function VehiclesPage() {
                   const isDeleted = Boolean(vehicle.deleted_at)
                   return (
                     <tr key={vehicle.id} className={isDeleted ? 'bg-gray-100 text-gray-500' : ''}>
-                      <td className="px-4 py-3">{vehicle.vin}</td>
+                      <td className="px-4 py-3">
+                        <Link
+                          to={`/vehicles/${vehicle.id}`}
+                          className="text-slate-700 underline-offset-2 hover:underline"
+                        >
+                          {vehicle.vin}
+                        </Link>
+                      </td>
                       <td className="px-4 py-3">{vehicle.brand ?? '-'}</td>
                       <td className="px-4 py-3">{vehicle.model ?? '-'}</td>
                       <td className="px-4 py-3">{vehicle.production_year ?? '-'}</td>

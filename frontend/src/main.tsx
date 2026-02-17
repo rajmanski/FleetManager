@@ -7,6 +7,7 @@ import App from './App.tsx'
 import DashboardPage from './pages/DashboardPage.tsx'
 import LoginPage from './pages/LoginPage.tsx'
 import UsersPage from './pages/UsersPage.tsx'
+import VehicleDetailsPage from './pages/VehicleDetailsPage.tsx'
 import VehiclesPage from './pages/VehiclesPage.tsx'
 import RequireAuth from './routes/RequireAuth.tsx'
 
@@ -29,6 +30,7 @@ createRoot(document.getElementById('root')!).render(
             <Route index element={<DashboardPage />} />
             <Route path="admin/users" element={<UsersPage />} />
             <Route path="vehicles" element={<VehiclesPage />} />
+            <Route path="vehicles/:id" element={<VehicleDetailsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

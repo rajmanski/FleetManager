@@ -5,6 +5,7 @@ SELECT
   plate_number,
   brand,
   model,
+  production_year,
   capacity_kg,
   current_mileage_km,
   status,
@@ -32,6 +33,7 @@ SELECT
   plate_number,
   brand,
   model,
+  production_year,
   capacity_kg,
   current_mileage_km,
   status,
@@ -48,11 +50,12 @@ INSERT INTO Vehicles (
   plate_number,
   brand,
   model,
+  production_year,
   capacity_kg,
   current_mileage_km,
   status
 )
-VALUES (?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: UpdateVehicle :execrows
 UPDATE Vehicles
@@ -61,6 +64,7 @@ SET
   plate_number = ?,
   brand = ?,
   model = ?,
+  production_year = ?,
   capacity_kg = ?,
   current_mileage_km = ?,
   status = ?,

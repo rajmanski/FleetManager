@@ -20,7 +20,7 @@ type Querier interface {
 	HasActiveTripsByVehicleID(ctx context.Context, vehicleID int32) (bool, error)
 	HasActiveVehicleWithVINExcludingID(ctx context.Context, arg HasActiveVehicleWithVINExcludingIDParams) (bool, error)
 	ListAdminUsers(ctx context.Context) ([]ListAdminUsersRow, error)
-	ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]ListVehiclesRow, error)
+	ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]Vehicle, error)
 	RestoreVehicleByID(ctx context.Context, vehicleID int32) (int64, error)
 	SoftDeleteAdminUser(ctx context.Context, userID int32) (int64, error)
 	SoftDeleteVehicle(ctx context.Context, vehicleID int32) (int64, error)

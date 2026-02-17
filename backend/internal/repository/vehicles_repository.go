@@ -87,6 +87,7 @@ func (r *VehiclesRepository) CreateVehicle(ctx context.Context, input vehicles.C
 		PlateNumber:      toNullString(input.PlateNumber),
 		Brand:            toNullString(input.Brand),
 		Model:            toNullString(input.Model),
+		ProductionYear:   toNullInt16(input.ProductionYear),
 		CapacityKg:       toNullInt32(input.CapacityKg),
 		CurrentMileageKm: toNullInt32(input.CurrentMileageKm),
 		Status:           toNullStatus(input.Status),
@@ -106,6 +107,7 @@ func (r *VehiclesRepository) UpdateVehicle(ctx context.Context, vehicleID int64,
 		PlateNumber:      toNullString(input.PlateNumber),
 		Brand:            toNullString(input.Brand),
 		Model:            toNullString(input.Model),
+		ProductionYear:   toNullInt16(input.ProductionYear),
 		CapacityKg:       toNullInt32(input.CapacityKg),
 		CurrentMileageKm: toNullInt32(input.CurrentMileageKm),
 		Status:           toNullStatus(input.Status),
@@ -201,6 +203,13 @@ func toNullInt32(value *int32) sql.NullInt32 {
 	return sql.NullInt32{Int32: *value, Valid: true}
 }
 
+func toNullInt16(value *int16) sql.NullInt16 {
+	if value == nil {
+		return sql.NullInt16{}
+	}
+	return sql.NullInt16{Int16: *value, Valid: true}
+}
+
 func toNullStatus(status string) sqlc.NullVehiclesStatus {
 	if strings.TrimSpace(status) == "" {
 		return sqlc.NullVehiclesStatus{}
@@ -211,7 +220,7 @@ func toNullStatus(status string) sqlc.NullVehiclesStatus {
 	}
 }
 
-func mapVehicleRow(row sqlc.ListVehiclesRow) vehicles.Vehicle {
+func mapVehicleRow(row sqlc.Vehicle) vehicles.Vehicle {
 	vehicle := vehicles.Vehicle{
 		ID:     int64(row.VehicleID),
 		VIN:    row.Vin,
@@ -232,6 +241,10 @@ func mapVehicleRow(row sqlc.ListVehiclesRow) vehicles.Vehicle {
 	if row.CapacityKg.Valid {
 		value := row.CapacityKg.Int32
 		vehicle.CapacityKg = &value
+	}
+	if row.ProductionYear.Valid {
+		value := row.ProductionYear.Int16
+		vehicle.ProductionYear = &value
 	}
 	if row.CurrentMileageKm.Valid {
 		value := row.CurrentMileageKm.Int32
@@ -273,6 +286,10 @@ func mapGetVehicleRow(row sqlc.GetVehicleByIDRow) vehicles.Vehicle {
 	if row.CapacityKg.Valid {
 		value := row.CapacityKg.Int32
 		vehicle.CapacityKg = &value
+	}
+	if row.ProductionYear.Valid {
+		value := row.ProductionYear.Int16
+		vehicle.ProductionYear = &value
 	}
 	if row.CurrentMileageKm.Valid {
 		value := row.CurrentMileageKm.Int32

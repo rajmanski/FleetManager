@@ -47,11 +47,12 @@ INSERT INTO Vehicles (
   plate_number,
   brand,
   model,
+  production_year,
   capacity_kg,
   current_mileage_km,
   status
 )
-VALUES (?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateVehicleParams struct {
@@ -59,6 +60,7 @@ type CreateVehicleParams struct {
 	PlateNumber      sql.NullString     `json:"plate_number"`
 	Brand            sql.NullString     `json:"brand"`
 	Model            sql.NullString     `json:"model"`
+	ProductionYear   sql.NullInt16      `json:"production_year"`
 	CapacityKg       sql.NullInt32      `json:"capacity_kg"`
 	CurrentMileageKm sql.NullInt32      `json:"current_mileage_km"`
 	Status           NullVehiclesStatus `json:"status"`
@@ -70,6 +72,7 @@ func (q *Queries) CreateVehicle(ctx context.Context, arg CreateVehicleParams) (i
 		arg.PlateNumber,
 		arg.Brand,
 		arg.Model,
+		arg.ProductionYear,
 		arg.CapacityKg,
 		arg.CurrentMileageKm,
 		arg.Status,
@@ -102,6 +105,7 @@ SELECT
   plate_number,
   brand,
   model,
+  production_year,
   capacity_kg,
   current_mileage_km,
   status,
@@ -119,6 +123,7 @@ type GetVehicleByIDRow struct {
 	PlateNumber      sql.NullString     `json:"plate_number"`
 	Brand            sql.NullString     `json:"brand"`
 	Model            sql.NullString     `json:"model"`
+	ProductionYear   sql.NullInt16      `json:"production_year"`
 	CapacityKg       sql.NullInt32      `json:"capacity_kg"`
 	CurrentMileageKm sql.NullInt32      `json:"current_mileage_km"`
 	Status           NullVehiclesStatus `json:"status"`
@@ -135,6 +140,7 @@ func (q *Queries) GetVehicleByID(ctx context.Context, vehicleID int32) (GetVehic
 		&i.PlateNumber,
 		&i.Brand,
 		&i.Model,
+		&i.ProductionYear,
 		&i.CapacityKg,
 		&i.CurrentMileageKm,
 		&i.Status,
@@ -189,6 +195,7 @@ SELECT
   plate_number,
   brand,
   model,
+  production_year,
   capacity_kg,
   current_mileage_km,
   status,
@@ -214,21 +221,7 @@ type ListVehiclesParams struct {
 	Offset  int32              `json:"offset"`
 }
 
-type ListVehiclesRow struct {
-	VehicleID        int32              `json:"vehicle_id"`
-	Vin              string             `json:"vin"`
-	PlateNumber      sql.NullString     `json:"plate_number"`
-	Brand            sql.NullString     `json:"brand"`
-	Model            sql.NullString     `json:"model"`
-	CapacityKg       sql.NullInt32      `json:"capacity_kg"`
-	CurrentMileageKm sql.NullInt32      `json:"current_mileage_km"`
-	Status           NullVehiclesStatus `json:"status"`
-	DeletedAt        sql.NullTime       `json:"deleted_at"`
-	CreatedAt        sql.NullTime       `json:"created_at"`
-	UpdatedAt        sql.NullTime       `json:"updated_at"`
-}
-
-func (q *Queries) ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]ListVehiclesRow, error) {
+func (q *Queries) ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]Vehicle, error) {
 	rows, err := q.db.QueryContext(ctx, listVehicles,
 		arg.Column1,
 		arg.Column2,
@@ -243,15 +236,16 @@ func (q *Queries) ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]L
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListVehiclesRow
+	var items []Vehicle
 	for rows.Next() {
-		var i ListVehiclesRow
+		var i Vehicle
 		if err := rows.Scan(
 			&i.VehicleID,
 			&i.Vin,
 			&i.PlateNumber,
 			&i.Brand,
 			&i.Model,
+			&i.ProductionYear,
 			&i.CapacityKg,
 			&i.CurrentMileageKm,
 			&i.Status,
@@ -309,6 +303,7 @@ SET
   plate_number = ?,
   brand = ?,
   model = ?,
+  production_year = ?,
   capacity_kg = ?,
   current_mileage_km = ?,
   status = ?,
@@ -322,6 +317,7 @@ type UpdateVehicleParams struct {
 	PlateNumber      sql.NullString     `json:"plate_number"`
 	Brand            sql.NullString     `json:"brand"`
 	Model            sql.NullString     `json:"model"`
+	ProductionYear   sql.NullInt16      `json:"production_year"`
 	CapacityKg       sql.NullInt32      `json:"capacity_kg"`
 	CurrentMileageKm sql.NullInt32      `json:"current_mileage_km"`
 	Status           NullVehiclesStatus `json:"status"`
@@ -334,6 +330,7 @@ func (q *Queries) UpdateVehicle(ctx context.Context, arg UpdateVehicleParams) (i
 		arg.PlateNumber,
 		arg.Brand,
 		arg.Model,
+		arg.ProductionYear,
 		arg.CapacityKg,
 		arg.CurrentMileageKm,
 		arg.Status,

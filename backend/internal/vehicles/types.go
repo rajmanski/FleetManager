@@ -8,6 +8,7 @@ type Vehicle struct {
 	PlateNumber      *string    `json:"plate_number,omitempty"`
 	Brand            *string    `json:"brand,omitempty"`
 	Model            *string    `json:"model,omitempty"`
+	ProductionYear   *int16     `json:"production_year,omitempty"`
 	CapacityKg       *int32     `json:"capacity_kg,omitempty"`
 	CurrentMileageKm *int32     `json:"current_mileage_km,omitempty"`
 	Status           string     `json:"status"`
@@ -36,6 +37,7 @@ type CreateVehicleRequest struct {
 	PlateNumber      *string `json:"plate_number,omitempty"`
 	Brand            *string `json:"brand,omitempty"`
 	Model            *string `json:"model,omitempty"`
+	ProductionYear   *int16  `json:"production_year,omitempty"`
 	CapacityKg       *int32  `json:"capacity_kg,omitempty"`
 	CurrentMileageKm *int32  `json:"current_mileage_km,omitempty"`
 	Status           string  `json:"status,omitempty"`
@@ -46,6 +48,7 @@ type UpdateVehicleRequest struct {
 	PlateNumber      *string `json:"plate_number,omitempty"`
 	Brand            *string `json:"brand,omitempty"`
 	Model            *string `json:"model,omitempty"`
+	ProductionYear   *int16  `json:"production_year,omitempty"`
 	CapacityKg       *int32  `json:"capacity_kg,omitempty"`
 	CurrentMileageKm *int32  `json:"current_mileage_km,omitempty"`
 	Status           string  `json:"status"`

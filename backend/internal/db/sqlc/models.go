@@ -10,6 +10,49 @@ import (
 	"fmt"
 )
 
+type DriversStatus string
+
+const (
+	DriversStatusAvailable DriversStatus = "Available"
+	DriversStatusOnLeave   DriversStatus = "OnLeave"
+	DriversStatusInRoute   DriversStatus = "InRoute"
+)
+
+func (e *DriversStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DriversStatus(s)
+	case string:
+		*e = DriversStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DriversStatus: %T", src)
+	}
+	return nil
+}
+
+type NullDriversStatus struct {
+	DriversStatus DriversStatus `json:"drivers_status"`
+	Valid         bool          `json:"valid"` // Valid is true if DriversStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDriversStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.DriversStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DriversStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDriversStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DriversStatus), nil
+}
+
 type TripsStatus string
 
 const (
@@ -96,6 +139,20 @@ func (ns NullVehiclesStatus) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.VehiclesStatus), nil
+}
+
+type Driver struct {
+	DriverID  int32             `json:"driver_id"`
+	UserID    sql.NullInt32     `json:"user_id"`
+	FirstName string            `json:"first_name"`
+	LastName  string            `json:"last_name"`
+	Pesel     string            `json:"pesel"`
+	Phone     sql.NullString    `json:"phone"`
+	Email     sql.NullString    `json:"email"`
+	Status    NullDriversStatus `json:"status"`
+	DeletedAt sql.NullTime      `json:"deleted_at"`
+	CreatedAt sql.NullTime      `json:"created_at"`
+	UpdatedAt sql.NullTime      `json:"updated_at"`
 }
 
 type Role struct {

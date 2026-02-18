@@ -7,6 +7,7 @@ import (
 	"fleet-management/internal/auth"
 	"fleet-management/internal/config"
 	sqlc "fleet-management/internal/db/sqlc"
+	"fleet-management/internal/drivers"
 	"fleet-management/internal/repository"
 	"fleet-management/internal/users"
 	"fleet-management/internal/vehicles"
@@ -46,6 +47,9 @@ func main() {
 	vehiclesRepository := repository.NewVehiclesRepository(queries)
 	vehiclesService := vehicles.NewService(vehiclesRepository)
 	vehiclesHandler := vehicles.NewHandler(vehiclesService)
+	driversRepository := repository.NewDriversRepository(queries)
+	driversService := drivers.NewService(driversRepository)
+	driversHandler := drivers.NewHandler(driversService)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -130,6 +134,36 @@ func main() {
 		"/vehicles/:id/restore",
 		auth.RBACMiddleware(auth.ResourceVehicles, auth.PermissionWrite),
 		vehiclesHandler.RestoreVehicle,
+	)
+	protected.GET(
+		"/drivers",
+		auth.RBACMiddleware(auth.ResourceDrivers, auth.PermissionRead),
+		driversHandler.ListDrivers,
+	)
+	protected.GET(
+		"/drivers/:id",
+		auth.RBACMiddleware(auth.ResourceDrivers, auth.PermissionRead),
+		driversHandler.GetDriver,
+	)
+	protected.POST(
+		"/drivers",
+		auth.RBACMiddleware(auth.ResourceDrivers, auth.PermissionWrite),
+		driversHandler.CreateDriver,
+	)
+	protected.PUT(
+		"/drivers/:id",
+		auth.RBACMiddleware(auth.ResourceDrivers, auth.PermissionWrite),
+		driversHandler.UpdateDriver,
+	)
+	protected.DELETE(
+		"/drivers/:id",
+		auth.RBACMiddleware(auth.ResourceDrivers, auth.PermissionWrite),
+		driversHandler.DeleteDriver,
+	)
+	protected.PUT(
+		"/drivers/:id/restore",
+		auth.RBACMiddleware(auth.ResourceDrivers, auth.PermissionWrite),
+		driversHandler.RestoreDriver,
 	)
 
 	protected.GET("/db-check", func(c *gin.Context) {

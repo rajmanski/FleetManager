@@ -2,6 +2,12 @@ import { z } from 'zod'
 
 const ROLE_OPTIONS = ['Administrator', 'Spedytor', 'Mechanik'] as const
 
+export const ROLE_OPTIONS_WITH_LABELS: { value: (typeof ROLE_OPTIONS)[number]; label: string }[] = [
+  { value: 'Administrator', label: 'Administrator' },
+  { value: 'Spedytor', label: 'Dispatcher' },
+  { value: 'Mechanik', label: 'Mechanic' },
+]
+
 export const createUserSchema = z.object({
   login: z
     .string()

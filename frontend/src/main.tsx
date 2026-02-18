@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage.tsx'
 import UsersPage from './pages/UsersPage.tsx'
 import VehicleDetailsPage from './pages/VehicleDetailsPage.tsx'
 import VehiclesPage from './pages/VehiclesPage.tsx'
+import { RequireAdmin } from './routes/RequireAdmin.tsx'
 import RequireAuth from './routes/RequireAuth.tsx'
 
 const queryClient = new QueryClient()
@@ -28,7 +29,14 @@ createRoot(document.getElementById('root')!).render(
             }
           >
             <Route index element={<DashboardPage />} />
-            <Route path="admin/users" element={<UsersPage />} />
+            <Route
+              path="admin/users"
+              element={
+                <RequireAdmin>
+                  <UsersPage />
+                </RequireAdmin>
+              }
+            />
             <Route path="vehicles" element={<VehiclesPage />} />
             <Route path="vehicles/:id" element={<VehicleDetailsPage />} />
           </Route>

@@ -1,45 +1,24 @@
 import { Truck } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
-import { z } from 'zod'
-import api from '@/services/api'
-import { getAccessToken, saveAccessToken } from '@/services/authStorage'
-import { initAuthSessionManagement } from '@/services/api'
-
-const loginSchema = z.object({
-  login: z
-    .string()
-    .trim()
-    .min(1, 'Login is required')
-    .transform((v) => v.replace(/[<>]/g, '').toLowerCase()),
-  password: z
-    .string()
-    .trim()
-    .min(1, 'Password is required')
-    .transform((v) => v.replace(/[<>]/g, '')),
-})
-
-type LoginFormValues = z.infer<typeof loginSchema>
-
-type LoginResponse = {
-  token: string
-  user: {
-    id: number
-    login: string
-    role: string
-  }
-}
+import { Button } from '@/components/ui/Button'
+import { ErrorMessage } from '@/components/ui/ErrorMessage'
+import { FormField } from '@/components/ui/FormField'
+import { INPUT_CLASS } from '@/constants/inputStyles'
+import { getAccessToken } from '@/services/authStorage'
+import { loginSchema, type LoginFormValues } from '@/schemas/auth'
+import { useLogin } from '@/hooks/useLogin'
 
 function LoginPage() {
   const navigate = useNavigate()
-  const [backendError, setBackendError] = useState<string | null>(null)
+  const { login, isSubmitting } = useLogin()
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     setError,
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -53,34 +32,13 @@ function LoginPage() {
   }, [navigate])
 
   const onSubmit = async (data: LoginFormValues) => {
-    setBackendError(null)
-    try {
-      const response = await api.post<LoginResponse>('/api/v1/auth/login', {
-        login: data.login,
-        password: data.password,
-      })
-      const token = response.data.token
-      const tokenSaved = saveAccessToken(token)
-      if (!tokenSaved) {
-        setError('root', {
-          message:
-            'Session storage is unavailable in this browser. Please enable storage and try again.',
-        })
-        return
-      }
-
-      initAuthSessionManagement()
-      navigate('/', { replace: true })
-    } catch (error) {
-      const axiosError = error as {
-        response?: { data?: { error?: string } }
-      }
-      const message = axiosError.response?.data?.error ?? 'Login failed. Please try again.'
-      setBackendError(message)
+    const result = await login(data)
+    if (!result.success) {
+      setError('root', { message: result.error })
     }
   }
 
-  const displayError = backendError ?? errors.root?.message
+  const displayError = errors.root?.message
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -107,51 +65,37 @@ function LoginPage() {
               className="mt-6 space-y-4"
               onSubmit={handleSubmit((data) => void onSubmit(data))}
             >
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700" htmlFor="login">
-                  Login
-                </label>
+              <FormField label="Login" error={errors.login?.message}>
                 <input
                   id="login"
                   type="text"
                   autoComplete="username"
                   {...register('login')}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                  className={INPUT_CLASS}
                 />
-                {errors.login && (
-                  <p className="mt-1 text-sm text-red-600">{errors.login.message}</p>
-                )}
-              </div>
+              </FormField>
 
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700" htmlFor="password">
-                  Password
-                </label>
+              <FormField label="Password" error={errors.password?.message}>
                 <input
                   id="password"
                   type="password"
                   autoComplete="current-password"
                   {...register('password')}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
+                  className={INPUT_CLASS}
                 />
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-                )}
-              </div>
+              </FormField>
 
               {displayError && (
-                <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                  {displayError}
-                </p>
+                <ErrorMessage message={displayError} variant="soft" />
               )}
 
-              <button
+              <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Signing in...' : 'Sign in'}
-              </button>
+              </Button>
             </form>
           </div>
         </div>

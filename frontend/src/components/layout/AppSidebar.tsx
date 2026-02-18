@@ -1,0 +1,40 @@
+import { BarChart3, Truck, Users } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
+
+export function AppSidebar() {
+  const location = useLocation()
+  const { role } = useAuth()
+
+  const navItemClass = (active: boolean) =>
+    `w-full flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+      active ? 'bg-slate-100 text-slate-700' : 'text-gray-700 hover:bg-gray-50'
+    }`
+
+  return (
+    <aside className="min-h-[calc(100vh-73px)] w-64 border-r border-gray-200 bg-white">
+      <nav className="space-y-1 p-4">
+        <Link to="/" className={navItemClass(location.pathname === '/')}>
+          <BarChart3 className="size-5" />
+          <span>Dashboard</span>
+        </Link>
+        <Link
+          to="/vehicles"
+          className={navItemClass(location.pathname.startsWith('/vehicles'))}
+        >
+          <Truck className="size-5" />
+          <span>Vehicles</span>
+        </Link>
+        {role === 'Administrator' && (
+          <Link
+            to="/admin/users"
+            className={navItemClass(location.pathname.startsWith('/admin/users'))}
+          >
+            <Users className="size-5" />
+            <span>Users</span>
+          </Link>
+        )}
+      </nav>
+    </aside>
+  )
+}

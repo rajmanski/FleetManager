@@ -1,317 +1,96 @@
-import { useMemo, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Trash2 } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
-import api from '@/services/api'
-import { getStoredRole } from '@/services/authStorage'
-import { isValidVin } from '@/utils/vin'
-
-type Vehicle = {
-  id: number
-  vin: string
-  plate_number?: string
-  brand?: string
-  model?: string
-  production_year?: number
-  capacity_kg?: number
-  current_mileage_km?: number
-  status: string
-  deleted_at?: string
-}
-
-type ListVehiclesResponse = {
-  data: Vehicle[]
-  page: number
-  limit: number
-  total: number
-}
-
-type VehicleMutationPayload = {
-  vin: string
-  plate_number?: string
-  brand: string
-  model: string
-  production_year: number
-  capacity_kg?: number
-  current_mileage_km: number
-}
+import { useCallback, useMemo, useState } from 'react'
+import { Button } from '@/components/ui/Button'
+import { ErrorMessage } from '@/components/ui/ErrorMessage'
+import { LoadingMessage } from '@/components/ui/LoadingMessage'
+import { PageHeader } from '@/components/ui/PageHeader'
+import { VehicleFormModal } from '@/components/vehicles/VehicleFormModal'
+import { VehiclesFiltersBar } from '@/components/vehicles/VehiclesFiltersBar'
+import { VehiclesTable } from '@/components/vehicles/VehiclesTable'
+import { useVehicles, type Vehicle } from '@/hooks/vehicles/useVehicles'
+import { useAuth } from '@/hooks/useAuth'
+import { usePagination } from '@/hooks/usePagination'
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
+import { vehicleToFormInitialData } from '@/utils/vehicle'
+import { extractApiError } from '@/utils/api'
 
 function VehiclesPage() {
-  const role = getStoredRole()
-  const isAdmin = role === 'Administrator'
+  const { canManageVehicles, isAdmin } = useAuth()
   const [showDeleted, setShowDeleted] = useState(false)
   const [statusFilter, setStatusFilter] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(20)
+  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [editVehicle, setEditVehicle] = useState<Vehicle | null>(null)
-  const queryClient = useQueryClient()
 
-  const vehiclesQuery = useQuery({
-    queryKey: ['vehicles', { showDeleted, statusFilter, search, page, limit }],
-    queryFn: async () => {
-      const res = await api.get<ListVehiclesResponse>('/api/v1/vehicles', {
-        params: {
-          page,
-          limit,
-          status: statusFilter,
-          q: search.trim(),
-          include_deleted: isAdmin && showDeleted ? 'true' : 'false',
-        },
-      })
-      return res.data
-    },
-  })
-
-  const restoreMutation = useMutation({
-    mutationFn: async (vehicleID: number) => {
-      const res = await api.put<Vehicle>(`/api/v1/vehicles/${vehicleID}/restore`)
-      return res.data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] })
-    },
-  })
-
-  const createMutation = useMutation({
-    mutationFn: async (payload: VehicleMutationPayload) => {
-      const res = await api.post<Vehicle>('/api/v1/vehicles', payload)
-      return res.data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] })
-      setAddModalOpen(false)
-    },
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: async ({
-      id,
-      payload,
-    }: {
-      id: number
-      payload: VehicleMutationPayload & { status: string }
-    }) => {
-      const res = await api.put<Vehicle>(`/api/v1/vehicles/${id}`, payload)
-      return res.data
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vehicles'] })
-      setEditVehicle(null)
-    },
-  })
+  const {
+    vehiclesQuery,
+    restoreMutation,
+    createMutation,
+    updateMutation,
+  } = useVehicles({ page, limit, statusFilter, search, showDeleted })
 
   const vehicles = useMemo(() => vehiclesQuery.data?.data ?? [], [vehiclesQuery.data])
   const total = vehiclesQuery.data?.total ?? 0
-  const totalPages = Math.max(1, Math.ceil(total / limit))
-  const canGoPrev = page > 1
-  const canGoNext = page < totalPages
+  const pagination = usePagination({ page, setPage, limit, setLimit, total })
 
-  const handlePrevPage = () => {
-    if (canGoPrev) setPage((prev) => prev - 1)
-  }
+  const handleStatusFilterChange = useCallback(
+    (value: string) => {
+      setStatusFilter(value)
+      pagination.resetPage()
+    },
+    [pagination]
+  )
 
-  const handleNextPage = () => {
-    if (canGoNext) setPage((prev) => prev + 1)
-  }
-
-  const handleStatusFilterChange = (value: string) => {
-    setStatusFilter(value)
-    setPage(1)
-  }
-
-  const handleSearchChange = (value: string) => {
-    setSearch(value)
-    setPage(1)
-  }
-
-  const handleLimitChange = (value: number) => {
-    setLimit(value)
-    setPage(1)
-  }
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      setSearch(value)
+      pagination.resetPage()
+    },
+    [pagination]
+  )
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2>Vehicles</h2>
-          <p className="text-gray-600">Fleet vehicles list with archived records handling</p>
-        </div>
-        {(role === 'Administrator' || role === 'Mechanik') && (
-          <button
-            type="button"
-            onClick={() => setAddModalOpen(true)}
-            className="rounded-lg bg-slate-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800"
-          >
-            Add vehicle
-          </button>
-        )}
-      </div>
+      <PageHeader
+        title="Vehicles"
+        description="Fleet vehicles list with archived records handling"
+        action={
+          canManageVehicles ? (
+            <Button onClick={() => setAddModalOpen(true)}>Add vehicle</Button>
+          ) : undefined
+        }
+      />
 
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-4">
-        <div className="min-w-44">
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
-            Status
-          </label>
-          <select
-            value={statusFilter}
-            onChange={(event) => handleStatusFilterChange(event.target.value)}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value="">All</option>
-            <option value="Available">Available</option>
-            <option value="InRoute">InRoute</option>
-            <option value="Service">Service</option>
-            <option value="Inactive">Inactive</option>
-          </select>
-        </div>
+      <VehiclesFiltersBar
+        statusFilter={statusFilter}
+        onStatusFilterChange={handleStatusFilterChange}
+        search={search}
+        onSearchChange={handleSearchChange}
+        limit={limit}
+        showDeleted={showDeleted}
+        onShowDeletedChange={setShowDeleted}
+        pagination={pagination}
+        isAdmin={isAdmin}
+      />
 
-        <div className="min-w-56 flex-1">
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
-            Search
-          </label>
-          <input
-            type="text"
-            value={search}
-            onChange={(event) => handleSearchChange(event.target.value)}
-            placeholder="Search by VIN or brand"
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-          />
-        </div>
-
-        <div className="min-w-32">
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
-            Rows
-          </label>
-          <select
-            value={limit}
-            onChange={(event) => handleLimitChange(Number(event.target.value))}
-            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-          >
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-        </div>
-
-        {isAdmin && (
-          <label className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700">
-            <input
-              type="checkbox"
-              checked={showDeleted}
-              onChange={(event) => {
-                setShowDeleted(event.target.checked)
-                setPage(1)
-              }}
-            />
-            Show deleted
-          </label>
-        )}
-      </div>
-
-      {vehiclesQuery.isLoading && <p className="text-sm text-gray-500">Loading...</p>}
+      {vehiclesQuery.isLoading && <LoadingMessage />}
       {vehiclesQuery.isError && (
-        <p className="rounded-lg bg-red-100 px-3 py-2 text-sm text-red-700">
-          Failed to load vehicles.
-        </p>
+        <ErrorMessage message="Failed to load vehicles." />
       )}
 
       {vehiclesQuery.isSuccess && (
-        <div className="space-y-3">
-          <div className="text-sm text-gray-600">
-            Showing page {page} of {totalPages} ({total} results)
-          </div>
-          <div className="rounded-lg border border-gray-200 bg-white">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 font-medium text-gray-700">VIN</th>
-                  <th className="px-4 py-3 font-medium text-gray-700">Brand</th>
-                  <th className="px-4 py-3 font-medium text-gray-700">Model</th>
-                  <th className="px-4 py-3 font-medium text-gray-700">Production year</th>
-                  <th className="px-4 py-3 font-medium text-gray-700">Mileage (km)</th>
-                  <th className="px-4 py-3 font-medium text-gray-700">Status</th>
-                  <th className="px-4 py-3 font-medium text-gray-700">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 bg-white">
-                {vehicles.map((vehicle) => {
-                  const isDeleted = Boolean(vehicle.deleted_at)
-                  return (
-                    <tr key={vehicle.id} className={isDeleted ? 'bg-gray-100 text-gray-500' : ''}>
-                      <td className="px-4 py-3">
-                        <Link
-                          to={`/vehicles/${vehicle.id}`}
-                          className="text-slate-700 underline-offset-2 hover:underline"
-                        >
-                          {vehicle.vin}
-                        </Link>
-                      </td>
-                      <td className="px-4 py-3">{vehicle.brand ?? '-'}</td>
-                      <td className="px-4 py-3">{vehicle.model ?? '-'}</td>
-                      <td className="px-4 py-3">{vehicle.production_year ?? '-'}</td>
-                      <td className="px-4 py-3">{vehicle.current_mileage_km ?? 0}</td>
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center gap-1">
-                          {isDeleted && <Trash2 className="size-3.5" />}
-                          <span>{vehicle.status}</span>
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          {isAdmin && isDeleted && (
-                            <button
-                              type="button"
-                              onClick={() => restoreMutation.mutate(vehicle.id)}
-                              disabled={restoreMutation.isPending}
-                              className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60"
-                            >
-                              {restoreMutation.isPending ? 'Restoring...' : 'Restore'}
-                            </button>
-                          )}
-                          {!isDeleted && (role === 'Administrator' || role === 'Mechanik') && (
-                            <button
-                              type="button"
-                              onClick={() => setEditVehicle(vehicle)}
-                              className="rounded-md border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
-                            >
-                              Edit
-                            </button>
-                          )}
-                          {!isDeleted &&
-                            !(role === 'Administrator' || role === 'Mechanik') &&
-                            !isAdmin && <span className="text-xs text-gray-400">-</span>}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-          </div>
-          <div className="flex items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={handlePrevPage}
-              disabled={!canGoPrev}
-              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <button
-              type="button"
-              onClick={handleNextPage}
-              disabled={!canGoNext}
-              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-        </div>
+        <VehiclesTable
+          vehicles={vehicles}
+          page={page}
+          total={total}
+          pagination={pagination}
+          canManageVehicles={canManageVehicles}
+          isAdmin={isAdmin}
+          onEdit={setEditVehicle}
+          onRestore={(id) => restoreMutation.mutate(id)}
+          isRestoring={restoreMutation.isPending}
+        />
       )}
 
       {addModalOpen && (
@@ -319,7 +98,11 @@ function VehiclesPage() {
           title="Add vehicle"
           submitLabel={createMutation.isPending ? 'Adding...' : 'Add'}
           onClose={() => setAddModalOpen(false)}
-          onSubmit={(payload) => createMutation.mutate(payload)}
+          onSubmit={(payload) =>
+            createMutation.mutate(payload, {
+              onSuccess: () => setAddModalOpen(false),
+            })
+          }
           isSubmitting={createMutation.isPending}
           errorMessage={extractApiError(createMutation.error)}
         />
@@ -329,237 +112,26 @@ function VehiclesPage() {
         <VehicleFormModal
           title="Edit vehicle"
           submitLabel={updateMutation.isPending ? 'Saving...' : 'Save'}
-          initialData={{
-            vin: editVehicle.vin,
-            plate_number: editVehicle.plate_number ?? '',
-            brand: editVehicle.brand ?? '',
-            model: editVehicle.model ?? '',
-            production_year: editVehicle.production_year ?? new Date().getFullYear(),
-            capacity_kg: editVehicle.capacity_kg?.toString() ?? '',
-            current_mileage_km: editVehicle.current_mileage_km ?? 0,
-          }}
+          initialData={vehicleToFormInitialData(editVehicle)}
           onClose={() => setEditVehicle(null)}
-          onSubmit={(payload) => {
-            updateMutation.mutate({
-              id: editVehicle.id,
-              payload: {
-                ...payload,
-                status: editVehicle.status,
+          onSubmit={(payload) =>
+            updateMutation.mutate(
+              {
+                id: editVehicle.id,
+                payload: {
+                  ...payload,
+                  status: editVehicle.status,
+                },
               },
-            })
-          }}
+              { onSuccess: () => setEditVehicle(null) }
+            )
+          }
           isSubmitting={updateMutation.isPending}
           errorMessage={extractApiError(updateMutation.error)}
         />
       )}
     </div>
   )
-}
-
-type VehicleFormModalProps = {
-  title: string
-  submitLabel: string
-  initialData?: {
-    vin: string
-    plate_number: string
-    brand: string
-    model: string
-    production_year: number
-    capacity_kg: string
-    current_mileage_km: number
-  }
-  onClose: () => void
-  onSubmit: (payload: VehicleMutationPayload) => void
-  isSubmitting: boolean
-  errorMessage: string | null
-}
-
-type VehicleFormValues = {
-  vin: string
-  plate_number: string
-  brand: string
-  model: string
-  production_year: number
-  capacity_kg: string
-  current_mileage_km: number
-}
-
-function VehicleFormModal({
-  title,
-  submitLabel,
-  initialData,
-  onClose,
-  onSubmit,
-  isSubmitting,
-  errorMessage,
-}: VehicleFormModalProps) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<VehicleFormValues>({
-    defaultValues: {
-      vin: initialData?.vin ?? '',
-      plate_number: initialData?.plate_number ?? '',
-      brand: initialData?.brand ?? '',
-      model: initialData?.model ?? '',
-      production_year: initialData?.production_year ?? new Date().getFullYear(),
-      capacity_kg: initialData?.capacity_kg ?? '',
-      current_mileage_km: initialData?.current_mileage_km ?? 0,
-    },
-  })
-
-  const onFormSubmit = (data: VehicleFormValues) => {
-    const normalizedVIN = data.vin.trim().toUpperCase()
-    if (!isValidVin(normalizedVIN)) {
-      return
-    }
-    if (!data.brand.trim() || !data.model.trim()) {
-      return
-    }
-
-    if (!Number.isInteger(data.production_year) || data.production_year < 1900 || data.production_year > 2100) {
-      return
-    }
-    if (!Number.isFinite(data.current_mileage_km) || data.current_mileage_km < 0) {
-      return
-    }
-    const capacityValue = data.capacity_kg.trim()
-    if (capacityValue !== '' && (!Number.isInteger(Number(capacityValue)) || Number(capacityValue) < 0)) {
-      return
-    }
-
-    onSubmit({
-      vin: normalizedVIN,
-      plate_number: data.plate_number.trim() === '' ? undefined : data.plate_number.trim(),
-      brand: data.brand.trim(),
-      model: data.model.trim(),
-      production_year: data.production_year,
-      capacity_kg: capacityValue === '' ? undefined : Number(capacityValue),
-      current_mileage_km: data.current_mileage_km,
-    })
-  }
-
-  return (
-    <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow-lg">
-        <h2 className="text-lg font-semibold">{title}</h2>
-        <form className="mt-4 space-y-3" onSubmit={handleSubmit(onFormSubmit)}>
-          <FormField label="VIN" error={errors.vin?.message}>
-            <input
-              type="text"
-              {...register('vin', {
-                validate: (value) =>
-                  isValidVin(value.trim().toUpperCase()) || 'Invalid VIN format or checksum.',
-              })}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-            />
-          </FormField>
-          <FormField label="Plate number" error={errors.plate_number?.message}>
-            <input
-              type="text"
-              {...register('plate_number')}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-            />
-          </FormField>
-          <FormField label="Brand" error={errors.brand?.message}>
-            <input
-              type="text"
-              {...register('brand', {
-                validate: (value) => value.trim() !== '' || 'Brand is required.',
-              })}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-            />
-          </FormField>
-          <FormField label="Model" error={errors.model?.message}>
-            <input
-              type="text"
-              {...register('model', {
-                validate: (value) => value.trim() !== '' || 'Model is required.',
-              })}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-            />
-          </FormField>
-          <FormField label="Production year" error={errors.production_year?.message}>
-            <input
-              type="number"
-              {...register('production_year', {
-                valueAsNumber: true,
-                validate: (value) =>
-                  (Number.isInteger(value) && value >= 1900 && value <= 2100) ||
-                  'Production year must be between 1900 and 2100.',
-              })}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-            />
-          </FormField>
-          <FormField label="Capacity (kg)" error={errors.capacity_kg?.message}>
-            <input
-              type="number"
-              {...register('capacity_kg', {
-                validate: (value) =>
-                  value.trim() === '' ||
-                  (Number.isInteger(Number(value)) && Number(value) >= 0) ||
-                  'Capacity must be a non-negative integer.',
-              })}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-            />
-          </FormField>
-          <FormField label="Mileage (km)" error={errors.current_mileage_km?.message}>
-            <input
-              type="number"
-              {...register('current_mileage_km', {
-                valueAsNumber: true,
-                validate: (value) =>
-                  (Number.isFinite(value) && value >= 0) || 'Mileage must be a non-negative number.',
-              })}
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500"
-            />
-          </FormField>
-          {errorMessage && <p className="mt-1 text-sm text-red-600">{errorMessage}</p>}
-          <div className="mt-5 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="rounded-md bg-slate-700 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 disabled:opacity-60"
-          >
-            {submitLabel}
-          </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-function FormField({
-  label,
-  error,
-  children,
-}: {
-  label: string
-  error?: string
-  children: React.ReactNode
-}) {
-  return (
-    <div>
-      <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
-      {children}
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
-    </div>
-  )
-}
-
-function extractApiError(error: unknown): string | null {
-  if (!error) return null
-  const maybe = error as { response?: { data?: { error?: string } } }
-  return maybe.response?.data?.error ?? 'Operation failed.'
 }
 
 export default VehiclesPage

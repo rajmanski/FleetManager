@@ -95,3 +95,8 @@ UPDATE Drivers
 SET deleted_at = NULL, updated_at = NOW()
 WHERE driver_id = ?
   AND deleted_at IS NOT NULL;
+
+-- name: ListActiveDriverPESELs :many
+SELECT driver_id, pesel
+FROM Drivers
+WHERE deleted_at IS NULL;

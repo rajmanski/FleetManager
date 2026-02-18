@@ -28,6 +28,7 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
     depends_on:
       mysql:
         condition: service_healthy

@@ -8,14 +8,16 @@ import (
 
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/drivers"
+	"fleet-management/internal/crypto"
 )
 
 type DriversRepository struct {
-	queries sqlc.Querier
+	queries       sqlc.Querier
+	encryptionKey []byte
 }
 
-func NewDriversRepository(queries sqlc.Querier) *DriversRepository {
-	return &DriversRepository{queries: queries}
+func NewDriversRepository(queries sqlc.Querier, encryptionKey []byte) *DriversRepository {
+	return &DriversRepository{queries: queries, encryptionKey: encryptionKey}
 }
 
 func (r *DriversRepository) ListDrivers(ctx context.Context, query drivers.ListDriversQuery) ([]drivers.Driver, int64, error) {
@@ -63,7 +65,7 @@ func (r *DriversRepository) ListDrivers(ctx context.Context, query drivers.ListD
 
 	result := make([]drivers.Driver, 0, len(rows))
 	for _, row := range rows {
-		result = append(result, mapDriverRow(row))
+		result = append(result, r.mapDriverRow(row))
 	}
 	return result, total, nil
 }
@@ -76,11 +78,15 @@ func (r *DriversRepository) GetDriverByID(ctx context.Context, driverID int64) (
 		}
 		return drivers.Driver{}, err
 	}
-	return mapGetDriverRow(row), nil
+	return r.mapGetDriverRow(row), nil
 }
 
 func (r *DriversRepository) CreateDriver(ctx context.Context, input drivers.CreateDriverRequest) (int64, error) {
 	pesel := strings.TrimSpace(input.PESEL)
+	encrypted, err := crypto.EncryptPESEL(pesel, r.encryptionKey)
+	if err != nil {
+		return 0, err
+	}
 	status := normalizeDriverStatus(input.Status)
 	if status == "" {
 		status = "Available"
@@ -90,7 +96,7 @@ func (r *DriversRepository) CreateDriver(ctx context.Context, input drivers.Crea
 		UserID:    toNullInt32(input.UserID),
 		FirstName: strings.TrimSpace(input.FirstName),
 		LastName:  strings.TrimSpace(input.LastName),
-		Pesel:     pesel,
+		Pesel:     encrypted,
 		Phone:     toNullString(input.Phone),
 		Email:     toNullString(input.Email),
 		Status:    toNullDriversStatus(status),
@@ -106,13 +112,17 @@ func (r *DriversRepository) CreateDriver(ctx context.Context, input drivers.Crea
 
 func (r *DriversRepository) UpdateDriver(ctx context.Context, driverID int64, input drivers.UpdateDriverRequest) error {
 	pesel := strings.TrimSpace(input.PESEL)
+	encrypted, err := crypto.EncryptPESEL(pesel, r.encryptionKey)
+	if err != nil {
+		return err
+	}
 	status := normalizeDriverStatus(input.Status)
 
 	rows, err := r.queries.UpdateDriver(ctx, sqlc.UpdateDriverParams{
 		UserID:    toNullInt32(input.UserID),
 		FirstName: strings.TrimSpace(input.FirstName),
 		LastName:  strings.TrimSpace(input.LastName),
-		Pesel:     pesel,
+		Pesel:     encrypted,
 		Phone:     toNullString(input.Phone),
 		Email:     toNullString(input.Email),
 		Status:    toNullDriversStatus(status),
@@ -142,7 +152,7 @@ func (r *DriversRepository) DeleteDriver(ctx context.Context, driverID int64) er
 }
 
 func (r *DriversRepository) RestoreDriver(ctx context.Context, driverID int64) error {
-	pesel, err := r.queries.GetDeletedDriverPESELByID(ctx, int32(driverID))
+	encryptedPesel, err := r.queries.GetDeletedDriverPESELByID(ctx, int32(driverID))
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return drivers.ErrDriverNotFound
@@ -150,15 +160,23 @@ func (r *DriversRepository) RestoreDriver(ctx context.Context, driverID int64) e
 		return err
 	}
 
-	conflict, err := r.queries.HasActiveDriverWithPESELExcludingID(ctx, sqlc.HasActiveDriverWithPESELExcludingIDParams{
-		Pesel:    pesel,
-		DriverID: int32(driverID),
-	})
+	plainPesel, err := crypto.DecryptPESEL(encryptedPesel, r.encryptionKey)
+	if err != nil {
+		return drivers.ErrDriverRestoreConflict
+	}
+
+	activeRows, err := r.queries.ListActiveDriverPESELs(ctx)
 	if err != nil {
 		return err
 	}
-	if conflict {
-		return drivers.ErrDriverRestoreConflict
+	for _, row := range activeRows {
+		decrypted, err := crypto.DecryptPESEL(row.Pesel, r.encryptionKey)
+		if err != nil {
+			continue
+		}
+		if decrypted == plainPesel {
+			return drivers.ErrDriverRestoreConflict
+		}
 	}
 
 	rows, err := r.queries.RestoreDriverByID(ctx, int32(driverID))
@@ -186,12 +204,13 @@ func normalizeDriverStatus(status string) string {
 	return strings.TrimSpace(status)
 }
 
-func mapDriverRow(row sqlc.Driver) drivers.Driver {
+func (r *DriversRepository) mapDriverRow(row sqlc.Driver) drivers.Driver {
+	pesel, _ := crypto.DecryptPESEL(row.Pesel, r.encryptionKey)
 	d := drivers.Driver{
 		ID:        int64(row.DriverID),
 		FirstName: row.FirstName,
 		LastName:  row.LastName,
-		PESEL:     row.Pesel,
+		PESEL:     pesel,
 		Status:    string(row.Status.DriversStatus),
 	}
 	if row.UserID.Valid {
@@ -221,12 +240,13 @@ func mapDriverRow(row sqlc.Driver) drivers.Driver {
 	return d
 }
 
-func mapGetDriverRow(row sqlc.GetDriverByIDRow) drivers.Driver {
+func (r *DriversRepository) mapGetDriverRow(row sqlc.GetDriverByIDRow) drivers.Driver {
+	pesel, _ := crypto.DecryptPESEL(row.Pesel, r.encryptionKey)
 	d := drivers.Driver{
 		ID:        int64(row.DriverID),
 		FirstName: row.FirstName,
 		LastName:  row.LastName,
-		PESEL:     row.Pesel,
+		PESEL:     pesel,
 		Status:    string(row.Status.DriversStatus),
 	}
 	if row.UserID.Valid {

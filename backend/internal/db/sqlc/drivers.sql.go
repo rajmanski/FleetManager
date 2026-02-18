@@ -166,6 +166,40 @@ func (q *Queries) HasActiveDriverWithPESELExcludingID(ctx context.Context, arg H
 	return exists, err
 }
 
+const listActiveDriverPESELs = `-- name: ListActiveDriverPESELs :many
+SELECT driver_id, pesel
+FROM Drivers
+WHERE deleted_at IS NULL
+`
+
+type ListActiveDriverPESELsRow struct {
+	DriverID int32  `json:"driver_id"`
+	Pesel    string `json:"pesel"`
+}
+
+func (q *Queries) ListActiveDriverPESELs(ctx context.Context) ([]ListActiveDriverPESELsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listActiveDriverPESELs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListActiveDriverPESELsRow
+	for rows.Next() {
+		var i ListActiveDriverPESELsRow
+		if err := rows.Scan(&i.DriverID, &i.Pesel); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listDrivers = `-- name: ListDrivers :many
 SELECT
   driver_id,

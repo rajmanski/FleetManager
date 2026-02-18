@@ -1,19 +1,23 @@
 package config
 
 import (
+	"encoding/base64"
 	"fmt"
 	"os"
 )
 
+const aes256KeyLen = 32
+
 type Config struct {
-	ServerPort string
-	DBHost     string
-	DBPort     string
-	DBUser     string
-	DBPassword string
-	DBName     string
-	JWTSecret  string
-	AppEnv     string
+	ServerPort    string
+	DBHost        string
+	DBPort        string
+	DBUser        string
+	DBPassword    string
+	DBName        string
+	JWTSecret     string
+	AppEnv        string
+	EncryptionKey []byte
 }
 
 func Load() (*Config, error) {
@@ -27,7 +31,33 @@ func Load() (*Config, error) {
 		JWTSecret:  getEnv("JWT_SECRET", "change-me-jwt-secret"),
 		AppEnv:     getEnv("APP_ENV", "development"),
 	}
+
+	key, err := loadEncryptionKey()
+	if err != nil {
+		return nil, err
+	}
+	cfg.EncryptionKey = key
+
 	return cfg, nil
+}
+
+func loadEncryptionKey() ([]byte, error) {
+	raw := os.Getenv("ENCRYPTION_KEY")
+	if raw == "" {
+		panic("ENCRYPTION_KEY environment variable is required")
+	}
+	key := []byte(raw)
+	if len(key) == aes256KeyLen {
+		return key, nil
+	}
+	decoded, err := base64.StdEncoding.DecodeString(raw)
+	if err != nil {
+		panic(fmt.Sprintf("ENCRYPTION_KEY: invalid base64 or must be 32 raw bytes: %v", err))
+	}
+	if len(decoded) != aes256KeyLen {
+		panic(fmt.Sprintf("ENCRYPTION_KEY must be 32 bytes, got %d", len(decoded)))
+	}
+	return decoded, nil
 }
 
 func (c *Config) IsProduction() bool {

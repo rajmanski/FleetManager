@@ -47,7 +47,7 @@ func main() {
 	vehiclesRepository := repository.NewVehiclesRepository(queries)
 	vehiclesService := vehicles.NewService(vehiclesRepository)
 	vehiclesHandler := vehicles.NewHandler(vehiclesService)
-	driversRepository := repository.NewDriversRepository(queries)
+	driversRepository := repository.NewDriversRepository(queries, cfg.EncryptionKey)
 	driversService := drivers.NewService(driversRepository)
 	driversHandler := drivers.NewHandler(driversService)
 

@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage.tsx'
 import UsersPage from './pages/UsersPage.tsx'
 import VehicleDetailsPage from './pages/VehicleDetailsPage.tsx'
 import VehiclesPage from './pages/VehiclesPage.tsx'
+import DriversPage from './pages/DriversPage.tsx'
 import { RequireAdmin } from './routes/RequireAdmin.tsx'
 import RequireAuth from './routes/RequireAuth.tsx'
 
@@ -39,6 +40,7 @@ createRoot(document.getElementById('root')!).render(
             />
             <Route path="vehicles" element={<VehiclesPage />} />
             <Route path="vehicles/:id" element={<VehicleDetailsPage />} />
+            <Route path="drivers" element={<DriversPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

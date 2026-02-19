@@ -1,4 +1,4 @@
-import { BarChart3, Truck, Users } from 'lucide-react'
+import { BarChart3, Truck, Users, UserCircle } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -24,6 +24,13 @@ export function AppSidebar() {
         >
           <Truck className="size-5" />
           <span>Vehicles</span>
+        </Link>
+        <Link
+          to="/drivers"
+          className={navItemClass(location.pathname.startsWith('/drivers'))}
+        >
+          <UserCircle className="size-5" />
+          <span>Drivers</span>
         </Link>
         {role === 'Administrator' && (
           <Link

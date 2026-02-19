@@ -178,6 +178,18 @@ func (r *DriversRepository) UpdateDriver(ctx context.Context, driverID int64, in
 }
 
 func (r *DriversRepository) DeleteDriver(ctx context.Context, driverID int64) error {
+	hasActiveTrips, err := r.queries.HasActiveTripsByDriverID(ctx, int32(driverID))
+	if err != nil {
+		if isTableNotFoundError(err) {
+			hasActiveTrips = false
+		} else {
+			return err
+		}
+	}
+	if hasActiveTrips {
+		return drivers.ErrDriverHasActiveTrips
+	}
+
 	rows, err := r.queries.SoftDeleteDriver(ctx, int32(driverID))
 	if err != nil {
 		return err

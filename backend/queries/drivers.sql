@@ -68,6 +68,14 @@ SET
 WHERE driver_id = ?
   AND deleted_at IS NULL;
 
+-- name: HasActiveTripsByDriverID :one
+SELECT EXISTS(
+  SELECT 1
+  FROM Trips
+  WHERE driver_id = ?
+    AND status IN ('Active', 'Scheduled')
+);
+
 -- name: SoftDeleteDriver :execrows
 UPDATE Drivers
 SET deleted_at = NOW(), updated_at = NOW()

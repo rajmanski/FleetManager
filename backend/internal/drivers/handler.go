@@ -145,6 +145,10 @@ func (h *Handler) DeleteDriver(c *gin.Context) {
 
 	err = h.service.DeleteDriver(c.Request.Context(), driverID)
 	if err != nil {
+		if errors.Is(err, ErrDriverHasActiveTrips) {
+			c.JSON(http.StatusForbidden, gin.H{"error": "Cannot delete driver with active trips"})
+			return
+		}
 		if errors.Is(err, ErrDriverNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})
 			return

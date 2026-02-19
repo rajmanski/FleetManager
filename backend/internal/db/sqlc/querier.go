@@ -22,6 +22,7 @@ type Querier interface {
 	GetUserByLogin(ctx context.Context, username string) (GetUserByLoginRow, error)
 	GetVehicleByID(ctx context.Context, vehicleID int32) (GetVehicleByIDRow, error)
 	HasActiveDriverWithPESELExcludingID(ctx context.Context, arg HasActiveDriverWithPESELExcludingIDParams) (bool, error)
+	HasActiveTripsByDriverID(ctx context.Context, driverID int32) (bool, error)
 	HasActiveTripsByVehicleID(ctx context.Context, vehicleID int32) (bool, error)
 	HasActiveVehicleWithVINExcludingID(ctx context.Context, arg HasActiveVehicleWithVINExcludingIDParams) (bool, error)
 	ListActiveDriverPESELs(ctx context.Context) ([]ListActiveDriverPESELsRow, error)

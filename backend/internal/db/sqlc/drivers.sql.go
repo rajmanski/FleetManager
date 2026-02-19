@@ -166,6 +166,22 @@ func (q *Queries) HasActiveDriverWithPESELExcludingID(ctx context.Context, arg H
 	return exists, err
 }
 
+const hasActiveTripsByDriverID = `-- name: HasActiveTripsByDriverID :one
+SELECT EXISTS(
+  SELECT 1
+  FROM Trips
+  WHERE driver_id = ?
+    AND status IN ('Active', 'Scheduled')
+)
+`
+
+func (q *Queries) HasActiveTripsByDriverID(ctx context.Context, driverID int32) (bool, error) {
+	row := q.db.QueryRowContext(ctx, hasActiveTripsByDriverID, driverID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
 const listActiveDriverPESELs = `-- name: ListActiveDriverPESELs :many
 SELECT driver_id, pesel
 FROM Drivers

@@ -8,6 +8,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"time"
 )
 
 type DriversStatus string
@@ -51,6 +52,51 @@ func (ns NullDriversStatus) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.DriversStatus), nil
+}
+
+type OrdersStatus string
+
+const (
+	OrdersStatusNew        OrdersStatus = "New"
+	OrdersStatusPlanned    OrdersStatus = "Planned"
+	OrdersStatusInProgress OrdersStatus = "InProgress"
+	OrdersStatusCompleted  OrdersStatus = "Completed"
+	OrdersStatusCancelled  OrdersStatus = "Cancelled"
+)
+
+func (e *OrdersStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = OrdersStatus(s)
+	case string:
+		*e = OrdersStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for OrdersStatus: %T", src)
+	}
+	return nil
+}
+
+type NullOrdersStatus struct {
+	OrdersStatus OrdersStatus `json:"orders_status"`
+	Valid        bool         `json:"valid"` // Valid is true if OrdersStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullOrdersStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.OrdersStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.OrdersStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullOrdersStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.OrdersStatus), nil
 }
 
 type TripsStatus string
@@ -141,6 +187,24 @@ func (ns NullVehiclesStatus) Value() (driver.Value, error) {
 	return string(ns.VehiclesStatus), nil
 }
 
+type Assignment struct {
+	AssignmentID int32        `json:"assignment_id"`
+	VehicleID    int32        `json:"vehicle_id"`
+	DriverID     int32        `json:"driver_id"`
+	AssignedFrom time.Time    `json:"assigned_from"`
+	AssignedTo   sql.NullTime `json:"assigned_to"`
+}
+
+type Client struct {
+	ClientID     int32          `json:"client_id"`
+	CompanyName  string         `json:"company_name"`
+	Nip          string         `json:"nip"`
+	Address      sql.NullString `json:"address"`
+	ContactEmail sql.NullString `json:"contact_email"`
+	DeletedAt    sql.NullTime   `json:"deleted_at"`
+	CreatedAt    sql.NullTime   `json:"created_at"`
+}
+
 type Driver struct {
 	DriverID  int32             `json:"driver_id"`
 	UserID    sql.NullInt32     `json:"user_id"`
@@ -155,6 +219,16 @@ type Driver struct {
 	UpdatedAt sql.NullTime      `json:"updated_at"`
 }
 
+type Order struct {
+	OrderID          int32            `json:"order_id"`
+	ClientID         int32            `json:"client_id"`
+	OrderNumber      string           `json:"order_number"`
+	CreationDate     sql.NullTime     `json:"creation_date"`
+	DeliveryDeadline sql.NullTime     `json:"delivery_deadline"`
+	TotalPricePln    sql.NullString   `json:"total_price_pln"`
+	Status           NullOrdersStatus `json:"status"`
+}
+
 type Role struct {
 	RoleID      int32          `json:"role_id"`
 	RoleName    string         `json:"role_name"`
@@ -162,9 +236,14 @@ type Role struct {
 }
 
 type Trip struct {
-	TripID    int32       `json:"trip_id"`
-	VehicleID int32       `json:"vehicle_id"`
-	Status    TripsStatus `json:"status"`
+	TripID           int32           `json:"trip_id"`
+	OrderID          int32           `json:"order_id"`
+	VehicleID        int32           `json:"vehicle_id"`
+	DriverID         int32           `json:"driver_id"`
+	StartTime        sql.NullTime    `json:"start_time"`
+	EndTime          sql.NullTime    `json:"end_time"`
+	ActualDistanceKm sql.NullInt32   `json:"actual_distance_km"`
+	Status           NullTripsStatus `json:"status"`
 }
 
 type User struct {

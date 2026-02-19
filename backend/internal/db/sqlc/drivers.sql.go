@@ -276,6 +276,67 @@ func (q *Queries) ListDrivers(ctx context.Context, arg ListDriversParams) ([]Dri
 	return items, nil
 }
 
+const listDriversForPESELSearch = `-- name: ListDriversForPESELSearch :many
+SELECT
+  driver_id,
+  user_id,
+  first_name,
+  last_name,
+  pesel,
+  phone,
+  email,
+  status,
+  deleted_at,
+  created_at,
+  updated_at
+FROM Drivers
+WHERE (? = 1 OR deleted_at IS NULL)
+  AND (? = '' OR status = ?)
+ORDER BY driver_id DESC
+LIMIT 1000
+`
+
+type ListDriversForPESELSearchParams struct {
+	Column1 interface{}       `json:"column_1"`
+	Column2 interface{}       `json:"column_2"`
+	Status  NullDriversStatus `json:"status"`
+}
+
+func (q *Queries) ListDriversForPESELSearch(ctx context.Context, arg ListDriversForPESELSearchParams) ([]Driver, error) {
+	rows, err := q.db.QueryContext(ctx, listDriversForPESELSearch, arg.Column1, arg.Column2, arg.Status)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Driver
+	for rows.Next() {
+		var i Driver
+		if err := rows.Scan(
+			&i.DriverID,
+			&i.UserID,
+			&i.FirstName,
+			&i.LastName,
+			&i.Pesel,
+			&i.Phone,
+			&i.Email,
+			&i.Status,
+			&i.DeletedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const restoreDriverByID = `-- name: RestoreDriverByID :execrows
 UPDATE Drivers
 SET deleted_at = NULL, updated_at = NOW()

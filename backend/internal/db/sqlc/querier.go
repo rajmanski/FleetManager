@@ -27,6 +27,7 @@ type Querier interface {
 	ListActiveDriverPESELs(ctx context.Context) ([]ListActiveDriverPESELsRow, error)
 	ListAdminUsers(ctx context.Context) ([]ListAdminUsersRow, error)
 	ListDrivers(ctx context.Context, arg ListDriversParams) ([]Driver, error)
+	ListDriversForPESELSearch(ctx context.Context, arg ListDriversForPESELSearchParams) ([]Driver, error)
 	ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]Vehicle, error)
 	RestoreDriverByID(ctx context.Context, driverID int32) (int64, error)
 	RestoreVehicleByID(ctx context.Context, vehicleID int32) (int64, error)

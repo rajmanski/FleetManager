@@ -21,20 +21,25 @@ func NewDriversRepository(queries sqlc.Querier, encryptionKey []byte) *DriversRe
 }
 
 func (r *DriversRepository) ListDrivers(ctx context.Context, query drivers.ListDriversQuery) ([]drivers.Driver, int64, error) {
-	offset := (query.Page - 1) * query.Limit
 	statusFilter := toNullDriversStatus(query.Status)
 	statusColumnValue := interface{}(query.Status)
 	if query.Status == "" {
 		statusColumnValue = ""
 	}
+	includeDeletedFilter := interface{}(0)
+	if query.IncludeDeleted {
+		includeDeletedFilter = 1
+	}
+
+	if drivers.LooksLikePESEL(query.Search) {
+		return r.listDriversByPESEL(ctx, query, includeDeletedFilter, statusColumnValue, statusFilter)
+	}
+
+	offset := (query.Page - 1) * query.Limit
 	searchFilter := query.Search
 	searchColumnValue := interface{}(searchFilter)
 	if searchFilter == "" {
 		searchColumnValue = ""
-	}
-	includeDeletedFilter := interface{}(0)
-	if query.IncludeDeleted {
-		includeDeletedFilter = 1
 	}
 
 	rows, err := r.queries.ListDrivers(ctx, sqlc.ListDriversParams{
@@ -68,6 +73,38 @@ func (r *DriversRepository) ListDrivers(ctx context.Context, query drivers.ListD
 		result = append(result, r.mapDriverRow(row))
 	}
 	return result, total, nil
+}
+
+func (r *DriversRepository) listDriversByPESEL(ctx context.Context, query drivers.ListDriversQuery, includeDeletedFilter, statusColumnValue interface{}, statusFilter sqlc.NullDriversStatus) ([]drivers.Driver, int64, error) {
+	rows, err := r.queries.ListDriversForPESELSearch(ctx, sqlc.ListDriversForPESELSearchParams{
+		Column1: includeDeletedFilter,
+		Column2: statusColumnValue,
+		Status:  statusFilter,
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	peselSearch := strings.TrimSpace(query.Search)
+	var filtered []drivers.Driver
+	for _, row := range rows {
+		d := r.mapDriverRow(row)
+		if d.PESEL == peselSearch {
+			filtered = append(filtered, d)
+		}
+	}
+
+	total := int64(len(filtered))
+	offset := (query.Page - 1) * query.Limit
+	end := offset + query.Limit
+	if offset >= int32(len(filtered)) {
+		return []drivers.Driver{}, total, nil
+	}
+	if end > int32(len(filtered)) {
+		end = int32(len(filtered))
+	}
+	page := filtered[offset:end]
+	return page, total, nil
 }
 
 func (r *DriversRepository) GetDriverByID(ctx context.Context, driverID int64) (drivers.Driver, error) {

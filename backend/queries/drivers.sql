@@ -100,3 +100,22 @@ WHERE driver_id = ?
 SELECT driver_id, pesel
 FROM Drivers
 WHERE deleted_at IS NULL;
+
+-- name: ListDriversForPESELSearch :many
+SELECT
+  driver_id,
+  user_id,
+  first_name,
+  last_name,
+  pesel,
+  phone,
+  email,
+  status,
+  deleted_at,
+  created_at,
+  updated_at
+FROM Drivers
+WHERE (? = 1 OR deleted_at IS NULL)
+  AND (? = '' OR status = ?)
+ORDER BY driver_id DESC
+LIMIT 1000;

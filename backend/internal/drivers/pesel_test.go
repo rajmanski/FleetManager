@@ -2,6 +2,26 @@ package drivers
 
 import "testing"
 
+func TestLooksLikePESEL(t *testing.T) {
+	tests := []struct {
+		s     string
+		valid bool
+	}{
+		{"44051401359", true},
+		{" 44051401359 ", true},
+		{"12345678901", true},
+		{"1234567890", false},
+		{"123456789012", false},
+		{"4405140135X", false},
+		{"", false},
+	}
+	for _, tt := range tests {
+		if got := LooksLikePESEL(tt.s); got != tt.valid {
+			t.Errorf("LooksLikePESEL(%q) = %v, want %v", tt.s, got, tt.valid)
+		}
+	}
+}
+
 func TestIsValidPESEL(t *testing.T) {
 	tests := []struct {
 		name   string

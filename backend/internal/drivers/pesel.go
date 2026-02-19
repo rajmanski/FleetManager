@@ -4,6 +4,20 @@ import "strings"
 
 var peselWeights = [10]int{1, 3, 7, 9, 1, 3, 7, 9, 1, 3}
 
+// LooksLikePESEL returns true if s is 11 digits (PESEL format for search).
+func LooksLikePESEL(s string) bool {
+	t := strings.TrimSpace(s)
+	if len(t) != 11 {
+		return false
+	}
+	for i := 0; i < 11; i++ {
+		if t[i] < '0' || t[i] > '9' {
+			return false
+		}
+	}
+	return true
+}
+
 func IsValidPESEL(pesel string) bool {
 	s := strings.TrimSpace(pesel)
 	if len(s) != 11 {

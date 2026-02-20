@@ -165,6 +165,11 @@ func main() {
 		auth.RBACMiddleware(auth.ResourceDrivers, auth.PermissionWrite),
 		driversHandler.RestoreDriver,
 	)
+	protected.GET(
+		"/drivers/:id/availability",
+		auth.RBACMiddleware(auth.ResourceDrivers, auth.PermissionRead),
+		driversHandler.GetDriverAvailability,
+	)
 
 	protected.GET("/db-check", func(c *gin.Context) {
 		var one int

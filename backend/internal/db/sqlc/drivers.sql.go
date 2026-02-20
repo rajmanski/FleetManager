@@ -144,6 +144,29 @@ func (q *Queries) GetDriverByID(ctx context.Context, driverID int32) (GetDriverB
 	return i, err
 }
 
+const getDriverTripOnDate = `-- name: GetDriverTripOnDate :one
+SELECT o.order_number
+FROM Trips t
+JOIN Orders o ON t.order_id = o.order_id
+WHERE t.driver_id = ?
+  AND t.status IN ('Scheduled', 'Active')
+  AND DATE(t.start_time) <= ?
+  AND (t.end_time IS NULL OR DATE(t.end_time) >= ?)
+LIMIT 1
+`
+
+type GetDriverTripOnDateParams struct {
+	DriverID  int32        `json:"driver_id"`
+	CheckDate sql.NullTime `json:"check_date"`
+}
+
+func (q *Queries) GetDriverTripOnDate(ctx context.Context, arg GetDriverTripOnDateParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getDriverTripOnDate, arg.DriverID, arg.CheckDate, arg.CheckDate)
+	var order_number string
+	err := row.Scan(&order_number)
+	return order_number, err
+}
+
 const hasActiveDriverWithPESELExcludingID = `-- name: HasActiveDriverWithPESELExcludingID :one
 SELECT EXISTS(
   SELECT 1

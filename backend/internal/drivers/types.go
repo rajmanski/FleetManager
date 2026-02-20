@@ -50,3 +50,11 @@ type UpdateDriverRequest struct {
 	Email     *string `json:"email,omitempty"`
 	Status    string  `json:"status"`
 }
+
+// DriverAvailabilityResponse is the response for GET /drivers/{id}/availability
+type DriverAvailabilityResponse struct {
+	DriverID  int64   `json:"driver_id"`
+	Date      string  `json:"date"`
+	Available bool    `json:"available"`
+	Reason    *string `json:"reason,omitempty"`
+}

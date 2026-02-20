@@ -4,7 +4,6 @@ sql:
     queries: "queries/"
     schema:
       - "migrations/"
-      - "sqlc_schema/"
     gen:
       go:
         package: "sqlc"

@@ -204,6 +204,36 @@ func (h *Handler) RestoreDriver(c *gin.Context) {
 	c.JSON(http.StatusOK, driver)
 }
 
+func (h *Handler) GetDriverAvailability(c *gin.Context) {
+	driverID, err := parseDriverIDParam(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid driver id"})
+		return
+	}
+
+	date := c.Query("date")
+	if date == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "date query parameter is required (YYYY-MM-DD)"})
+		return
+	}
+
+	resp, err := h.service.GetDriverAvailability(c.Request.Context(), driverID, date)
+	if err != nil {
+		if errors.Is(err, ErrDriverNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})
+			return
+		}
+		if errors.Is(err, ErrInvalidInput) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid date format (expected YYYY-MM-DD)"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
 func parseDriverIDParam(c *gin.Context) (int64, error) {
 	value := c.Param("id")
 	driverID, err := strconv.ParseInt(value, 10, 64)

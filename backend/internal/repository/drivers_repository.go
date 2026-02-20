@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"time"
 
 	sqlc "fleet-management/internal/db/sqlc"
-	"fleet-management/internal/drivers"
 	"fleet-management/internal/crypto"
+	"fleet-management/internal/drivers"
 )
 
 type DriversRepository struct {
@@ -237,6 +238,24 @@ func (r *DriversRepository) RestoreDriver(ctx context.Context, driverID int64) e
 	}
 
 	return nil
+}
+
+func (r *DriversRepository) GetDriverTripOrderNumberOnDate(ctx context.Context, driverID int64, date string) (string, error) {
+	parsed, err := time.Parse("2006-01-02", date)
+	if err != nil {
+		return "", drivers.ErrInvalidInput
+	}
+	orderNumber, err := r.queries.GetDriverTripOnDate(ctx, sqlc.GetDriverTripOnDateParams{
+		DriverID:  int32(driverID),
+		CheckDate:  sql.NullTime{Time: parsed, Valid: true},
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", nil
+		}
+		return "", err
+	}
+	return orderNumber, nil
 }
 
 func toNullDriversStatus(status string) sqlc.NullDriversStatus {

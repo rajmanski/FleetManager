@@ -9,4 +9,6 @@ type Repository interface {
 	UpdateDriver(ctx context.Context, driverID int64, input UpdateDriverRequest) error
 	DeleteDriver(ctx context.Context, driverID int64) error
 	RestoreDriver(ctx context.Context, driverID int64) error
+
+	GetDriverTripOrderNumberOnDate(ctx context.Context, driverID int64, date string) (string, error)
 }

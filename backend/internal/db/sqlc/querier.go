@@ -18,6 +18,7 @@ type Querier interface {
 	GetDeletedDriverPESELByID(ctx context.Context, driverID int32) (string, error)
 	GetDeletedVehicleVINByID(ctx context.Context, vehicleID int32) (string, error)
 	GetDriverByID(ctx context.Context, driverID int32) (GetDriverByIDRow, error)
+	GetDriverTripOnDate(ctx context.Context, arg GetDriverTripOnDateParams) (string, error)
 	GetRoleIDByName(ctx context.Context, roleName string) (int32, error)
 	GetUserByLogin(ctx context.Context, username string) (GetUserByLoginRow, error)
 	GetVehicleByID(ctx context.Context, vehicleID int32) (GetVehicleByIDRow, error)

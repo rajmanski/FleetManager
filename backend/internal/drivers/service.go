@@ -2,6 +2,7 @@ package drivers
 
 import (
 	"context"
+	"fmt"
 	"strings"
 )
 
@@ -136,4 +137,35 @@ func isAllowedDriverStatus(status string) bool {
 	default:
 		return false
 	}
+}
+
+func (s *Service) GetDriverAvailability(ctx context.Context, driverID int64, date string) (DriverAvailabilityResponse, error) {
+	if driverID <= 0 {
+		return DriverAvailabilityResponse{}, ErrInvalidInput
+	}
+	date = strings.TrimSpace(date)
+	if date == "" {
+		return DriverAvailabilityResponse{}, ErrInvalidInput
+	}
+
+	_, err := s.repo.GetDriverByID(ctx, driverID)
+	if err != nil {
+		return DriverAvailabilityResponse{}, err
+	}
+
+	orderNumber, err := s.repo.GetDriverTripOrderNumberOnDate(ctx, driverID, date)
+	if err != nil {
+		return DriverAvailabilityResponse{}, err
+	}
+
+	resp := DriverAvailabilityResponse{
+		DriverID:  driverID,
+		Date:      date,
+		Available: orderNumber == "",
+	}
+	if orderNumber != "" {
+		reason := fmt.Sprintf("Assigned to order %s", orderNumber)
+		resp.Reason = &reason
+	}
+	return resp, nil
 }

@@ -15,7 +15,9 @@ type DriversTableProps = {
   page: number
   total: number
   pagination: PaginationHelpers
+  canManageDrivers: boolean
   isAdmin: boolean
+  onEdit: (driver: Driver) => void
   onRestore: (driverId: number) => void
   isRestoring: boolean
 }
@@ -25,7 +27,9 @@ export function DriversTable({
   page,
   total,
   pagination,
+  canManageDrivers,
   isAdmin,
+  onEdit,
   onRestore,
   isRestoring,
 }: DriversTableProps) {
@@ -74,7 +78,16 @@ export function DriversTable({
                             {isRestoring ? 'Restoring...' : 'Restore'}
                           </Button>
                         )}
-                        {!isDeleted && (
+                        {!isDeleted && canManageDrivers && (
+                          <Button
+                            variant="secondary"
+                            onClick={() => onEdit(driver)}
+                            className="px-3 py-1.5 text-xs"
+                          >
+                            Edit
+                          </Button>
+                        )}
+                        {!isDeleted && !canManageDrivers && !isAdmin && (
                           <span className="text-xs text-gray-400">-</span>
                         )}
                       </div>

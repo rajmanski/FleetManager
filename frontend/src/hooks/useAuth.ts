@@ -8,6 +8,7 @@ export function useAuth() {
       role,
       isAdmin: role === 'Administrator',
       canManageVehicles: role === 'Administrator' || role === 'Mechanik',
+      canManageDrivers: role === 'Administrator' || role === 'Mechanik',
     }),
     [role]
   )

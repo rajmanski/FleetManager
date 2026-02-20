@@ -15,6 +15,15 @@ export type Driver = {
   updated_at?: string
 }
 
+export type DriverMutationPayload = {
+  first_name: string
+  last_name: string
+  pesel: string
+  phone?: string
+  email?: string
+  status?: string
+}
+
 type ListDriversResponse = {
   data: Driver[]
   page: number
@@ -66,9 +75,37 @@ export function useDrivers({
     },
   })
 
+  const createMutation = useMutation({
+    mutationFn: async (payload: DriverMutationPayload) => {
+      const res = await api.post<Driver>('/api/v1/drivers', payload)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['drivers'] })
+    },
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: async ({
+      id,
+      payload,
+    }: {
+      id: number
+      payload: DriverMutationPayload
+    }) => {
+      const res = await api.put<Driver>(`/api/v1/drivers/${id}`, payload)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['drivers'] })
+    },
+  })
+
   return {
     driversQuery,
     restoreMutation,
+    createMutation,
+    updateMutation,
     isAdmin,
   }
 }

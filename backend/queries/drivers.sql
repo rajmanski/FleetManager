@@ -8,6 +8,10 @@ SELECT
   phone,
   email,
   status,
+  license_number,
+  license_expiry_date,
+  adr_certified,
+  adr_expiry_date,
   deleted_at,
   created_at,
   updated_at
@@ -35,6 +39,10 @@ SELECT
   phone,
   email,
   status,
+  license_number,
+  license_expiry_date,
+  adr_certified,
+  adr_expiry_date,
   created_at,
   updated_at
 FROM Drivers
@@ -64,6 +72,10 @@ SET
   phone = ?,
   email = ?,
   status = ?,
+  license_number = ?,
+  license_expiry_date = ?,
+  adr_certified = ?,
+  adr_expiry_date = ?,
   updated_at = NOW()
 WHERE driver_id = ?
   AND deleted_at IS NULL;
@@ -119,6 +131,10 @@ SELECT
   phone,
   email,
   status,
+  license_number,
+  license_expiry_date,
+  adr_certified,
+  adr_expiry_date,
   deleted_at,
   created_at,
   updated_at

@@ -103,9 +103,23 @@ func (s *Service) UpdateDriver(ctx context.Context, driverID int64, req UpdateDr
 		return Driver{}, ErrInvalidStatus
 	}
 
+	existing, err := s.repo.GetDriverByID(ctx, driverID)
+	if err != nil {
+		return Driver{}, err
+	}
+
+	// adr_expiry_date can only be set when adr_certified is true
+	effectiveADRCertified := existing.ADRCertified
+	if req.ADRCertified != nil {
+		effectiveADRCertified = *req.ADRCertified
+	}
+	if req.ADRExpiryDate != nil && !effectiveADRCertified {
+		return Driver{}, ErrInvalidCertificates
+	}
+
 	req.PESEL = pesel
 	req.Status = status
-	if err := s.repo.UpdateDriver(ctx, driverID, req); err != nil {
+	if err := s.repo.UpdateDriver(ctx, driverID, req, existing); err != nil {
 		return Driver{}, err
 	}
 

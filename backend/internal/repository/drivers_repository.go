@@ -148,7 +148,7 @@ func (r *DriversRepository) CreateDriver(ctx context.Context, input drivers.Crea
 	return id, nil
 }
 
-func (r *DriversRepository) UpdateDriver(ctx context.Context, driverID int64, input drivers.UpdateDriverRequest) error {
+func (r *DriversRepository) UpdateDriver(ctx context.Context, driverID int64, input drivers.UpdateDriverRequest, existing drivers.Driver) error {
 	pesel := strings.TrimSpace(input.PESEL)
 	encrypted, err := crypto.EncryptPESEL(pesel, r.encryptionKey)
 	if err != nil {
@@ -156,15 +156,30 @@ func (r *DriversRepository) UpdateDriver(ctx context.Context, driverID int64, in
 	}
 	status := normalizeDriverStatus(input.Status)
 
+	licenseNumber := toNullStringFromPtr(input.LicenseNumber, existing.LicenseNumber)
+	licenseExpiryDate := toNullTimeFromTimePtr(input.LicenseExpiryDate, existing.LicenseExpiryDate)
+	adrCertified := existing.ADRCertified
+	if input.ADRCertified != nil {
+		adrCertified = *input.ADRCertified
+	}
+	var adrExpiryDate sql.NullTime
+	if adrCertified {
+		adrExpiryDate = toNullTimeFromTimePtr(input.ADRExpiryDate, existing.ADRExpiryDate)
+	}
+
 	rows, err := r.queries.UpdateDriver(ctx, sqlc.UpdateDriverParams{
-		UserID:    toNullInt32(input.UserID),
-		FirstName: strings.TrimSpace(input.FirstName),
-		LastName:  strings.TrimSpace(input.LastName),
-		Pesel:     encrypted,
-		Phone:     toNullString(input.Phone),
-		Email:     toNullString(input.Email),
-		Status:    toNullDriversStatus(status),
-		DriverID:  int32(driverID),
+		UserID:            toNullInt32(input.UserID),
+		FirstName:         strings.TrimSpace(input.FirstName),
+		LastName:          strings.TrimSpace(input.LastName),
+		Pesel:             encrypted,
+		Phone:             toNullString(input.Phone),
+		Email:             toNullString(input.Email),
+		Status:            toNullDriversStatus(status),
+		LicenseNumber:     licenseNumber,
+		LicenseExpiryDate: licenseExpiryDate,
+		AdrCertified:      adrCertified,
+		AdrExpiryDate:     adrExpiryDate,
+		DriverID:          int32(driverID),
 	})
 	if err != nil {
 		if isDuplicateEntryError(err) {
@@ -268,6 +283,29 @@ func toNullDriversStatus(status string) sqlc.NullDriversStatus {
 	}
 }
 
+func toNullStringFromPtr(ptr *string, existing *string) sql.NullString {
+	var s *string
+	if ptr != nil {
+		s = ptr
+	} else {
+		s = existing
+	}
+	return toNullString(s)
+}
+
+func toNullTimeFromTimePtr(ptr *time.Time, existing *time.Time) sql.NullTime {
+	var t *time.Time
+	if ptr != nil {
+		t = ptr
+	} else {
+		t = existing
+	}
+	if t == nil {
+		return sql.NullTime{}
+	}
+	return sql.NullTime{Time: *t, Valid: true}
+}
+
 func normalizeDriverStatus(status string) string {
 	return strings.TrimSpace(status)
 }
@@ -275,11 +313,12 @@ func normalizeDriverStatus(status string) string {
 func (r *DriversRepository) mapListDriversRow(row sqlc.ListDriversRow) drivers.Driver {
 	pesel, _ := crypto.DecryptPESEL(row.Pesel, r.encryptionKey)
 	d := drivers.Driver{
-		ID:        int64(row.DriverID),
-		FirstName: row.FirstName,
-		LastName:  row.LastName,
-		PESEL:     pesel,
-		Status:    string(row.Status.DriversStatus),
+		ID:           int64(row.DriverID),
+		FirstName:    row.FirstName,
+		LastName:     row.LastName,
+		PESEL:        pesel,
+		Status:       string(row.Status.DriversStatus),
+		ADRCertified: row.AdrCertified,
 	}
 	if row.UserID.Valid {
 		v := row.UserID.Int32
@@ -292,6 +331,18 @@ func (r *DriversRepository) mapListDriversRow(row sqlc.ListDriversRow) drivers.D
 	if row.Email.Valid {
 		v := row.Email.String
 		d.Email = &v
+	}
+	if row.LicenseNumber.Valid {
+		v := row.LicenseNumber.String
+		d.LicenseNumber = &v
+	}
+	if row.LicenseExpiryDate.Valid {
+		v := row.LicenseExpiryDate.Time
+		d.LicenseExpiryDate = &v
+	}
+	if row.AdrExpiryDate.Valid {
+		v := row.AdrExpiryDate.Time
+		d.ADRExpiryDate = &v
 	}
 	if row.CreatedAt.Valid {
 		v := row.CreatedAt.Time
@@ -311,11 +362,12 @@ func (r *DriversRepository) mapListDriversRow(row sqlc.ListDriversRow) drivers.D
 func (r *DriversRepository) mapListDriversForPESELSearchRow(row sqlc.ListDriversForPESELSearchRow) drivers.Driver {
 	pesel, _ := crypto.DecryptPESEL(row.Pesel, r.encryptionKey)
 	d := drivers.Driver{
-		ID:        int64(row.DriverID),
-		FirstName: row.FirstName,
-		LastName:  row.LastName,
-		PESEL:     pesel,
-		Status:    string(row.Status.DriversStatus),
+		ID:           int64(row.DriverID),
+		FirstName:    row.FirstName,
+		LastName:     row.LastName,
+		PESEL:        pesel,
+		Status:       string(row.Status.DriversStatus),
+		ADRCertified: row.AdrCertified,
 	}
 	if row.UserID.Valid {
 		v := row.UserID.Int32
@@ -328,6 +380,18 @@ func (r *DriversRepository) mapListDriversForPESELSearchRow(row sqlc.ListDrivers
 	if row.Email.Valid {
 		v := row.Email.String
 		d.Email = &v
+	}
+	if row.LicenseNumber.Valid {
+		v := row.LicenseNumber.String
+		d.LicenseNumber = &v
+	}
+	if row.LicenseExpiryDate.Valid {
+		v := row.LicenseExpiryDate.Time
+		d.LicenseExpiryDate = &v
+	}
+	if row.AdrExpiryDate.Valid {
+		v := row.AdrExpiryDate.Time
+		d.ADRExpiryDate = &v
 	}
 	if row.CreatedAt.Valid {
 		v := row.CreatedAt.Time
@@ -347,11 +411,12 @@ func (r *DriversRepository) mapListDriversForPESELSearchRow(row sqlc.ListDrivers
 func (r *DriversRepository) mapGetDriverRow(row sqlc.GetDriverByIDRow) drivers.Driver {
 	pesel, _ := crypto.DecryptPESEL(row.Pesel, r.encryptionKey)
 	d := drivers.Driver{
-		ID:        int64(row.DriverID),
-		FirstName: row.FirstName,
-		LastName:  row.LastName,
-		PESEL:     pesel,
-		Status:    string(row.Status.DriversStatus),
+		ID:           int64(row.DriverID),
+		FirstName:    row.FirstName,
+		LastName:     row.LastName,
+		PESEL:        pesel,
+		Status:       string(row.Status.DriversStatus),
+		ADRCertified: row.AdrCertified,
 	}
 	if row.UserID.Valid {
 		v := row.UserID.Int32
@@ -364,6 +429,18 @@ func (r *DriversRepository) mapGetDriverRow(row sqlc.GetDriverByIDRow) drivers.D
 	if row.Email.Valid {
 		v := row.Email.String
 		d.Email = &v
+	}
+	if row.LicenseNumber.Valid {
+		v := row.LicenseNumber.String
+		d.LicenseNumber = &v
+	}
+	if row.LicenseExpiryDate.Valid {
+		v := row.LicenseExpiryDate.Time
+		d.LicenseExpiryDate = &v
+	}
+	if row.AdrExpiryDate.Valid {
+		v := row.AdrExpiryDate.Time
+		d.ADRExpiryDate = &v
 	}
 	if row.CreatedAt.Valid {
 		v := row.CreatedAt.Time

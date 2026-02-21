@@ -105,6 +105,10 @@ SELECT
   phone,
   email,
   status,
+  license_number,
+  license_expiry_date,
+  adr_certified,
+  adr_expiry_date,
   created_at,
   updated_at
 FROM Drivers
@@ -114,16 +118,20 @@ LIMIT 1
 `
 
 type GetDriverByIDRow struct {
-	DriverID  int32             `json:"driver_id"`
-	UserID    sql.NullInt32     `json:"user_id"`
-	FirstName string            `json:"first_name"`
-	LastName  string            `json:"last_name"`
-	Pesel     string            `json:"pesel"`
-	Phone     sql.NullString    `json:"phone"`
-	Email     sql.NullString    `json:"email"`
-	Status    NullDriversStatus `json:"status"`
-	CreatedAt sql.NullTime      `json:"created_at"`
-	UpdatedAt sql.NullTime      `json:"updated_at"`
+	DriverID          int32             `json:"driver_id"`
+	UserID            sql.NullInt32     `json:"user_id"`
+	FirstName         string            `json:"first_name"`
+	LastName          string            `json:"last_name"`
+	Pesel             string            `json:"pesel"`
+	Phone             sql.NullString    `json:"phone"`
+	Email             sql.NullString    `json:"email"`
+	Status            NullDriversStatus `json:"status"`
+	LicenseNumber     sql.NullString    `json:"license_number"`
+	LicenseExpiryDate sql.NullTime      `json:"license_expiry_date"`
+	AdrCertified      bool              `json:"adr_certified"`
+	AdrExpiryDate     sql.NullTime      `json:"adr_expiry_date"`
+	CreatedAt         sql.NullTime      `json:"created_at"`
+	UpdatedAt         sql.NullTime      `json:"updated_at"`
 }
 
 func (q *Queries) GetDriverByID(ctx context.Context, driverID int32) (GetDriverByIDRow, error) {
@@ -138,6 +146,10 @@ func (q *Queries) GetDriverByID(ctx context.Context, driverID int32) (GetDriverB
 		&i.Phone,
 		&i.Email,
 		&i.Status,
+		&i.LicenseNumber,
+		&i.LicenseExpiryDate,
+		&i.AdrCertified,
+		&i.AdrExpiryDate,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -249,6 +261,10 @@ SELECT
   phone,
   email,
   status,
+  license_number,
+  license_expiry_date,
+  adr_certified,
+  adr_expiry_date,
   deleted_at,
   created_at,
   updated_at
@@ -272,17 +288,21 @@ type ListDriversParams struct {
 }
 
 type ListDriversRow struct {
-	DriverID  int32             `json:"driver_id"`
-	UserID    sql.NullInt32     `json:"user_id"`
-	FirstName string            `json:"first_name"`
-	LastName  string            `json:"last_name"`
-	Pesel     string            `json:"pesel"`
-	Phone     sql.NullString    `json:"phone"`
-	Email     sql.NullString    `json:"email"`
-	Status    NullDriversStatus `json:"status"`
-	DeletedAt sql.NullTime      `json:"deleted_at"`
-	CreatedAt sql.NullTime      `json:"created_at"`
-	UpdatedAt sql.NullTime      `json:"updated_at"`
+	DriverID          int32             `json:"driver_id"`
+	UserID            sql.NullInt32     `json:"user_id"`
+	FirstName         string            `json:"first_name"`
+	LastName          string            `json:"last_name"`
+	Pesel             string            `json:"pesel"`
+	Phone             sql.NullString    `json:"phone"`
+	Email             sql.NullString    `json:"email"`
+	Status            NullDriversStatus `json:"status"`
+	LicenseNumber     sql.NullString    `json:"license_number"`
+	LicenseExpiryDate sql.NullTime      `json:"license_expiry_date"`
+	AdrCertified      bool              `json:"adr_certified"`
+	AdrExpiryDate     sql.NullTime      `json:"adr_expiry_date"`
+	DeletedAt         sql.NullTime      `json:"deleted_at"`
+	CreatedAt         sql.NullTime      `json:"created_at"`
+	UpdatedAt         sql.NullTime      `json:"updated_at"`
 }
 
 func (q *Queries) ListDrivers(ctx context.Context, arg ListDriversParams) ([]ListDriversRow, error) {
@@ -312,6 +332,10 @@ func (q *Queries) ListDrivers(ctx context.Context, arg ListDriversParams) ([]Lis
 			&i.Phone,
 			&i.Email,
 			&i.Status,
+			&i.LicenseNumber,
+			&i.LicenseExpiryDate,
+			&i.AdrCertified,
+			&i.AdrExpiryDate,
 			&i.DeletedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -339,6 +363,10 @@ SELECT
   phone,
   email,
   status,
+  license_number,
+  license_expiry_date,
+  adr_certified,
+  adr_expiry_date,
   deleted_at,
   created_at,
   updated_at
@@ -356,17 +384,21 @@ type ListDriversForPESELSearchParams struct {
 }
 
 type ListDriversForPESELSearchRow struct {
-	DriverID  int32             `json:"driver_id"`
-	UserID    sql.NullInt32     `json:"user_id"`
-	FirstName string            `json:"first_name"`
-	LastName  string            `json:"last_name"`
-	Pesel     string            `json:"pesel"`
-	Phone     sql.NullString    `json:"phone"`
-	Email     sql.NullString    `json:"email"`
-	Status    NullDriversStatus `json:"status"`
-	DeletedAt sql.NullTime      `json:"deleted_at"`
-	CreatedAt sql.NullTime      `json:"created_at"`
-	UpdatedAt sql.NullTime      `json:"updated_at"`
+	DriverID          int32             `json:"driver_id"`
+	UserID            sql.NullInt32     `json:"user_id"`
+	FirstName         string            `json:"first_name"`
+	LastName          string            `json:"last_name"`
+	Pesel             string            `json:"pesel"`
+	Phone             sql.NullString    `json:"phone"`
+	Email             sql.NullString    `json:"email"`
+	Status            NullDriversStatus `json:"status"`
+	LicenseNumber     sql.NullString    `json:"license_number"`
+	LicenseExpiryDate sql.NullTime      `json:"license_expiry_date"`
+	AdrCertified      bool              `json:"adr_certified"`
+	AdrExpiryDate     sql.NullTime      `json:"adr_expiry_date"`
+	DeletedAt         sql.NullTime      `json:"deleted_at"`
+	CreatedAt         sql.NullTime      `json:"created_at"`
+	UpdatedAt         sql.NullTime      `json:"updated_at"`
 }
 
 func (q *Queries) ListDriversForPESELSearch(ctx context.Context, arg ListDriversForPESELSearchParams) ([]ListDriversForPESELSearchRow, error) {
@@ -387,6 +419,10 @@ func (q *Queries) ListDriversForPESELSearch(ctx context.Context, arg ListDrivers
 			&i.Phone,
 			&i.Email,
 			&i.Status,
+			&i.LicenseNumber,
+			&i.LicenseExpiryDate,
+			&i.AdrCertified,
+			&i.AdrExpiryDate,
 			&i.DeletedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -444,20 +480,28 @@ SET
   phone = ?,
   email = ?,
   status = ?,
+  license_number = ?,
+  license_expiry_date = ?,
+  adr_certified = ?,
+  adr_expiry_date = ?,
   updated_at = NOW()
 WHERE driver_id = ?
   AND deleted_at IS NULL
 `
 
 type UpdateDriverParams struct {
-	UserID    sql.NullInt32     `json:"user_id"`
-	FirstName string            `json:"first_name"`
-	LastName  string            `json:"last_name"`
-	Pesel     string            `json:"pesel"`
-	Phone     sql.NullString    `json:"phone"`
-	Email     sql.NullString    `json:"email"`
-	Status    NullDriversStatus `json:"status"`
-	DriverID  int32             `json:"driver_id"`
+	UserID            sql.NullInt32     `json:"user_id"`
+	FirstName         string            `json:"first_name"`
+	LastName          string            `json:"last_name"`
+	Pesel             string            `json:"pesel"`
+	Phone             sql.NullString    `json:"phone"`
+	Email             sql.NullString    `json:"email"`
+	Status            NullDriversStatus `json:"status"`
+	LicenseNumber     sql.NullString    `json:"license_number"`
+	LicenseExpiryDate sql.NullTime      `json:"license_expiry_date"`
+	AdrCertified      bool              `json:"adr_certified"`
+	AdrExpiryDate     sql.NullTime      `json:"adr_expiry_date"`
+	DriverID          int32             `json:"driver_id"`
 }
 
 func (q *Queries) UpdateDriver(ctx context.Context, arg UpdateDriverParams) (int64, error) {
@@ -469,6 +513,10 @@ func (q *Queries) UpdateDriver(ctx context.Context, arg UpdateDriverParams) (int
 		arg.Phone,
 		arg.Email,
 		arg.Status,
+		arg.LicenseNumber,
+		arg.LicenseExpiryDate,
+		arg.AdrCertified,
+		arg.AdrExpiryDate,
 		arg.DriverID,
 	)
 	if err != nil {

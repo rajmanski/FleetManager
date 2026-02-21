@@ -118,7 +118,7 @@ func (h *Handler) UpdateDriver(c *gin.Context) {
 	driver, err := h.service.UpdateDriver(c.Request.Context(), driverID, req)
 	if err != nil {
 		switch {
-		case errors.Is(err, ErrInvalidInput), errors.Is(err, ErrInvalidPESEL), errors.Is(err, ErrInvalidStatus):
+		case errors.Is(err, ErrInvalidInput), errors.Is(err, ErrInvalidPESEL), errors.Is(err, ErrInvalidStatus), errors.Is(err, ErrInvalidCertificates):
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		case errors.Is(err, ErrDriverNotFound):

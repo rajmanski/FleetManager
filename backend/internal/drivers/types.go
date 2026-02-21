@@ -3,17 +3,21 @@ package drivers
 import "time"
 
 type Driver struct {
-	ID        int64      `json:"id"`
-	UserID    *int32     `json:"user_id,omitempty"`
-	FirstName string     `json:"first_name"`
-	LastName  string     `json:"last_name"`
-	PESEL     string     `json:"pesel"`
-	Phone     *string    `json:"phone,omitempty"`
-	Email     *string    `json:"email,omitempty"`
-	Status    string     `json:"status"`
-	DeletedAt *time.Time `json:"deleted_at,omitempty"`
-	CreatedAt *time.Time `json:"created_at,omitempty"`
-	UpdatedAt *time.Time `json:"updated_at,omitempty"`
+	ID                int64      `json:"id"`
+	UserID            *int32     `json:"user_id,omitempty"`
+	FirstName         string     `json:"first_name"`
+	LastName          string     `json:"last_name"`
+	PESEL             string     `json:"pesel"`
+	Phone             *string    `json:"phone,omitempty"`
+	Email             *string    `json:"email,omitempty"`
+	Status            string     `json:"status"`
+	LicenseNumber     *string    `json:"license_number,omitempty"`
+	LicenseExpiryDate *time.Time `json:"license_expiry_date,omitempty"`
+	ADRCertified      bool       `json:"adr_certified"`
+	ADRExpiryDate     *time.Time `json:"adr_expiry_date,omitempty"`
+	DeletedAt         *time.Time `json:"deleted_at,omitempty"`
+	CreatedAt         *time.Time `json:"created_at,omitempty"`
+	UpdatedAt         *time.Time `json:"updated_at,omitempty"`
 }
 
 type ListDriversQuery struct {
@@ -42,13 +46,17 @@ type CreateDriverRequest struct {
 }
 
 type UpdateDriverRequest struct {
-	UserID    *int32  `json:"user_id,omitempty"`
-	FirstName string  `json:"first_name"`
-	LastName  string  `json:"last_name"`
-	PESEL     string  `json:"pesel"`
-	Phone     *string `json:"phone,omitempty"`
-	Email     *string `json:"email,omitempty"`
-	Status    string  `json:"status"`
+	UserID            *int32     `json:"user_id,omitempty"`
+	FirstName         string     `json:"first_name"`
+	LastName          string     `json:"last_name"`
+	PESEL             string     `json:"pesel"`
+	Phone             *string    `json:"phone,omitempty"`
+	Email             *string    `json:"email,omitempty"`
+	Status            string     `json:"status"`
+	LicenseNumber     *string    `json:"license_number,omitempty"`
+	LicenseExpiryDate *time.Time `json:"license_expiry_date,omitempty"`
+	ADRCertified      *bool      `json:"adr_certified,omitempty"`
+	ADRExpiryDate     *time.Time `json:"adr_expiry_date,omitempty"`
 }
 
 // DriverAvailabilityResponse is the response for GET /drivers/{id}/availability

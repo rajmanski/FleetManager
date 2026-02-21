@@ -206,17 +206,21 @@ type Client struct {
 }
 
 type Driver struct {
-	DriverID  int32             `json:"driver_id"`
-	UserID    sql.NullInt32     `json:"user_id"`
-	FirstName string            `json:"first_name"`
-	LastName  string            `json:"last_name"`
-	Pesel     string            `json:"pesel"`
-	Phone     sql.NullString    `json:"phone"`
-	Email     sql.NullString    `json:"email"`
-	Status    NullDriversStatus `json:"status"`
-	DeletedAt sql.NullTime      `json:"deleted_at"`
-	CreatedAt sql.NullTime      `json:"created_at"`
-	UpdatedAt sql.NullTime      `json:"updated_at"`
+	DriverID          int32             `json:"driver_id"`
+	UserID            sql.NullInt32     `json:"user_id"`
+	FirstName         string            `json:"first_name"`
+	LastName          string            `json:"last_name"`
+	Pesel             string            `json:"pesel"`
+	Phone             sql.NullString    `json:"phone"`
+	Email             sql.NullString    `json:"email"`
+	Status            NullDriversStatus `json:"status"`
+	DeletedAt         sql.NullTime      `json:"deleted_at"`
+	CreatedAt         sql.NullTime      `json:"created_at"`
+	UpdatedAt         sql.NullTime      `json:"updated_at"`
+	LicenseNumber     sql.NullString    `json:"license_number"`
+	LicenseExpiryDate sql.NullTime      `json:"license_expiry_date"`
+	AdrCertified      bool              `json:"adr_certified"`
+	AdrExpiryDate     sql.NullTime      `json:"adr_expiry_date"`
 }
 
 type Order struct {

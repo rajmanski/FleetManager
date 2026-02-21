@@ -271,7 +271,21 @@ type ListDriversParams struct {
 	Offset  int32             `json:"offset"`
 }
 
-func (q *Queries) ListDrivers(ctx context.Context, arg ListDriversParams) ([]Driver, error) {
+type ListDriversRow struct {
+	DriverID  int32             `json:"driver_id"`
+	UserID    sql.NullInt32     `json:"user_id"`
+	FirstName string            `json:"first_name"`
+	LastName  string            `json:"last_name"`
+	Pesel     string            `json:"pesel"`
+	Phone     sql.NullString    `json:"phone"`
+	Email     sql.NullString    `json:"email"`
+	Status    NullDriversStatus `json:"status"`
+	DeletedAt sql.NullTime      `json:"deleted_at"`
+	CreatedAt sql.NullTime      `json:"created_at"`
+	UpdatedAt sql.NullTime      `json:"updated_at"`
+}
+
+func (q *Queries) ListDrivers(ctx context.Context, arg ListDriversParams) ([]ListDriversRow, error) {
 	rows, err := q.db.QueryContext(ctx, listDrivers,
 		arg.Column1,
 		arg.Column2,
@@ -286,9 +300,9 @@ func (q *Queries) ListDrivers(ctx context.Context, arg ListDriversParams) ([]Dri
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Driver
+	var items []ListDriversRow
 	for rows.Next() {
-		var i Driver
+		var i ListDriversRow
 		if err := rows.Scan(
 			&i.DriverID,
 			&i.UserID,
@@ -341,15 +355,29 @@ type ListDriversForPESELSearchParams struct {
 	Status  NullDriversStatus `json:"status"`
 }
 
-func (q *Queries) ListDriversForPESELSearch(ctx context.Context, arg ListDriversForPESELSearchParams) ([]Driver, error) {
+type ListDriversForPESELSearchRow struct {
+	DriverID  int32             `json:"driver_id"`
+	UserID    sql.NullInt32     `json:"user_id"`
+	FirstName string            `json:"first_name"`
+	LastName  string            `json:"last_name"`
+	Pesel     string            `json:"pesel"`
+	Phone     sql.NullString    `json:"phone"`
+	Email     sql.NullString    `json:"email"`
+	Status    NullDriversStatus `json:"status"`
+	DeletedAt sql.NullTime      `json:"deleted_at"`
+	CreatedAt sql.NullTime      `json:"created_at"`
+	UpdatedAt sql.NullTime      `json:"updated_at"`
+}
+
+func (q *Queries) ListDriversForPESELSearch(ctx context.Context, arg ListDriversForPESELSearchParams) ([]ListDriversForPESELSearchRow, error) {
 	rows, err := q.db.QueryContext(ctx, listDriversForPESELSearch, arg.Column1, arg.Column2, arg.Status)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Driver
+	var items []ListDriversForPESELSearchRow
 	for rows.Next() {
-		var i Driver
+		var i ListDriversForPESELSearchRow
 		if err := rows.Scan(
 			&i.DriverID,
 			&i.UserID,

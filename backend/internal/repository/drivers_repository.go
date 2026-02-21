@@ -71,7 +71,7 @@ func (r *DriversRepository) ListDrivers(ctx context.Context, query drivers.ListD
 
 	result := make([]drivers.Driver, 0, len(rows))
 	for _, row := range rows {
-		result = append(result, r.mapDriverRow(row))
+		result = append(result, r.mapListDriversRow(row))
 	}
 	return result, total, nil
 }
@@ -89,7 +89,7 @@ func (r *DriversRepository) listDriversByPESEL(ctx context.Context, query driver
 	peselSearch := strings.TrimSpace(query.Search)
 	var filtered []drivers.Driver
 	for _, row := range rows {
-		d := r.mapDriverRow(row)
+		d := r.mapListDriversForPESELSearchRow(row)
 		if d.PESEL == peselSearch {
 			filtered = append(filtered, d)
 		}
@@ -272,7 +272,43 @@ func normalizeDriverStatus(status string) string {
 	return strings.TrimSpace(status)
 }
 
-func (r *DriversRepository) mapDriverRow(row sqlc.Driver) drivers.Driver {
+func (r *DriversRepository) mapListDriversRow(row sqlc.ListDriversRow) drivers.Driver {
+	pesel, _ := crypto.DecryptPESEL(row.Pesel, r.encryptionKey)
+	d := drivers.Driver{
+		ID:        int64(row.DriverID),
+		FirstName: row.FirstName,
+		LastName:  row.LastName,
+		PESEL:     pesel,
+		Status:    string(row.Status.DriversStatus),
+	}
+	if row.UserID.Valid {
+		v := row.UserID.Int32
+		d.UserID = &v
+	}
+	if row.Phone.Valid {
+		v := row.Phone.String
+		d.Phone = &v
+	}
+	if row.Email.Valid {
+		v := row.Email.String
+		d.Email = &v
+	}
+	if row.CreatedAt.Valid {
+		v := row.CreatedAt.Time
+		d.CreatedAt = &v
+	}
+	if row.UpdatedAt.Valid {
+		v := row.UpdatedAt.Time
+		d.UpdatedAt = &v
+	}
+	if row.DeletedAt.Valid {
+		v := row.DeletedAt.Time
+		d.DeletedAt = &v
+	}
+	return d
+}
+
+func (r *DriversRepository) mapListDriversForPESELSearchRow(row sqlc.ListDriversForPESELSearchRow) drivers.Driver {
 	pesel, _ := crypto.DecryptPESEL(row.Pesel, r.encryptionKey)
 	d := drivers.Driver{
 		ID:        int64(row.DriverID),

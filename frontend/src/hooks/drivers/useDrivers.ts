@@ -10,6 +10,10 @@ export type Driver = {
   phone?: string
   email?: string
   status: string
+  license_number?: string
+  license_expiry_date?: string
+  adr_certified?: boolean
+  adr_expiry_date?: string
   deleted_at?: string
   created_at?: string
   updated_at?: string
@@ -21,7 +25,11 @@ export type DriverMutationPayload = {
   pesel: string
   phone?: string
   email?: string
-  status?: string
+  status: string
+  license_number?: string
+  license_expiry_date?: string
+  adr_certified?: boolean
+  adr_expiry_date?: string
 }
 
 type ListDriversResponse = {

@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FormField } from '@/components/ui/FormField'
 import { FormErrorMessage } from '@/components/ui/FormErrorMessage'
@@ -20,6 +20,12 @@ export type DriverFormModalProps = {
   errorMessage: string | null
 }
 
+function isDateExpired(dateStr?: string): boolean {
+  if (!dateStr) return false
+  const d = new Date(dateStr)
+  return !Number.isNaN(d.getTime()) && d < new Date()
+}
+
 export function DriverFormModal({
   title,
   submitLabel,
@@ -31,7 +37,9 @@ export function DriverFormModal({
 }: DriverFormModalProps) {
   const {
     register,
+    control,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<DriverFormValues>({
     resolver: zodResolver(driverFormSchema),
@@ -42,8 +50,16 @@ export function DriverFormModal({
       phone: initialData?.phone ?? '',
       email: initialData?.email ?? '',
       status: initialData?.status ?? 'Available',
+      license_number: initialData?.license_number ?? '',
+      license_expiry_date: initialData?.license_expiry_date ?? '',
+      adr_certified: initialData?.adr_certified ?? false,
+      adr_expiry_date: initialData?.adr_expiry_date ?? '',
     },
   })
+
+  const adrCertified = watch('adr_certified')
+  const licenseExpiryDate = watch('license_expiry_date')
+  const adrExpiryDate = watch('adr_expiry_date')
 
   const onFormSubmit = (data: DriverFormValues) => {
     const payload: DriverMutationPayload = {
@@ -54,6 +70,12 @@ export function DriverFormModal({
     }
     if (data.phone?.trim()) payload.phone = data.phone.trim()
     if (data.email?.trim()) payload.email = data.email.trim()
+    if (data.license_number?.trim()) payload.license_number = data.license_number.trim()
+    if (data.license_expiry_date?.trim())
+      payload.license_expiry_date = `${data.license_expiry_date.trim()}T00:00:00Z`
+    payload.adr_certified = data.adr_certified ?? false
+    if (data.adr_expiry_date?.trim())
+      payload.adr_expiry_date = `${data.adr_expiry_date.trim()}T00:00:00Z`
     onSubmit(payload)
   }
 
@@ -84,6 +106,59 @@ export function DriverFormModal({
             ))}
           </select>
         </FormField>
+
+        <div className="border-t border-gray-200 pt-4">
+          <h3 className="mb-3 text-sm font-medium text-gray-700">Uprawnienia</h3>
+          <div className="space-y-3">
+            <FormField label="Numer prawa jazdy" error={errors.license_number?.message}>
+              <input
+                {...register('license_number')}
+                className={INPUT_CLASS}
+                placeholder="np. ABC123456"
+              />
+            </FormField>
+            <FormField label="Data ważności prawa jazdy" error={errors.license_expiry_date?.message}>
+              <input type="date" {...register('license_expiry_date')} className={INPUT_CLASS} />
+              {isDateExpired(licenseExpiryDate) && (
+                <p className="mt-1 text-sm text-amber-600">Certyfikat wygasł</p>
+              )}
+            </FormField>
+            <FormField label="Certyfikat ADR">
+              <Controller
+                name="adr_certified"
+                control={control}
+                render={({ field }) => (
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={field.value ?? false}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                      className="rounded"
+                    />
+                    <span className="text-sm">Posiada certyfikat ADR</span>
+                  </label>
+                )}
+              />
+            </FormField>
+            <FormField
+              label="Data ważności ADR"
+              error={errors.adr_expiry_date?.message}
+            >
+              <input
+                type="date"
+                {...register('adr_expiry_date')}
+                className={INPUT_CLASS}
+                disabled={!adrCertified}
+              />
+              {adrCertified && isDateExpired(adrExpiryDate) && (
+                <p className="mt-1 text-sm text-amber-600">Certyfikat wygasł</p>
+              )}
+            </FormField>
+          </div>
+        </div>
+
         <FormErrorMessage message={errorMessage} />
         <ModalFooter
           onCancel={onClose}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 )
 
 const (
@@ -12,12 +13,17 @@ const (
 	maxListLimit     int32 = 100
 )
 
-type Service struct {
-	repo Repository
+type CargoChecker interface {
+	OrderHasHazardousCargo(ctx context.Context, orderID int64) (bool, error)
 }
 
-func NewService(repo Repository) *Service {
-	return &Service{repo: repo}
+type Service struct {
+	repo        Repository
+	cargoChecker CargoChecker
+}
+
+func NewService(repo Repository, cargoChecker CargoChecker) *Service {
+	return &Service{repo: repo, cargoChecker: cargoChecker}
 }
 
 func (s *Service) ListDrivers(ctx context.Context, query ListDriversQuery) (ListDriversResponse, error) {
@@ -182,4 +188,43 @@ func (s *Service) GetDriverAvailability(ctx context.Context, driverID int64, dat
 		resp.Reason = &reason
 	}
 	return resp, nil
+}
+
+func (s *Service) CanDriverTransportHazardousCargo(ctx context.Context, driverID, orderID int64) (CanTransportHazardousResponse, error) {
+	if driverID <= 0 || orderID <= 0 {
+		return CanTransportHazardousResponse{}, ErrInvalidInput
+	}
+
+	hasHazardous, err := s.cargoChecker.OrderHasHazardousCargo(ctx, orderID)
+	if err != nil {
+		return CanTransportHazardousResponse{}, err
+	}
+	if !hasHazardous {
+		return CanTransportHazardousResponse{CanTransport: true}, nil
+	}
+
+	driver, err := s.repo.GetDriverByID(ctx, driverID)
+	if err != nil {
+		return CanTransportHazardousResponse{}, err
+	}
+
+	if !driver.ADRCertified {
+		return CanTransportHazardousResponse{
+			CanTransport: false,
+			Reason:       "Driver does not have ADR certificate",
+		}, nil
+	}
+
+	now := time.Now()
+	if driver.ADRExpiryDate != nil {
+		expiry := *driver.ADRExpiryDate
+		if expiry.Before(now) {
+			return CanTransportHazardousResponse{
+				CanTransport: false,
+				Reason:       fmt.Sprintf("Driver's ADR certificate expired on %s", expiry.Format("2006-01-02")),
+			}, nil
+		}
+	}
+
+	return CanTransportHazardousResponse{CanTransport: true}, nil
 }

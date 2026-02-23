@@ -48,7 +48,8 @@ func main() {
 	vehiclesService := vehicles.NewService(vehiclesRepository)
 	vehiclesHandler := vehicles.NewHandler(vehiclesService)
 	driversRepository := repository.NewDriversRepository(queries, cfg.EncryptionKey)
-	driversService := drivers.NewService(driversRepository)
+	cargoRepository := repository.NewCargoRepository(queries)
+	driversService := drivers.NewService(driversRepository, cargoRepository)
 	driversHandler := drivers.NewHandler(driversService)
 
 	r.GET("/ping", func(c *gin.Context) {
@@ -169,6 +170,11 @@ func main() {
 		"/drivers/:id/availability",
 		auth.RBACMiddleware(auth.ResourceDrivers, auth.PermissionRead),
 		driversHandler.GetDriverAvailability,
+	)
+	protected.GET(
+		"/drivers/:id/can-transport-hazardous",
+		auth.RBACMiddleware(auth.ResourceDrivers, auth.PermissionRead),
+		driversHandler.CanDriverTransportHazardous,
 	)
 
 	protected.GET("/db-check", func(c *gin.Context) {

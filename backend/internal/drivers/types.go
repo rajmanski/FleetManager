@@ -66,3 +66,9 @@ type DriverAvailabilityResponse struct {
 	Available bool    `json:"available"`
 	Reason    *string `json:"reason,omitempty"`
 }
+
+
+type CanTransportHazardousResponse struct {
+	CanTransport bool   `json:"can_transport"`
+	Reason       string `json:"reason,omitempty"`
+}

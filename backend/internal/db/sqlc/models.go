@@ -11,6 +11,49 @@ import (
 	"time"
 )
 
+type CargoCargoType string
+
+const (
+	CargoCargoTypeGeneral      CargoCargoType = "General"
+	CargoCargoTypeRefrigerated CargoCargoType = "Refrigerated"
+	CargoCargoTypeHazardous    CargoCargoType = "Hazardous"
+)
+
+func (e *CargoCargoType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CargoCargoType(s)
+	case string:
+		*e = CargoCargoType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CargoCargoType: %T", src)
+	}
+	return nil
+}
+
+type NullCargoCargoType struct {
+	CargoCargoType CargoCargoType `json:"cargo_cargo_type"`
+	Valid          bool           `json:"valid"` // Valid is true if CargoCargoType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCargoCargoType) Scan(value interface{}) error {
+	if value == nil {
+		ns.CargoCargoType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CargoCargoType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCargoCargoType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CargoCargoType), nil
+}
+
 type DriversStatus string
 
 const (
@@ -187,12 +230,30 @@ func (ns NullVehiclesStatus) Value() (driver.Value, error) {
 	return string(ns.VehiclesStatus), nil
 }
 
+type Alert struct {
+	AlertID    int32          `json:"alert_id"`
+	VehicleID  sql.NullInt32  `json:"vehicle_id"`
+	AlertType  string         `json:"alert_type"`
+	Message    sql.NullString `json:"message"`
+	CreatedAt  sql.NullTime   `json:"created_at"`
+	IsResolved sql.NullBool   `json:"is_resolved"`
+}
+
 type Assignment struct {
 	AssignmentID int32        `json:"assignment_id"`
 	VehicleID    int32        `json:"vehicle_id"`
 	DriverID     int32        `json:"driver_id"`
 	AssignedFrom time.Time    `json:"assigned_from"`
 	AssignedTo   sql.NullTime `json:"assigned_to"`
+}
+
+type Cargo struct {
+	CargoID     int32              `json:"cargo_id"`
+	OrderID     int32              `json:"order_id"`
+	Description sql.NullString     `json:"description"`
+	WeightKg    sql.NullString     `json:"weight_kg"`
+	VolumeM3    sql.NullString     `json:"volume_m3"`
+	CargoType   NullCargoCargoType `json:"cargo_type"`
 }
 
 type Client struct {

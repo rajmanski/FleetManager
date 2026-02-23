@@ -234,6 +234,37 @@ func (h *Handler) GetDriverAvailability(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+func (h *Handler) CanDriverTransportHazardous(c *gin.Context) {
+	driverID, err := parseDriverIDParam(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid driver id"})
+		return
+	}
+
+	orderIDStr := c.Query("order_id")
+	if orderIDStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "order_id query parameter is required"})
+		return
+	}
+	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
+	if err != nil || orderID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order_id"})
+		return
+	}
+
+	resp, err := h.service.CanDriverTransportHazardousCargo(c.Request.Context(), driverID, orderID)
+	if err != nil {
+		if errors.Is(err, ErrDriverNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
 func parseDriverIDParam(c *gin.Context) (int64, error) {
 	value := c.Param("id")
 	driverID, err := strconv.ParseInt(value, 10, 64)

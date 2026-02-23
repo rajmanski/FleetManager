@@ -1,6 +1,11 @@
-import { Trash2 } from 'lucide-react'
+import { Trash2, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import type { Driver } from '@/hooks/drivers/useDrivers'
+import {
+  getCertificateStatus,
+  getCertificateTooltip,
+  type CertificateStatus,
+} from '@/utils/driver'
 
 type PaginationHelpers = {
   totalPages: number
@@ -8,6 +13,44 @@ type PaginationHelpers = {
   canGoNext: boolean
   goPrev: () => void
   goNext: () => void
+}
+
+function CertificateStatusCell({
+  driver,
+  isDeleted,
+}: {
+  driver: Driver
+  isDeleted: boolean
+}) {
+  if (isDeleted) return <span className="text-gray-400">-</span>
+
+  const status = getCertificateStatus(driver)
+  const tooltip = getCertificateTooltip(driver)
+
+  const config: Record<
+    CertificateStatus,
+    { Icon: typeof CheckCircle2; color: string; label: string }
+  > = {
+    valid: { Icon: CheckCircle2, color: 'text-green-600', label: 'Wszystkie certyfikaty ważne' },
+    expiring: {
+      Icon: AlertTriangle,
+      color: 'text-amber-500',
+      label: 'Certyfikat wygasa w ciągu 30 dni',
+    },
+    expired: { Icon: XCircle, color: 'text-red-600', label: 'Certyfikat wygasły' },
+  }
+
+  const { Icon, color, label } = config[status]
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 ${color}`}
+      title={tooltip}
+    >
+      <Icon className="size-4" aria-hidden />
+      <span className="sr-only">{label}</span>
+    </span>
+  )
 }
 
 type DriversTableProps = {
@@ -46,6 +89,7 @@ export function DriversTable({
                 <th className="px-4 py-3 font-medium text-gray-700">Name</th>
                 <th className="px-4 py-3 font-medium text-gray-700">PESEL</th>
                 <th className="px-4 py-3 font-medium text-gray-700">Status</th>
+                <th className="px-4 py-3 font-medium text-gray-700">Status uprawnień</th>
                 <th className="px-4 py-3 font-medium text-gray-700">Actions</th>
               </tr>
             </thead>
@@ -65,6 +109,9 @@ export function DriversTable({
                         {isDeleted && <Trash2 className="size-3.5" />}
                         <span>{driver.status}</span>
                       </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <CertificateStatusCell driver={driver} isDeleted={isDeleted} />
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">

@@ -10,12 +10,13 @@ import { useDrivers, type Driver } from '@/hooks/drivers/useDrivers'
 import { useAuth } from '@/hooks/useAuth'
 import { usePagination } from '@/hooks/usePagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
-import { driverToFormInitialData } from '@/utils/driver'
+import { driverToFormInitialData, hasValidCertificates } from '@/utils/driver'
 import { extractApiError } from '@/utils/api'
 
 function DriversPage() {
   const { isAdmin, canManageDrivers } = useAuth()
   const [showDeleted, setShowDeleted] = useState(false)
+  const [validCertificatesOnly, setValidCertificatesOnly] = useState(false)
   const [statusFilter, setStatusFilter] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
@@ -31,8 +32,13 @@ function DriversPage() {
     isAdmin: isAdminFromHook,
   } = useDrivers({ page, limit, statusFilter, search, showDeleted })
 
-  const drivers = useMemo(() => driversQuery.data?.data ?? [], [driversQuery.data])
-  const total = driversQuery.data?.total ?? 0
+  const allDrivers = useMemo(() => driversQuery.data?.data ?? [], [driversQuery.data])
+  const drivers = useMemo(
+    () =>
+      validCertificatesOnly ? allDrivers.filter(hasValidCertificates) : allDrivers,
+    [allDrivers, validCertificatesOnly]
+  )
+  const total = validCertificatesOnly ? drivers.length : (driversQuery.data?.total ?? 0)
   const pagination = usePagination({ page, setPage, limit, setLimit, total })
 
   const handleStatusFilterChange = useCallback(
@@ -71,6 +77,8 @@ function DriversPage() {
         limit={limit}
         showDeleted={showDeleted}
         onShowDeletedChange={setShowDeleted}
+        validCertificatesOnly={validCertificatesOnly}
+        onValidCertificatesOnlyChange={setValidCertificatesOnly}
         pagination={pagination}
         isAdmin={isAdminFromHook ?? isAdmin}
       />

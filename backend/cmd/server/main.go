@@ -9,6 +9,7 @@ import (
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/drivers"
 	"fleet-management/internal/repository"
+	"fleet-management/internal/routes"
 	"fleet-management/internal/users"
 	"fleet-management/internal/vehicles"
 
@@ -51,6 +52,8 @@ func main() {
 	cargoRepository := repository.NewCargoRepository(queries)
 	driversService := drivers.NewService(driversRepository, cargoRepository)
 	driversHandler := drivers.NewHandler(driversService)
+	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
+	routesHandler := routes.NewHandler(routesService)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -175,6 +178,11 @@ func main() {
 		"/drivers/:id/can-transport-hazardous",
 		auth.RBACMiddleware(auth.ResourceDrivers, auth.PermissionRead),
 		driversHandler.CanDriverTransportHazardous,
+	)
+	protected.POST(
+		"/routes/geocode",
+		auth.RBACMiddleware(auth.ResourceRoutes, auth.PermissionRead),
+		routesHandler.Geocode,
 	)
 
 	protected.GET("/db-check", func(c *gin.Context) {

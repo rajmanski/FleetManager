@@ -9,27 +9,29 @@ import (
 const aes256KeyLen = 32
 
 type Config struct {
-	ServerPort    string
-	DBHost        string
-	DBPort        string
-	DBUser        string
-	DBPassword    string
-	DBName        string
-	JWTSecret     string
-	AppEnv        string
-	EncryptionKey []byte
+	ServerPort       string
+	DBHost           string
+	DBPort           string
+	DBUser           string
+	DBPassword       string
+	DBName           string
+	JWTSecret        string
+	AppEnv           string
+	EncryptionKey    []byte
+	GoogleMapsAPIKey string
 }
 
 func Load() (*Config, error) {
 	cfg := &Config{
-		ServerPort: getEnv("SERVER_PORT", "8080"),
-		DBHost:     getEnv("DB_HOST", "localhost"),
-		DBPort:     getEnv("DB_PORT", "3306"),
-		DBUser:     getEnv("DB_USER", "root"),
-		DBPassword: getEnv("DB_PASSWORD", ""),
-		DBName:     getEnv("DB_NAME", "fleet_management"),
-		JWTSecret:  getEnv("JWT_SECRET", "change-me-jwt-secret"),
-		AppEnv:     getEnv("APP_ENV", "development"),
+		ServerPort:       getEnv("SERVER_PORT", "8080"),
+		DBHost:           getEnv("DB_HOST", "localhost"),
+		DBPort:           getEnv("DB_PORT", "3306"),
+		DBUser:           getEnv("DB_USER", "root"),
+		DBPassword:       getEnv("DB_PASSWORD", ""),
+		DBName:           getEnv("DB_NAME", "fleet_management"),
+		JWTSecret:        getEnv("JWT_SECRET", "change-me-jwt-secret"),
+		AppEnv:           getEnv("APP_ENV", "development"),
+		GoogleMapsAPIKey: getEnv("GOOGLE_MAPS_API_KEY", ""),
 	}
 
 	key, err := loadEncryptionKey()

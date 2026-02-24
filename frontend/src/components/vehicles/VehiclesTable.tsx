@@ -1,21 +1,15 @@
 import { Trash2 } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { Button } from '@/components/ui/Button'
 import type { Vehicle } from '@/hooks/vehicles/useVehicles'
-
-type PaginationHelpers = {
-  totalPages: number
-  canGoPrev: boolean
-  canGoNext: boolean
-  goPrev: () => void
-  goNext: () => void
-}
+import type { PaginationHelpers } from '@/hooks/usePagination'
+import { DataTablePagination } from '@/components/ui/DataTablePagination'
+import { TableActionsCell } from '@/components/ui/TableActionsCell'
 
 type VehiclesTableProps = {
   vehicles: Vehicle[]
   page: number
   total: number
-  pagination: PaginationHelpers
+  pagination: Pick<PaginationHelpers, 'totalPages' | 'canGoPrev' | 'canGoNext' | 'goPrev' | 'goNext'>
   canManageVehicles: boolean
   isAdmin: boolean
   onEdit: (vehicle: Vehicle) => void
@@ -35,10 +29,7 @@ export function VehiclesTable({
   isRestoring,
 }: VehiclesTableProps) {
   return (
-    <div className="space-y-3">
-      <div className="text-sm text-gray-600">
-        Showing page {page} of {pagination.totalPages} ({total} results)
-      </div>
+    <DataTablePagination page={page} total={total} pagination={pagination}>
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
@@ -77,30 +68,14 @@ export function VehiclesTable({
                       </span>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        {isAdmin && isDeleted && (
-                          <Button
-                            variant="secondary"
-                            onClick={() => onRestore(vehicle.id)}
-                            disabled={isRestoring}
-                            className="px-3 py-1.5 text-xs"
-                          >
-                            {isRestoring ? 'Restoring...' : 'Restore'}
-                          </Button>
-                        )}
-                        {!isDeleted && canManageVehicles && (
-                          <Button
-                            variant="secondary"
-                            onClick={() => onEdit(vehicle)}
-                            className="px-3 py-1.5 text-xs"
-                          >
-                            Edit
-                          </Button>
-                        )}
-                        {!isDeleted && !canManageVehicles && !isAdmin && (
-                          <span className="text-xs text-gray-400">-</span>
-                        )}
-                      </div>
+                      <TableActionsCell
+                        isDeleted={isDeleted}
+                        isAdmin={isAdmin}
+                        canManage={canManageVehicles}
+                        onRestore={() => onRestore(vehicle.id)}
+                        onEdit={() => onEdit(vehicle)}
+                        isRestoring={isRestoring}
+                      />
                     </td>
                   </tr>
                 )
@@ -109,24 +84,6 @@ export function VehiclesTable({
           </table>
         </div>
       </div>
-      <div className="flex items-center justify-end gap-2">
-        <Button
-          variant="secondary"
-          onClick={pagination.goPrev}
-          disabled={!pagination.canGoPrev}
-          className="px-3 py-1.5 text-sm"
-        >
-          Previous
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={pagination.goNext}
-          disabled={!pagination.canGoNext}
-          className="px-3 py-1.5 text-sm"
-        >
-          Next
-        </Button>
-      </div>
-    </div>
+    </DataTablePagination>
   )
 }

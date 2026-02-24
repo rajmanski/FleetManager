@@ -1,5 +1,15 @@
 import { useCallback } from 'react'
 
+export type PaginationHelpers = {
+  totalPages: number
+  canGoPrev: boolean
+  canGoNext: boolean
+  goPrev: () => void
+  goNext: () => void
+  resetPage: () => void
+  handleLimitChange: (value: number) => void
+}
+
 type UsePaginationParams = {
   page: number
   setPage: (v: number | ((p: number) => number)) => void

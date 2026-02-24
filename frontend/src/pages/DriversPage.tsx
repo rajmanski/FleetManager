@@ -8,6 +8,7 @@ import { DriversFiltersBar } from '@/components/drivers/DriversFiltersBar'
 import { DriversTable } from '@/components/drivers/DriversTable'
 import { useDrivers, type Driver } from '@/hooks/drivers/useDrivers'
 import { useAuth } from '@/hooks/useAuth'
+import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { usePagination } from '@/hooks/usePagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { driverToFormInitialData, hasValidCertificates } from '@/utils/driver'
@@ -23,6 +24,21 @@ function DriversPage() {
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [editDriver, setEditDriver] = useState<Driver | null>(null)
+
+  const restoreCallbacks = useMutationCallbacks({
+    successMessage: 'Driver restored',
+    errorFallback: 'Failed to restore driver',
+  })
+  const createCallbacks = useMutationCallbacks({
+    successMessage: 'Driver added',
+    errorFallback: 'Failed to add driver',
+    onSuccess: () => setAddModalOpen(false),
+  })
+  const updateCallbacks = useMutationCallbacks({
+    successMessage: 'Driver updated',
+    errorFallback: 'Failed to update driver',
+    onSuccess: () => setEditDriver(null),
+  })
 
   const {
     driversQuery,
@@ -97,7 +113,9 @@ function DriversPage() {
           canManageDrivers={canManageDrivers}
           isAdmin={isAdminFromHook ?? isAdmin}
           onEdit={setEditDriver}
-          onRestore={(id) => restoreMutation.mutate(id)}
+          onRestore={(id) =>
+            restoreMutation.mutate(id, restoreCallbacks)
+          }
           isRestoring={restoreMutation.isPending}
         />
       )}
@@ -108,9 +126,7 @@ function DriversPage() {
           submitLabel={createMutation.isPending ? 'Adding...' : 'Add'}
           onClose={() => setAddModalOpen(false)}
           onSubmit={(payload) =>
-            createMutation.mutate(payload, {
-              onSuccess: () => setAddModalOpen(false),
-            })
+            createMutation.mutate(payload, createCallbacks)
           }
           isSubmitting={createMutation.isPending}
           errorMessage={extractApiError(createMutation.error)}
@@ -124,10 +140,7 @@ function DriversPage() {
           initialData={driverToFormInitialData(editDriver)}
           onClose={() => setEditDriver(null)}
           onSubmit={(payload) =>
-            updateMutation.mutate(
-              { id: editDriver.id, payload },
-              { onSuccess: () => setEditDriver(null) }
-            )
+            updateMutation.mutate({ id: editDriver.id, payload }, updateCallbacks)
           }
           isSubmitting={updateMutation.isPending}
           errorMessage={extractApiError(updateMutation.error)}

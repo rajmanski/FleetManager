@@ -10,8 +10,10 @@ import { INPUT_CLASS } from '@/constants/inputStyles'
 import { getAccessToken } from '@/services/authStorage'
 import { loginSchema, type LoginFormValues } from '@/schemas/auth'
 import { useLogin } from '@/hooks/useLogin'
+import { useToast } from '@/context/ToastContext'
 
 function LoginPage() {
+  const toast = useToast()
   const navigate = useNavigate()
   const { login, isSubmitting } = useLogin()
 
@@ -33,8 +35,11 @@ function LoginPage() {
 
   const onSubmit = async (data: LoginFormValues) => {
     const result = await login(data)
-    if (!result.success) {
+    if (result.success) {
+      toast.success('Signed in successfully')
+    } else {
       setError('root', { message: result.error })
+      toast.error(result.error)
     }
   }
 
@@ -65,7 +70,7 @@ function LoginPage() {
               className="mt-6 space-y-4"
               onSubmit={handleSubmit((data) => void onSubmit(data))}
             >
-              <FormField label="Login" error={errors.login?.message}>
+              <FormField label="Login" error={errors.login?.message} required>
                 <input
                   id="login"
                   type="text"
@@ -75,7 +80,7 @@ function LoginPage() {
                 />
               </FormField>
 
-              <FormField label="Password" error={errors.password?.message}>
+              <FormField label="Password" error={errors.password?.message} required>
                 <input
                   id="password"
                   type="password"

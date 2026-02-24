@@ -32,14 +32,14 @@ export function getCertificateTooltip(driver: Driver): string {
   const in30Days = new Date(now)
   in30Days.setDate(in30Days.getDate() + 30)
 
-  const fmt = (d: Date) => d.toLocaleDateString('pl-PL')
+  const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
 
   if (driver.license_expiry_date) {
     const d = new Date(driver.license_expiry_date)
     if (!Number.isNaN(d.getTime())) {
-      if (d < now) parts.push(`Prawo jazdy wygasło ${fmt(d)}`)
-      else if (d <= in30Days) parts.push(`Prawo jazdy wygasa ${fmt(d)}`)
-      else parts.push(`Prawo jazdy ważne do ${fmt(d)}`)
+      if (d < now) parts.push(`License expired ${fmt(d)}`)
+      else if (d <= in30Days) parts.push(`License expires ${fmt(d)}`)
+      else parts.push(`License valid until ${fmt(d)}`)
     }
   }
 
@@ -47,20 +47,21 @@ export function getCertificateTooltip(driver: Driver): string {
     if (driver.adr_expiry_date) {
       const d = new Date(driver.adr_expiry_date)
       if (!Number.isNaN(d.getTime())) {
-        if (d < now) parts.push(`ADR wygasło ${fmt(d)}`)
-        else if (d <= in30Days) parts.push(`ADR wygasa ${fmt(d)}`)
-        else parts.push(`ADR ważne do ${fmt(d)}`)
+        if (d < now) parts.push(`ADR expired ${fmt(d)}`)
+        else if (d <= in30Days) parts.push(`ADR expires ${fmt(d)}`)
+        else parts.push(`ADR valid until ${fmt(d)}`)
       }
     } else {
-      parts.push('ADR bez daty ważności')
+      parts.push('ADR certificate (no expiry date)')
     }
   }
 
-  return parts.length > 0 ? parts.join('. ') : 'Brak danych o certyfikatach'
+  return parts.length > 0 ? parts.join('\n') : 'No certificate data'
 }
 
 export function hasValidCertificates(driver: Driver): boolean {
-  return getCertificateStatus(driver) === 'valid'
+  const status = getCertificateStatus(driver)
+  return status === 'valid' || status === 'expiring'
 }
 
 function toDateInputValue(dateStr?: string): string {

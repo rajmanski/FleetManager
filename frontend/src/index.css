@@ -13,6 +13,25 @@
   }
 }
 
+.scrollbar-styled {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(148 163 184) transparent;
+}
+.scrollbar-styled::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scrollbar-styled::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-styled::-webkit-scrollbar-thumb {
+  background-color: rgb(148 163 184);
+  border-radius: 4px;
+}
+.scrollbar-styled::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(100 116 139);
+}
+
 :root {
   --background: #fff;
   --foreground: oklch(0.145 0 0);

@@ -9,6 +9,7 @@ import { MileageHistorySection } from '@/components/vehicles/MileageHistorySecti
 import { VehicleFormModal } from '@/components/vehicles/VehicleFormModal'
 import { useVehicle } from '@/hooks/vehicles/useVehicle'
 import type { VehicleMutationPayload } from '@/hooks/vehicles/useVehicles'
+import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { vehicleToFormInitialData } from '@/utils/vehicle'
 import { extractApiError } from '@/utils/api'
 import { formatDateTime } from '@/utils/date'
@@ -16,6 +17,16 @@ import { formatDateTime } from '@/utils/date'
 function VehicleDetailsPage() {
   const { id } = useParams()
   const [editOpen, setEditOpen] = useState(false)
+
+  const deleteCallbacks = useMutationCallbacks({
+    successMessage: 'Vehicle deleted',
+    errorFallback: 'Failed to delete vehicle',
+  })
+  const updateCallbacks = useMutationCallbacks({
+    successMessage: 'Vehicle updated',
+    errorFallback: 'Failed to update vehicle',
+    onSuccess: () => setEditOpen(false),
+  })
 
   const vehicleID = Number(id)
 
@@ -84,7 +95,9 @@ function VehicleDetailsPage() {
             </Button>
             <Button
               variant="danger-outline"
-              onClick={() => deleteMutation.mutate()}
+              onClick={() =>
+                deleteMutation.mutate(undefined, deleteCallbacks)
+              }
               disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending ? 'Deleting...' : 'Delete vehicle'}
@@ -94,7 +107,7 @@ function VehicleDetailsPage() {
       </div>
 
       {deleteMutation.error && (
-        <ErrorMessage message={extractApiError(deleteMutation.error) ?? 'Delete failed.'} />
+        <ErrorMessage message={extractApiError(deleteMutation.error, 'Delete failed.') ?? 'Delete failed.'} />
       )}
 
       {editOpen && vehicle && (
@@ -105,9 +118,10 @@ function VehicleDetailsPage() {
           status={vehicle.status}
           onClose={() => setEditOpen(false)}
           onSubmit={(payload) =>
-            updateMutation.mutate(payload as VehicleMutationPayload & { status: string }, {
-              onSuccess: () => setEditOpen(false),
-            })
+            updateMutation.mutate(
+              payload as VehicleMutationPayload & { status: string },
+              updateCallbacks
+            )
           }
           isSubmitting={updateMutation.isPending}
           errorMessage={extractApiError(updateMutation.error)}

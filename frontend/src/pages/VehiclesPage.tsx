@@ -8,6 +8,7 @@ import { VehiclesFiltersBar } from '@/components/vehicles/VehiclesFiltersBar'
 import { VehiclesTable } from '@/components/vehicles/VehiclesTable'
 import { useVehicles, type Vehicle } from '@/hooks/vehicles/useVehicles'
 import { useAuth } from '@/hooks/useAuth'
+import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { usePagination } from '@/hooks/usePagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { vehicleToFormInitialData } from '@/utils/vehicle'
@@ -22,6 +23,21 @@ function VehiclesPage() {
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [editVehicle, setEditVehicle] = useState<Vehicle | null>(null)
+
+  const restoreCallbacks = useMutationCallbacks({
+    successMessage: 'Vehicle restored',
+    errorFallback: 'Failed to restore vehicle',
+  })
+  const createCallbacks = useMutationCallbacks({
+    successMessage: 'Vehicle added',
+    errorFallback: 'Failed to add vehicle',
+    onSuccess: () => setAddModalOpen(false),
+  })
+  const updateCallbacks = useMutationCallbacks({
+    successMessage: 'Vehicle updated',
+    errorFallback: 'Failed to update vehicle',
+    onSuccess: () => setEditVehicle(null),
+  })
 
   const {
     vehiclesQuery,
@@ -88,7 +104,9 @@ function VehiclesPage() {
           canManageVehicles={canManageVehicles}
           isAdmin={isAdmin}
           onEdit={setEditVehicle}
-          onRestore={(id) => restoreMutation.mutate(id)}
+          onRestore={(id) =>
+            restoreMutation.mutate(id, restoreCallbacks)
+          }
           isRestoring={restoreMutation.isPending}
         />
       )}
@@ -99,9 +117,7 @@ function VehiclesPage() {
           submitLabel={createMutation.isPending ? 'Adding...' : 'Add'}
           onClose={() => setAddModalOpen(false)}
           onSubmit={(payload) =>
-            createMutation.mutate(payload, {
-              onSuccess: () => setAddModalOpen(false),
-            })
+            createMutation.mutate(payload, createCallbacks)
           }
           isSubmitting={createMutation.isPending}
           errorMessage={extractApiError(createMutation.error)}
@@ -123,7 +139,7 @@ function VehiclesPage() {
                   status: editVehicle.status,
                 },
               },
-              { onSuccess: () => setEditVehicle(null) }
+              updateCallbacks
             )
           }
           isSubmitting={updateMutation.isPending}

@@ -1,6 +1,5 @@
 import { useForm } from 'react-hook-form'
 import { FormField } from '@/components/ui/FormField'
-import { FormErrorMessage } from '@/components/ui/FormErrorMessage'
 import { Modal } from '@/components/ui/Modal'
 import { ModalFooter } from '@/components/ui/ModalFooter'
 import type { VehicleMutationPayload } from '@/hooks/vehicles/useVehicles'
@@ -81,9 +80,9 @@ export function VehicleFormModal({
   }
 
   return (
-    <Modal title={title}>
+    <Modal title={title} error={errorMessage}>
       <form className="mt-4 space-y-3" onSubmit={handleSubmit(onFormSubmit)}>
-        <FormField label="VIN" error={errors.vin?.message}>
+        <FormField label="VIN" error={errors.vin?.message} required>
           <input
             type="text"
             {...register('vin', {
@@ -96,7 +95,7 @@ export function VehicleFormModal({
         <FormField label="Plate number" error={errors.plate_number?.message}>
           <input {...register('plate_number')} className={INPUT_CLASS} />
         </FormField>
-        <FormField label="Brand" error={errors.brand?.message}>
+        <FormField label="Brand" error={errors.brand?.message} required>
           <input
             {...register('brand', {
               validate: (value) => value.trim() !== '' || 'Brand is required.',
@@ -104,7 +103,7 @@ export function VehicleFormModal({
             className={INPUT_CLASS}
           />
         </FormField>
-        <FormField label="Model" error={errors.model?.message}>
+        <FormField label="Model" error={errors.model?.message} required>
           <input
             {...register('model', {
               validate: (value) => value.trim() !== '' || 'Model is required.',
@@ -112,7 +111,7 @@ export function VehicleFormModal({
             className={INPUT_CLASS}
           />
         </FormField>
-        <FormField label="Production year" error={errors.production_year?.message}>
+        <FormField label="Production year" error={errors.production_year?.message} required>
           <input
             type="number"
             {...register('production_year', {
@@ -136,7 +135,7 @@ export function VehicleFormModal({
             className={INPUT_CLASS}
           />
         </FormField>
-        <FormField label="Mileage (km)" error={errors.current_mileage_km?.message}>
+        <FormField label="Mileage (km)" error={errors.current_mileage_km?.message} required>
           <input
             type="number"
             {...register('current_mileage_km', {
@@ -147,7 +146,6 @@ export function VehicleFormModal({
             className={INPUT_CLASS}
           />
         </FormField>
-        <FormErrorMessage message={errorMessage} />
         <ModalFooter
           onCancel={onClose}
           submitLabel={submitLabel}

@@ -90,7 +90,7 @@ func (r *DriversRepository) listDriversByPESEL(ctx context.Context, query driver
 	var filtered []drivers.Driver
 	for _, row := range rows {
 		d := r.mapListDriversForPESELSearchRow(row)
-		if d.PESEL == peselSearch {
+		if strings.Contains(d.PESEL, peselSearch) {
 			filtered = append(filtered, d)
 		}
 	}

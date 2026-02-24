@@ -1,3 +1,9 @@
+export function isDateExpired(dateStr?: string): boolean {
+  if (!dateStr) return false
+  const d = new Date(dateStr)
+  return !Number.isNaN(d.getTime()) && d < new Date()
+}
+
 export function formatDateTime(value?: string): string {
   if (!value) return '-'
   const parsed = new Date(value)

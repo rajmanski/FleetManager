@@ -1,14 +1,14 @@
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { FormField } from '@/components/ui/FormField'
-import { FormErrorMessage } from '@/components/ui/FormErrorMessage'
 import { Modal } from '@/components/ui/Modal'
 import { ModalFooter } from '@/components/ui/ModalFooter'
 import { INPUT_CLASS } from '@/constants/inputStyles'
-import { DRIVER_STATUSES } from '@/constants/driverStatuses'
+import { DRIVER_STATUS_OPTIONS } from '@/constants/driverStatuses'
 import type { DriverFormValues } from '@/schemas/drivers'
 import { driverFormSchema } from '@/schemas/drivers'
 import type { DriverMutationPayload } from '@/hooks/drivers/useDrivers'
+import { isDateExpired } from '@/utils/date'
 
 export type DriverFormModalProps = {
   title: string
@@ -18,12 +18,6 @@ export type DriverFormModalProps = {
   onSubmit: (payload: DriverMutationPayload) => void
   isSubmitting: boolean
   errorMessage: string | null
-}
-
-function isDateExpired(dateStr?: string): boolean {
-  if (!dateStr) return false
-  const d = new Date(dateStr)
-  return !Number.isNaN(d.getTime()) && d < new Date()
 }
 
 export function DriverFormModal({
@@ -80,86 +74,93 @@ export function DriverFormModal({
   }
 
   return (
-    <Modal title={title}>
-      <form className="mt-4 space-y-3" onSubmit={handleSubmit(onFormSubmit)}>
-        <FormField label="First name" error={errors.first_name?.message}>
-          <input {...register('first_name')} className={INPUT_CLASS} />
-        </FormField>
-        <FormField label="Last name" error={errors.last_name?.message}>
-          <input {...register('last_name')} className={INPUT_CLASS} />
-        </FormField>
-        <FormField label="PESEL" error={errors.pesel?.message}>
-          <input {...register('pesel')} className={INPUT_CLASS} placeholder="11 digits" />
-        </FormField>
-        <FormField label="Phone" error={errors.phone?.message}>
-          <input {...register('phone')} className={INPUT_CLASS} />
-        </FormField>
-        <FormField label="Email" error={errors.email?.message}>
-          <input type="email" {...register('email')} className={INPUT_CLASS} />
-        </FormField>
-        <FormField label="Status" error={errors.status?.message}>
-          <select {...register('status')} className={INPUT_CLASS}>
-            {DRIVER_STATUSES.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
-        </FormField>
+    <Modal title={title} contentClassName="max-w-xl" error={errorMessage}>
+      <form onSubmit={handleSubmit(onFormSubmit)}>
+        <div className="scrollbar-styled mt-4 max-h-[min(70vh,500px)] overflow-y-auto pr-1">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+              <FormField label="First name" error={errors.first_name?.message} required>
+                <input {...register('first_name')} className={INPUT_CLASS} />
+              </FormField>
+              <FormField label="Last name" error={errors.last_name?.message} required>
+                <input {...register('last_name')} className={INPUT_CLASS} />
+              </FormField>
+              <FormField label="PESEL" error={errors.pesel?.message} required>
+                <input {...register('pesel')} className={INPUT_CLASS} placeholder="11 digits" />
+              </FormField>
+              <FormField label="Phone" error={errors.phone?.message}>
+                <input {...register('phone')} className={INPUT_CLASS} />
+              </FormField>
+              <FormField label="Email" error={errors.email?.message}>
+                <input type="email" {...register('email')} className={INPUT_CLASS} />
+              </FormField>
+              <FormField label="Status" error={errors.status?.message} required>
+                <select {...register('status')} className={INPUT_CLASS}>
+                  {DRIVER_STATUS_OPTIONS.map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </FormField>
+            </div>
 
-        <div className="border-t border-gray-200 pt-4">
-          <h3 className="mb-3 text-sm font-medium text-gray-700">Uprawnienia</h3>
-          <div className="space-y-3">
-            <FormField label="Numer prawa jazdy" error={errors.license_number?.message}>
-              <input
-                {...register('license_number')}
-                className={INPUT_CLASS}
-                placeholder="np. ABC123456"
-              />
-            </FormField>
-            <FormField label="Data ważności prawa jazdy" error={errors.license_expiry_date?.message}>
-              <input type="date" {...register('license_expiry_date')} className={INPUT_CLASS} />
-              {isDateExpired(licenseExpiryDate) && (
-                <p className="mt-1 text-sm text-amber-600">Certyfikat wygasł</p>
-              )}
-            </FormField>
-            <FormField label="Certyfikat ADR">
-              <Controller
-                name="adr_certified"
-                control={control}
-                render={({ field }) => (
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={field.value ?? false}
-                      onChange={(e) => field.onChange(e.target.checked)}
-                      onBlur={field.onBlur}
-                      ref={field.ref}
-                      className="rounded"
-                    />
-                    <span className="text-sm">Posiada certyfikat ADR</span>
-                  </label>
-                )}
-              />
-            </FormField>
-            <FormField
-              label="Data ważności ADR"
-              error={errors.adr_expiry_date?.message}
-            >
-              <input
-                type="date"
-                {...register('adr_expiry_date')}
-                className={INPUT_CLASS}
-                disabled={!adrCertified}
-              />
-              {adrCertified && isDateExpired(adrExpiryDate) && (
-                <p className="mt-1 text-sm text-amber-600">Certyfikat wygasł</p>
-              )}
-            </FormField>
+            <div className="border-t border-gray-200 pt-4">
+              <h3 className="mb-3 text-sm font-medium text-gray-700">Certificates</h3>
+              <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
+                <FormField label="License number" error={errors.license_number?.message}>
+                  <input
+                    {...register('license_number')}
+                    className={INPUT_CLASS}
+                    placeholder="e.g. ABC123456"
+                  />
+                </FormField>
+                <FormField label="License expiry date" error={errors.license_expiry_date?.message}>
+                  <input type="date" {...register('license_expiry_date')} className={INPUT_CLASS} />
+                  {isDateExpired(licenseExpiryDate) && (
+                    <p className="mt-1 text-sm text-amber-600">Certificate expired</p>
+                  )}
+                </FormField>
+                <div className="sm:col-span-2">
+                  <FormField label="ADR certificate">
+                  <Controller
+                    name="adr_certified"
+                    control={control}
+                    render={({ field }) => (
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={field.value ?? false}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                          onBlur={field.onBlur}
+                          ref={field.ref}
+                          className="rounded"
+                        />
+                        <span className="text-sm">Has ADR certificate</span>
+                      </label>
+                    )}
+                  />
+                  </FormField>
+                </div>
+                <FormField
+                  label="ADR expiry date"
+                  error={errors.adr_expiry_date?.message}
+                >
+                  <input
+                    type="date"
+                    {...register('adr_expiry_date')}
+                    className={INPUT_CLASS}
+                    disabled={!adrCertified}
+                  />
+                  {adrCertified && isDateExpired(adrExpiryDate) && (
+                    <p className="mt-1 text-sm text-amber-600">Certificate expired</p>
+                  )}
+                </FormField>
+              </div>
+            </div>
           </div>
         </div>
 
-        <FormErrorMessage message={errorMessage} />
         <ModalFooter
           onCancel={onClose}
           submitLabel={submitLabel}

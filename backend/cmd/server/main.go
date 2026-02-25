@@ -184,6 +184,11 @@ func main() {
 		auth.RBACMiddleware(auth.ResourceRoutes, auth.PermissionRead),
 		routesHandler.Geocode,
 	)
+	protected.POST(
+		"/routes/calculate",
+		auth.RBACMiddleware(auth.ResourceRoutes, auth.PermissionRead),
+		routesHandler.Calculate,
+	)
 
 	protected.GET("/db-check", func(c *gin.Context) {
 		var one int

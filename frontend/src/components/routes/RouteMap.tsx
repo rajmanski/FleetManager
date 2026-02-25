@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { importLibrary, setOptions } from '@googlemaps/js-api-loader'
+import { memo, useEffect, useRef, useState } from 'react'
+import { loadMapsLibrary } from '@/utils/googleMapsLoader'
 import type { RouteMapProps } from '@/types/routes'
 
 const DEFAULT_CENTER = { lat: 52.2297, lng: 21.0122 }
@@ -8,8 +8,6 @@ const DEFAULT_ZOOM = 6
 const PICKUP_COLOR = '#22c55e'
 const DROPOFF_COLOR = '#ef4444'
 const STOPOVER_COLOR = '#eab308'
-
-let mapsApiOptionsSet = false
 
 function getMarkerColor(type?: string): string {
   switch (type) {
@@ -24,7 +22,7 @@ function getMarkerColor(type?: string): string {
   }
 }
 
-export function RouteMap({
+function RouteMapInner({
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
   points = [],
@@ -39,15 +37,7 @@ export function RouteMap({
   const [loading, setLoading] = useState(true)
   const [mapReady, setMapReady] = useState(false)
 
-  const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY
-
   useEffect(() => {
-    if (!apiKey) {
-      setError('Google Maps API key is not configured')
-      setLoading(false)
-      return
-    }
-
     let cancelled = false
     const timeoutId = setTimeout(() => {
       if (cancelled) return
@@ -57,14 +47,11 @@ export function RouteMap({
       setLoading(false)
     }, 15000)
 
-    if (!mapsApiOptionsSet) {
-      setOptions({ key: apiKey, v: 'weekly' })
-      mapsApiOptionsSet = true
-    }
-
-    importLibrary('maps')
+    loadMapsLibrary()
       .then(({ Map }) => {
         if (cancelled || !containerRef.current) return
+
+        clearTimeout(timeoutId)
 
         const map = new Map(containerRef.current, {
           center: { lat: center.lat, lng: center.lng },
@@ -80,6 +67,7 @@ export function RouteMap({
       })
       .catch((err: unknown) => {
         if (cancelled) return
+        clearTimeout(timeoutId)
         const msg = (err as Error)?.message ?? String(err)
         setError(msg)
         setLoading(false)
@@ -87,9 +75,11 @@ export function RouteMap({
 
     return () => {
       cancelled = true
-      clearTimeout(timeoutId)
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId)
+      }
     }
-  }, [apiKey])
+  }, [])
 
   useEffect(() => {
     if (!mapReady || !mapRef.current) return
@@ -209,3 +199,5 @@ function decodePolyline(encoded: string): google.maps.LatLngLiteral[] {
 
   return points
 }
+
+export const RouteMap = memo(RouteMapInner)

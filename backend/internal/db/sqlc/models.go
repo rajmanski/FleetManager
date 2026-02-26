@@ -142,6 +142,49 @@ func (ns NullOrdersStatus) Value() (driver.Value, error) {
 	return string(ns.OrdersStatus), nil
 }
 
+type RoutewaypointsActionType string
+
+const (
+	RoutewaypointsActionTypePickup   RoutewaypointsActionType = "Pickup"
+	RoutewaypointsActionTypeDropoff  RoutewaypointsActionType = "Dropoff"
+	RoutewaypointsActionTypeStopover RoutewaypointsActionType = "Stopover"
+)
+
+func (e *RoutewaypointsActionType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = RoutewaypointsActionType(s)
+	case string:
+		*e = RoutewaypointsActionType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for RoutewaypointsActionType: %T", src)
+	}
+	return nil
+}
+
+type NullRoutewaypointsActionType struct {
+	RoutewaypointsActionType RoutewaypointsActionType `json:"routewaypoints_action_type"`
+	Valid                    bool                     `json:"valid"` // Valid is true if RoutewaypointsActionType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullRoutewaypointsActionType) Scan(value interface{}) error {
+	if value == nil {
+		ns.RoutewaypointsActionType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.RoutewaypointsActionType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullRoutewaypointsActionType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.RoutewaypointsActionType), nil
+}
+
 type TripsStatus string
 
 const (
@@ -298,6 +341,25 @@ type Role struct {
 	RoleID      int32          `json:"role_id"`
 	RoleName    string         `json:"role_name"`
 	Description sql.NullString `json:"description"`
+}
+
+type Route struct {
+	RouteID           int32          `json:"route_id"`
+	OrderID           int32          `json:"order_id"`
+	StartLocation     sql.NullString `json:"start_location"`
+	EndLocation       sql.NullString `json:"end_location"`
+	PlannedDistanceKm sql.NullString `json:"planned_distance_km"`
+	EstimatedTimeMin  sql.NullInt32  `json:"estimated_time_min"`
+}
+
+type Routewaypoint struct {
+	WaypointID    int32                    `json:"waypoint_id"`
+	RouteID       int32                    `json:"route_id"`
+	SequenceOrder int32                    `json:"sequence_order"`
+	Address       string                   `json:"address"`
+	Latitude      string                   `json:"latitude"`
+	Longitude     string                   `json:"longitude"`
+	ActionType    RoutewaypointsActionType `json:"action_type"`
 }
 
 type Trip struct {

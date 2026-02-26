@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS RouteWaypoints;
+DROP TABLE IF EXISTS Routes;

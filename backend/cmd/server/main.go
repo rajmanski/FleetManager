@@ -54,6 +54,10 @@ func main() {
 	driversHandler := drivers.NewHandler(driversService)
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
 	routesHandler := routes.NewHandler(routesService)
+	waypointsRepository := repository.NewWaypointsRepository(queries)
+	routesRepository := repository.NewRoutesRepository(queries)
+	waypointsService := routes.NewWaypointsService(waypointsRepository, routesRepository)
+	waypointsHandler := routes.NewWaypointsHandler(waypointsService)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -188,6 +192,31 @@ func main() {
 		"/routes/calculate",
 		auth.RBACMiddleware(auth.ResourceRoutes, auth.PermissionRead),
 		routesHandler.Calculate,
+	)
+	protected.GET(
+		"/routes/:route_id/waypoints",
+		auth.RBACMiddleware(auth.ResourceRoutes, auth.PermissionRead),
+		waypointsHandler.ListWaypoints,
+	)
+	protected.POST(
+		"/routes/:route_id/waypoints",
+		auth.RBACMiddleware(auth.ResourceRoutes, auth.PermissionWrite),
+		waypointsHandler.CreateWaypoint,
+	)
+	protected.PATCH(
+		"/waypoints/reorder",
+		auth.RBACMiddleware(auth.ResourceRoutes, auth.PermissionWrite),
+		waypointsHandler.ReorderWaypoints,
+	)
+	protected.PUT(
+		"/waypoints/:id",
+		auth.RBACMiddleware(auth.ResourceRoutes, auth.PermissionWrite),
+		waypointsHandler.UpdateWaypoint,
+	)
+	protected.DELETE(
+		"/waypoints/:id",
+		auth.RBACMiddleware(auth.ResourceRoutes, auth.PermissionWrite),
+		waypointsHandler.DeleteWaypoint,
 	)
 
 	protected.GET("/db-check", func(c *gin.Context) {

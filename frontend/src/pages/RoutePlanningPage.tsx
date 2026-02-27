@@ -1,50 +1,31 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect } from 'react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { RouteMap } from '@/components/routes/RouteMap'
 import { RoutePlanningForm } from '@/components/routes/RoutePlanningForm'
+import { useRoutePlanning } from '@/hooks/routes/useRoutePlanning'
 import { loadMapsLibrary } from '@/utils/googleMapsLoader'
-import { reverseGeocode } from '@/utils/googleMapsLoader'
-import type { CalculateResult } from '@/services/routes'
-import type { MapPoint, WaypointState } from '@/types/routes'
-
-type AddressState = {
-  address: string
-  lat?: number
-  lng?: number
-}
 
 export default function RoutePlanningPage() {
-  const [origin, setOrigin] = useState<AddressState>({ address: '' })
-  const [destination, setDestination] = useState<AddressState>({ address: '' })
-  const [waypoints, setWaypoints] = useState<WaypointState[]>([])
-  const [points, setPoints] = useState<MapPoint[]>([])
-  const [polyline, setPolyline] = useState<string | undefined>(undefined)
-  const hasShownMapRef = useRef(false)
+  const {
+    origin,
+    setOrigin,
+    destination,
+    setDestination,
+    waypoints,
+    setWaypoints,
+    points,
+    polyline,
+    result,
+    isCalculating,
+    error,
+    calculateRoute,
+    handleMapClick,
+    showMap,
+  } = useRoutePlanning()
 
   useEffect(() => {
     loadMapsLibrary().catch(() => {})
   }, [])
-
-  const handleResult = useCallback((result: CalculateResult, pts: MapPoint[]) => {
-    setPoints(pts)
-    setPolyline(result.polyline)
-    hasShownMapRef.current = true
-  }, [])
-
-  const handleMapClick = useCallback(
-    async (lat: number, lng: number) => {
-      if (waypoints.length >= 10) return
-      const result = await reverseGeocode(lat, lng)
-      const address = result?.address ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`
-      setWaypoints((prev) => [
-        ...prev,
-        { address, lat, lng, actionType: 'Stopover' },
-      ])
-    },
-    [waypoints.length]
-  )
-
-  const showMap = hasShownMapRef.current || points.length >= 2
 
   return (
     <div className="space-y-6">
@@ -60,7 +41,10 @@ export default function RoutePlanningPage() {
           setDestination={setDestination}
           waypoints={waypoints}
           setWaypoints={setWaypoints}
-          onResult={handleResult}
+          onCalculate={calculateRoute}
+          result={result}
+          isCalculating={isCalculating}
+          error={error}
         />
       </div>
       <div className="rounded-lg border border-gray-200 bg-white p-4">

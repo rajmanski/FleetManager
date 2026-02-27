@@ -1,5 +1,17 @@
 export type WaypointActionType = 'Pickup' | 'Dropoff' | 'Stopover'
 
+export type AddressState = {
+  address: string
+  lat?: number
+  lng?: number
+}
+
+export type AddressWithCoords = {
+  address: string
+  lat: number
+  lng: number
+}
+
 export interface MapPoint {
   lat: number
   lng: number

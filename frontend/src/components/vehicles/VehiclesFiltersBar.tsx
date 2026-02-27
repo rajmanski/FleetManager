@@ -3,11 +3,7 @@ import { FilterCheckbox } from '@/components/ui/FilterCheckbox'
 import { FilterRowsSelect } from '@/components/ui/FilterRowsSelect'
 import { FilterSearchInput } from '@/components/ui/FilterSearchInput'
 import { FilterSelect } from '@/components/ui/FilterSelect'
-
-type PaginationHelpers = {
-  resetPage: () => void
-  handleLimitChange: (value: number) => void
-}
+import type { PaginationHelpers } from '@/hooks/usePagination'
 
 type VehiclesFiltersBarProps = {
   statusFilter: string

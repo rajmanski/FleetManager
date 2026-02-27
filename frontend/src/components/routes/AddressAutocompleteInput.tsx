@@ -4,21 +4,16 @@ import { INPUT_CLASS } from '@/constants/inputStyles'
 import { loadPlacesLibrary } from '@/utils/googleMapsLoader'
 import { geocodeAddress } from '@/services/routes'
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback'
+import type { AddressWithCoords } from '@/types/routes'
 
 const DEBOUNCE_MS = 350
 const MIN_INPUT_LENGTH = 3
-
-export type AddressSelection = {
-  address: string
-  lat: number
-  lng: number
-}
 
 type AddressAutocompleteInputProps = {
   label: string
   placeholder?: string
   value?: string
-  onSelect: (selection: AddressSelection) => void
+  onSelect: (selection: AddressWithCoords) => void
   onAddressChange?: (address: string) => void
   error?: string
   required?: boolean
@@ -38,7 +33,10 @@ export function AddressAutocompleteInput({
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const onSelectRef = useRef(onSelect)
-  onSelectRef.current = onSelect
+
+  useEffect(() => {
+    onSelectRef.current = onSelect
+  }, [onSelect])
 
   const [inputValue, setInputValue] = useState(() => value ?? '')
   const [predictions, setPredictions] = useState<google.maps.places.AutocompletePrediction[]>([])

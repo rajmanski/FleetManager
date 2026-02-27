@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -12,33 +12,17 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
 import { Button } from '@/components/ui/Button'
+import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { AddressAutocompleteInput } from './AddressAutocompleteInput'
-import {
-  calculateRoute,
-  geocodeAddress,
-  type CalculateResult,
-} from '@/services/routes'
-import { extractApiError } from '@/utils/api'
-import type { MapPoint, WaypointActionType, WaypointState } from '@/types/routes'
-import { GripVertical, MapPin, Plus, Trash2 } from 'lucide-react'
-
-const MAX_WAYPOINTS = 10
-const ACTION_TYPES: WaypointActionType[] = ['Pickup', 'Dropoff', 'Stopover']
-
-type AddressState = {
-  address: string
-  lat?: number
-  lng?: number
-}
-
-function hasCoords(a: AddressState): a is AddressState & { lat: number; lng: number } {
-  return typeof a.lat === 'number' && typeof a.lng === 'number'
-}
+import { RouteResultCard } from './RouteResultCard'
+import { WaypointRow } from './WaypointRow'
+import { MAX_WAYPOINTS } from '@/hooks/routes/useRoutePlanning'
+import type { AddressState, WaypointState } from '@/types/routes'
+import type { CalculateResult } from '@/services/routes'
+import { MapPin, Plus } from 'lucide-react'
 
 export type RoutePlanningFormProps = {
   origin: AddressState
@@ -46,96 +30,13 @@ export type RoutePlanningFormProps = {
   destination: AddressState
   setDestination: (v: AddressState | ((p: AddressState) => AddressState)) => void
   waypoints: WaypointState[]
-  setWaypoints: (v: WaypointState[] | ((p: WaypointState[]) => WaypointState[])) => void
-  onResult: (result: CalculateResult, points: MapPoint[]) => void
-}
-
-function WaypointRow({
-  waypoint,
-  index,
-  onUpdate,
-  onRemove,
-  disabledRemove,
-}: {
-  waypoint: WaypointState
-  index: number
-  onUpdate: (upd: Partial<WaypointState>) => void
-  onRemove: () => void
-  disabledRemove?: boolean
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: `waypoint-${index}` })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  }
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`flex items-start gap-2 rounded-md border border-gray-200 bg-white p-2 ${
-        isDragging ? 'z-10 shadow-md' : ''
-      }`}
-    >
-      <div
-        {...attributes}
-        {...listeners}
-        className="mt-8 cursor-grab touch-none rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 active:cursor-grabbing"
-        aria-label="Drag to reorder"
-      >
-        <GripVertical className="size-4" />
-      </div>
-      <div className="min-w-0 flex-1 space-y-2">
-        <AddressAutocompleteInput
-          label={`Point ${index + 1}`}
-          placeholder="Enter address..."
-          value={waypoint.address}
-          onSelect={(s) =>
-            onUpdate({ address: s.address, lat: s.lat, lng: s.lng })
-          }
-          onAddressChange={(address) => onUpdate({ address })}
-        />
-        <div className="flex items-center gap-2">
-          <label className="text-xs font-medium text-gray-500">Type</label>
-          <select
-            value={waypoint.actionType}
-            onChange={(e) =>
-              onUpdate({
-                actionType: e.target.value as WaypointActionType,
-              })
-            }
-            className="rounded-md border border-gray-300 px-2 py-1.5 text-sm"
-          >
-            {ACTION_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-      <div className="flex shrink-0 pt-6">
-        <Button
-          type="button"
-          variant="danger-ghost"
-          onClick={onRemove}
-          disabled={disabledRemove}
-          aria-label="Remove waypoint"
-          className="size-9 p-0"
-        >
-          <Trash2 className="size-4" />
-        </Button>
-      </div>
-    </div>
-  )
+  setWaypoints: (
+    v: WaypointState[] | ((p: WaypointState[]) => WaypointState[])
+  ) => void
+  onCalculate: () => void
+  result: CalculateResult | null
+  isCalculating: boolean
+  error: string | null
 }
 
 export function RoutePlanningForm({
@@ -145,12 +46,11 @@ export function RoutePlanningForm({
   setDestination,
   waypoints,
   setWaypoints,
-  onResult,
+  onCalculate,
+  result,
+  isCalculating,
+  error,
 }: RoutePlanningFormProps) {
-  const [result, setResult] = useState<CalculateResult | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
   const addWaypoint = useCallback(() => {
     setWaypoints((prev) => {
       if (prev.length >= MAX_WAYPOINTS) return prev
@@ -202,68 +102,6 @@ export function RoutePlanningForm({
     },
     [setDestination]
   )
-
-  const handleCalculate = useCallback(async () => {
-    setError(null)
-    if (!origin.address.trim() || !destination.address.trim()) {
-      setError('Please fill in both load and drop-off addresses.')
-      return
-    }
-
-    setLoading(true)
-
-    try {
-      let originCoords = { lat: origin.lat!, lng: origin.lng! }
-      let destCoords = { lat: destination.lat!, lng: destination.lng! }
-      const wpCoords: Array<{ lat: number; lng: number }> = []
-
-      if (!hasCoords(origin)) {
-        const g = await geocodeAddress(origin.address)
-        originCoords = { lat: g.latitude, lng: g.longitude }
-      }
-      if (!hasCoords(destination)) {
-        const g = await geocodeAddress(destination.address)
-        destCoords = { lat: g.latitude, lng: g.longitude }
-      }
-      const waypointsWithAddress: WaypointState[] = []
-      for (const wp of waypoints) {
-        if (wp.address.trim()) {
-          if (hasCoords(wp)) {
-            wpCoords.push({ lat: wp.lat!, lng: wp.lng! })
-          } else {
-            const g = await geocodeAddress(wp.address)
-            wpCoords.push({ lat: g.latitude, lng: g.longitude })
-          }
-          waypointsWithAddress.push(wp)
-        }
-      }
-
-      const calcResult = await calculateRoute({
-        origin: originCoords,
-        destination: destCoords,
-        waypoints: wpCoords,
-      })
-
-      setResult(calcResult)
-
-      const points: MapPoint[] = [
-        { ...originCoords, type: 'Pickup', label: 'Load' },
-        ...wpCoords.map((c, i) => ({
-          ...c,
-          type: waypointsWithAddress[i]?.actionType ?? 'Stopover',
-          label: `${waypointsWithAddress[i]?.actionType ?? 'Stopover'} ${i + 1}`,
-        })),
-        { ...destCoords, type: 'Dropoff', label: 'Drop-off' },
-      ]
-      onResult(calcResult, points)
-    } catch (err) {
-      setError(
-        extractApiError(err, 'Failed to calculate route.') ?? 'Failed to calculate route.'
-      )
-    } finally {
-      setLoading(false)
-    }
-  }, [origin, destination, waypoints, onResult])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -348,44 +186,20 @@ export function RoutePlanningForm({
       <div className="flex flex-wrap items-center gap-4">
         <Button
           type="button"
-          onClick={handleCalculate}
+          onClick={onCalculate}
           disabled={
-            loading || !origin.address.trim() || !destination.address.trim()
+            isCalculating || !origin.address.trim() || !destination.address.trim()
           }
           className="inline-flex items-center"
         >
           <MapPin className="mr-2 size-4 shrink-0" />
-          <span>{loading ? 'Calculating...' : 'Calculate route'}</span>
+          <span>{isCalculating ? 'Calculating...' : 'Calculate route'}</span>
         </Button>
       </div>
 
-      {error && (
-        <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-          {error}
-        </p>
-      )}
+      <ErrorMessage message={error} variant="soft" />
 
-      {result && (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <h3 className="mb-2 text-sm font-medium text-gray-700">
-            Route result
-          </h3>
-          <div className="flex flex-wrap gap-6">
-            <div>
-              <span className="text-xs text-gray-500">Distance</span>
-              <p className="text-lg font-semibold text-slate-700">
-                {result.distance_km.toFixed(1)} km
-              </p>
-            </div>
-            <div>
-              <span className="text-xs text-gray-500">Estimated time</span>
-              <p className="text-lg font-semibold text-slate-700">
-                {result.duration_minutes} min
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {result && <RouteResultCard result={result} />}
     </div>
   )
 }

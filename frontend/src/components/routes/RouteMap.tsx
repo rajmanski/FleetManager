@@ -1,30 +1,17 @@
+import { decode } from '@googlemaps/polyline-codec'
 import { memo, useEffect, useRef, useState } from 'react'
+import {
+  DEFAULT_MAP_CENTER,
+  DEFAULT_MAP_ZOOM,
+  MAP_LOAD_TIMEOUT_MS,
+  getMarkerColor,
+} from '@/constants/mapConfig'
 import { loadMapsLibrary } from '@/utils/googleMapsLoader'
 import type { RouteMapProps } from '@/types/routes'
 
-const DEFAULT_CENTER = { lat: 52.2297, lng: 21.0122 }
-const DEFAULT_ZOOM = 6
-
-const PICKUP_COLOR = '#22c55e'
-const DROPOFF_COLOR = '#ef4444'
-const STOPOVER_COLOR = '#eab308'
-
-function getMarkerColor(type?: string): string {
-  switch (type) {
-    case 'Pickup':
-      return PICKUP_COLOR
-    case 'Dropoff':
-      return DROPOFF_COLOR
-    case 'Stopover':
-      return STOPOVER_COLOR
-    default:
-      return '#6b7280'
-  }
-}
-
 function RouteMapInner({
-  center = DEFAULT_CENTER,
-  zoom = DEFAULT_ZOOM,
+  center = DEFAULT_MAP_CENTER,
+  zoom = DEFAULT_MAP_ZOOM,
   points = [],
   polyline,
   className = '',
@@ -46,7 +33,7 @@ function RouteMapInner({
         'Map load timeout. Check: 1) Maps JavaScript API enabled in Google Cloud, 2) HTTP referrers (localhost:3000, 127.0.0.1:3000) added to the key.',
       )
       setLoading(false)
-    }, 15000)
+    }, MAP_LOAD_TIMEOUT_MS)
 
     loadMapsLibrary()
       .then(({ Map }) => {
@@ -120,7 +107,7 @@ function RouteMapInner({
     }
 
     if (polyline) {
-      const decoded = decodePolyline(polyline)
+      const decoded = decode(polyline, 5).map(([lat, lng]) => ({ lat, lng }))
       if (decoded.length >= 2) {
         const line = new google.maps.Polyline({
           path: decoded,
@@ -183,40 +170,6 @@ function RouteMapInner({
       )}
     </div>
   )
-}
-
-function decodePolyline(encoded: string): google.maps.LatLngLiteral[] {
-  const points: google.maps.LatLngLiteral[] = []
-  let index = 0
-  let lat = 0
-  let lng = 0
-
-  while (index < encoded.length) {
-    let b
-    let shift = 0
-    let result = 0
-    do {
-      b = encoded.charCodeAt(index++) - 63
-      result |= (b & 0x1f) << shift
-      shift += 5
-    } while (b >= 0x20)
-    const dlat = result & 1 ? ~(result >> 1) : result >> 1
-    lat += dlat
-
-    shift = 0
-    result = 0
-    do {
-      b = encoded.charCodeAt(index++) - 63
-      result |= (b & 0x1f) << shift
-      shift += 5
-    } while (b >= 0x20)
-    const dlng = result & 1 ? ~(result >> 1) : result >> 1
-    lng += dlng
-
-    points.push({ lat: lat / 1e5, lng: lng / 1e5 })
-  }
-
-  return points
 }
 
 export const RouteMap = memo(RouteMapInner)

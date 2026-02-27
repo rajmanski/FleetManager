@@ -28,6 +28,7 @@ function RouteMapInner({
   points = [],
   polyline,
   className = '',
+  onMapClick,
 }: RouteMapProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<google.maps.Map | null>(null)
@@ -140,6 +141,24 @@ function RouteMapInner({
       }
     }
   }, [polyline, mapReady])
+
+  useEffect(() => {
+    if (!mapReady || !mapRef.current || !onMapClick) return
+    const listener = mapRef.current.addListener(
+      'click',
+      (e: google.maps.MapMouseEvent) => {
+        const latLng = e.latLng
+        if (latLng) {
+          const lat = typeof latLng.lat === 'function' ? latLng.lat() : latLng.lat
+          const lng = typeof latLng.lng === 'function' ? latLng.lng() : latLng.lng
+          onMapClick(Number(lat), Number(lng))
+        }
+      }
+    )
+    return () => {
+      if (listener) google.maps.event.removeListener(listener)
+    }
+  }, [mapReady, onMapClick])
 
   if (error) {
     return (

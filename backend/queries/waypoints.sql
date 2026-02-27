@@ -81,3 +81,23 @@ ORDER BY sequence_order ASC;
 UPDATE RouteWaypoints
 SET sequence_order = ?
 WHERE waypoint_id = ?;
+
+-- name: IncrementSequenceFrom :exec
+UPDATE RouteWaypoints
+SET sequence_order = sequence_order + 1
+WHERE route_id = ?
+  AND sequence_order >= ?;
+
+-- name: DecrementSequenceBetween :exec
+UPDATE RouteWaypoints
+SET sequence_order = sequence_order - 1
+WHERE route_id = ?
+  AND sequence_order > ?
+  AND sequence_order <= ?;
+
+-- name: IncrementSequenceRange :exec
+UPDATE RouteWaypoints
+SET sequence_order = sequence_order + 1
+WHERE route_id = ?
+  AND sequence_order >= ?
+  AND sequence_order < ?;

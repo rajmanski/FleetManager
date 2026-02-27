@@ -11,6 +11,7 @@ import (
 	"fleet-management/internal/repository"
 	"fleet-management/internal/routes"
 	"fleet-management/internal/users"
+	"fleet-management/internal/waypoints"
 	"fleet-management/internal/vehicles"
 
 	"github.com/gin-contrib/cors"
@@ -56,8 +57,8 @@ func main() {
 	routesHandler := routes.NewHandler(routesService)
 	waypointsRepository := repository.NewWaypointsRepository(queries)
 	routesRepository := repository.NewRoutesRepository(queries)
-	waypointsService := routes.NewWaypointsService(waypointsRepository, routesRepository)
-	waypointsHandler := routes.NewWaypointsHandler(waypointsService)
+	waypointsService := waypoints.NewService(waypointsRepository, routesRepository)
+	waypointsHandler := waypoints.NewHandler(waypointsService)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{

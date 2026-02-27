@@ -1,5 +1,6 @@
-package routes
+package waypoints
 
+// Route is used by RoutesRepository for waypoint operations (route existence, active trip check).
 type Route struct {
 	RouteID  int64
 	OrderID  int64

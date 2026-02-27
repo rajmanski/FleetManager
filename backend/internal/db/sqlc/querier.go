@@ -18,6 +18,7 @@ type Querier interface {
 	CreateDriver(ctx context.Context, arg CreateDriverParams) (int64, error)
 	CreateVehicle(ctx context.Context, arg CreateVehicleParams) (int64, error)
 	CreateWaypoint(ctx context.Context, arg CreateWaypointParams) (int64, error)
+	DecrementSequenceBetween(ctx context.Context, arg DecrementSequenceBetweenParams) error
 	DeleteWaypoint(ctx context.Context, waypointID int32) (int64, error)
 	GetActiveAssignmentVehicleID(ctx context.Context, driverID int32) (int32, error)
 	GetAdminUserByID(ctx context.Context, userID int32) (GetAdminUserByIDRow, error)
@@ -36,6 +37,8 @@ type Querier interface {
 	HasActiveTripsByDriverID(ctx context.Context, driverID int32) (bool, error)
 	HasActiveTripsByVehicleID(ctx context.Context, vehicleID int32) (bool, error)
 	HasActiveVehicleWithVINExcludingID(ctx context.Context, arg HasActiveVehicleWithVINExcludingIDParams) (bool, error)
+	IncrementSequenceFrom(ctx context.Context, arg IncrementSequenceFromParams) error
+	IncrementSequenceRange(ctx context.Context, arg IncrementSequenceRangeParams) error
 	ListActiveDriverPESELs(ctx context.Context) ([]ListActiveDriverPESELsRow, error)
 	ListAdminUsers(ctx context.Context) ([]ListAdminUsersRow, error)
 	ListDrivers(ctx context.Context, arg ListDriversParams) ([]ListDriversRow, error)

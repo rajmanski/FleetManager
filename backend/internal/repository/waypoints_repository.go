@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	sqlc "fleet-management/internal/db/sqlc"
-	"fleet-management/internal/routes"
+	"fleet-management/internal/waypoints"
 )
 
 type WaypointsRepository struct {
@@ -17,25 +17,25 @@ func NewWaypointsRepository(queries sqlc.Querier) *WaypointsRepository {
 	return &WaypointsRepository{queries: queries}
 }
 
-func (r *WaypointsRepository) ListWaypointsByRouteID(ctx context.Context, routeID int64) ([]routes.Waypoint, error) {
+func (r *WaypointsRepository) ListWaypointsByRouteID(ctx context.Context, routeID int64) ([]waypoints.Waypoint, error) {
 	rows, err := r.queries.ListWaypointsByRouteID(ctx, int32(routeID))
 	if err != nil {
 		return nil, err
 	}
-	result := make([]routes.Waypoint, 0, len(rows))
+	result := make([]waypoints.Waypoint, 0, len(rows))
 	for _, row := range rows {
 		result = append(result, mapWaypointRow(row))
 	}
 	return result, nil
 }
 
-func (r *WaypointsRepository) GetWaypointByID(ctx context.Context, waypointID int64) (routes.Waypoint, error) {
+func (r *WaypointsRepository) GetWaypointByID(ctx context.Context, waypointID int64) (waypoints.Waypoint, error) {
 	row, err := r.queries.GetWaypointByID(ctx, int32(waypointID))
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return routes.Waypoint{}, routes.ErrWaypointNotFound
+			return waypoints.Waypoint{}, waypoints.ErrWaypointNotFound
 		}
-		return routes.Waypoint{}, err
+		return waypoints.Waypoint{}, err
 	}
 	return mapWaypointRow(row), nil
 }
@@ -61,7 +61,7 @@ func (r *WaypointsRepository) GetMaxSequenceOrder(ctx context.Context, routeID i
 	}
 }
 
-func (r *WaypointsRepository) CreateWaypoint(ctx context.Context, wp routes.CreateWaypointInput) (int64, error) {
+func (r *WaypointsRepository) CreateWaypoint(ctx context.Context, wp waypoints.CreateWaypointInput) (int64, error) {
 	return r.queries.CreateWaypoint(ctx, sqlc.CreateWaypointParams{
 		RouteID:       int32(wp.RouteID),
 		SequenceOrder: wp.SequenceOrder,
@@ -72,7 +72,30 @@ func (r *WaypointsRepository) CreateWaypoint(ctx context.Context, wp routes.Crea
 	})
 }
 
-func (r *WaypointsRepository) UpdateWaypoint(ctx context.Context, wp routes.UpdateWaypointInput) error {
+func (r *WaypointsRepository) IncrementSequenceFrom(ctx context.Context, routeID int64, fromOrder int32) error {
+	return r.queries.IncrementSequenceFrom(ctx, sqlc.IncrementSequenceFromParams{
+		RouteID:       int32(routeID),
+		SequenceOrder: fromOrder,
+	})
+}
+
+func (r *WaypointsRepository) DecrementSequenceBetween(ctx context.Context, routeID int64, fromExcl, toIncl int32) error {
+	return r.queries.DecrementSequenceBetween(ctx, sqlc.DecrementSequenceBetweenParams{
+		RouteID:         int32(routeID),
+		SequenceOrder:   fromExcl,
+		SequenceOrder_2: toIncl,
+	})
+}
+
+func (r *WaypointsRepository) IncrementSequenceRange(ctx context.Context, routeID int64, fromIncl, toExcl int32) error {
+	return r.queries.IncrementSequenceRange(ctx, sqlc.IncrementSequenceRangeParams{
+		RouteID:         int32(routeID),
+		SequenceOrder:   fromIncl,
+		SequenceOrder_2: toExcl,
+	})
+}
+
+func (r *WaypointsRepository) UpdateWaypoint(ctx context.Context, wp waypoints.UpdateWaypointInput) error {
 	_, err := r.queries.UpdateWaypoint(ctx, sqlc.UpdateWaypointParams{
 		SequenceOrder: wp.SequenceOrder,
 		Address:       wp.Address,
@@ -111,7 +134,7 @@ func (r *WaypointsRepository) GetWaypointRouteID(ctx context.Context, waypointID
 	return int64(routeID), nil
 }
 
-func (r *WaypointsRepository) ReorderWaypoints(ctx context.Context, routeID int64, updates []routes.WaypointReorderItem) error {
+func (r *WaypointsRepository) ReorderWaypoints(ctx context.Context, routeID int64, updates []waypoints.WaypointReorderItem) error {
 	for _, u := range updates {
 		_, err := r.queries.UpdateWaypointSequence(ctx, sqlc.UpdateWaypointSequenceParams{
 			SequenceOrder: u.SequenceOrder,
@@ -124,10 +147,10 @@ func (r *WaypointsRepository) ReorderWaypoints(ctx context.Context, routeID int6
 	return nil
 }
 
-func mapWaypointRow(row sqlc.Routewaypoint) routes.Waypoint {
+func mapWaypointRow(row sqlc.Routewaypoint) waypoints.Waypoint {
 	lat, _ := strconv.ParseFloat(row.Latitude, 64)
 	lng, _ := strconv.ParseFloat(row.Longitude, 64)
-	return routes.Waypoint{
+	return waypoints.Waypoint{
 		WaypointID:    int64(row.WaypointID),
 		RouteID:       int64(row.RouteID),
 		SequenceOrder: row.SequenceOrder,

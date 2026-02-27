@@ -5,7 +5,7 @@ import (
 	"database/sql"
 
 	sqlc "fleet-management/internal/db/sqlc"
-	"fleet-management/internal/routes"
+	"fleet-management/internal/waypoints"
 )
 
 type RoutesRepository struct {
@@ -16,15 +16,15 @@ func NewRoutesRepository(queries sqlc.Querier) *RoutesRepository {
 	return &RoutesRepository{queries: queries}
 }
 
-func (r *RoutesRepository) GetRouteByID(ctx context.Context, routeID int64) (routes.Route, error) {
+func (r *RoutesRepository) GetRouteByID(ctx context.Context, routeID int64) (waypoints.Route, error) {
 	row, err := r.queries.GetRouteByID(ctx, int32(routeID))
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return routes.Route{}, routes.ErrRouteIDNotFound
+			return waypoints.Route{}, waypoints.ErrRouteIDNotFound
 		}
-		return routes.Route{}, err
+		return waypoints.Route{}, err
 	}
-	return routes.Route{
+	return waypoints.Route{
 		RouteID:   int64(row.RouteID),
 		OrderID:   int64(row.OrderID),
 		StartLoc:  nullStrToString(row.StartLocation),

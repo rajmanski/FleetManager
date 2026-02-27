@@ -58,6 +58,25 @@ func (q *Queries) CreateWaypoint(ctx context.Context, arg CreateWaypointParams) 
 	return result.LastInsertId()
 }
 
+const decrementSequenceBetween = `-- name: DecrementSequenceBetween :exec
+UPDATE RouteWaypoints
+SET sequence_order = sequence_order - 1
+WHERE route_id = ?
+  AND sequence_order > ?
+  AND sequence_order <= ?
+`
+
+type DecrementSequenceBetweenParams struct {
+	RouteID         int32 `json:"route_id"`
+	SequenceOrder   int32 `json:"sequence_order"`
+	SequenceOrder_2 int32 `json:"sequence_order_2"`
+}
+
+func (q *Queries) DecrementSequenceBetween(ctx context.Context, arg DecrementSequenceBetweenParams) error {
+	_, err := q.db.ExecContext(ctx, decrementSequenceBetween, arg.RouteID, arg.SequenceOrder, arg.SequenceOrder_2)
+	return err
+}
+
 const deleteWaypoint = `-- name: DeleteWaypoint :execrows
 DELETE FROM RouteWaypoints
 WHERE waypoint_id = ?
@@ -125,6 +144,42 @@ func (q *Queries) GetWaypointRouteID(ctx context.Context, waypointID int32) (int
 	var route_id int32
 	err := row.Scan(&route_id)
 	return route_id, err
+}
+
+const incrementSequenceFrom = `-- name: IncrementSequenceFrom :exec
+UPDATE RouteWaypoints
+SET sequence_order = sequence_order + 1
+WHERE route_id = ?
+  AND sequence_order >= ?
+`
+
+type IncrementSequenceFromParams struct {
+	RouteID       int32 `json:"route_id"`
+	SequenceOrder int32 `json:"sequence_order"`
+}
+
+func (q *Queries) IncrementSequenceFrom(ctx context.Context, arg IncrementSequenceFromParams) error {
+	_, err := q.db.ExecContext(ctx, incrementSequenceFrom, arg.RouteID, arg.SequenceOrder)
+	return err
+}
+
+const incrementSequenceRange = `-- name: IncrementSequenceRange :exec
+UPDATE RouteWaypoints
+SET sequence_order = sequence_order + 1
+WHERE route_id = ?
+  AND sequence_order >= ?
+  AND sequence_order < ?
+`
+
+type IncrementSequenceRangeParams struct {
+	RouteID         int32 `json:"route_id"`
+	SequenceOrder   int32 `json:"sequence_order"`
+	SequenceOrder_2 int32 `json:"sequence_order_2"`
+}
+
+func (q *Queries) IncrementSequenceRange(ctx context.Context, arg IncrementSequenceRangeParams) error {
+	_, err := q.db.ExecContext(ctx, incrementSequenceRange, arg.RouteID, arg.SequenceOrder, arg.SequenceOrder_2)
+	return err
 }
 
 const listWaypointIDsByRouteID = `-- name: ListWaypointIDsByRouteID :many

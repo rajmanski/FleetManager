@@ -1,11 +1,11 @@
-package routes
+package waypoints
 
 import (
 	"context"
 	"math"
 )
 
-type WaypointsService struct {
+type Service struct {
 	waypointsRepo WaypointsRepository
 	routesRepo    RoutesRepository
 }
@@ -20,6 +20,9 @@ type WaypointsRepository interface {
 	DeleteWaypoint(ctx context.Context, waypointID int64) (deletedSequence int32, err error)
 	GetWaypointRouteID(ctx context.Context, waypointID int64) (int64, error)
 	ReorderWaypoints(ctx context.Context, routeID int64, updates []WaypointReorderItem) error
+	IncrementSequenceFrom(ctx context.Context, routeID int64, fromOrder int32) error
+	DecrementSequenceBetween(ctx context.Context, routeID int64, fromExcl, toIncl int32) error
+	IncrementSequenceRange(ctx context.Context, routeID int64, fromIncl, toExcl int32) error
 }
 
 type RoutesRepository interface {
@@ -27,14 +30,14 @@ type RoutesRepository interface {
 	HasActiveTripForOrder(ctx context.Context, orderID int64) (bool, error)
 }
 
-func NewWaypointsService(waypointsRepo WaypointsRepository, routesRepo RoutesRepository) *WaypointsService {
-	return &WaypointsService{
+func NewService(waypointsRepo WaypointsRepository, routesRepo RoutesRepository) *Service {
+	return &Service{
 		waypointsRepo: waypointsRepo,
 		routesRepo:    routesRepo,
 	}
 }
 
-func (s *WaypointsService) ListWaypoints(ctx context.Context, routeID int64) ([]Waypoint, error) {
+func (s *Service) ListWaypoints(ctx context.Context, routeID int64) ([]Waypoint, error) {
 	_, err := s.routesRepo.GetRouteByID(ctx, routeID)
 	if err != nil {
 		return nil, err
@@ -42,7 +45,7 @@ func (s *WaypointsService) ListWaypoints(ctx context.Context, routeID int64) ([]
 	return s.waypointsRepo.ListWaypointsByRouteID(ctx, routeID)
 }
 
-func (s *WaypointsService) CreateWaypoint(ctx context.Context, routeID int64, req CreateWaypointRequest) (Waypoint, error) {
+func (s *Service) CreateWaypoint(ctx context.Context, routeID int64, req CreateWaypointRequest) (Waypoint, error) {
 	route, err := s.routesRepo.GetRouteByID(ctx, routeID)
 	if err != nil {
 		return Waypoint{}, err
@@ -64,10 +67,14 @@ func (s *WaypointsService) CreateWaypoint(ctx context.Context, routeID int64, re
 	if err := validateWaypointInput(req.Address, req.Latitude, req.Longitude, req.ActionType); err != nil {
 		return Waypoint{}, err
 	}
+	maxSeq, _ := s.waypointsRepo.GetMaxSequenceOrder(ctx, routeID)
 	seqOrder := req.SequenceOrder
 	if seqOrder <= 0 {
-		maxSeq, _ := s.waypointsRepo.GetMaxSequenceOrder(ctx, routeID)
 		seqOrder = maxSeq + 1
+	} else if seqOrder <= maxSeq {
+		if err := s.waypointsRepo.IncrementSequenceFrom(ctx, routeID, seqOrder); err != nil {
+			return Waypoint{}, err
+		}
 	}
 	id, err := s.waypointsRepo.CreateWaypoint(ctx, CreateWaypointInput{
 		RouteID:       routeID,
@@ -83,7 +90,7 @@ func (s *WaypointsService) CreateWaypoint(ctx context.Context, routeID int64, re
 	return s.waypointsRepo.GetWaypointByID(ctx, id)
 }
 
-func (s *WaypointsService) UpdateWaypoint(ctx context.Context, waypointID int64, req UpdateWaypointRequest) (Waypoint, error) {
+func (s *Service) UpdateWaypoint(ctx context.Context, waypointID int64, req UpdateWaypointRequest) (Waypoint, error) {
 	routeID, err := s.waypointsRepo.GetWaypointRouteID(ctx, waypointID)
 	if err != nil {
 		return Waypoint{}, err
@@ -102,9 +109,29 @@ func (s *WaypointsService) UpdateWaypoint(ctx context.Context, waypointID int64,
 	if err := validateWaypointInput(req.Address, req.Latitude, req.Longitude, req.ActionType); err != nil {
 		return Waypoint{}, err
 	}
+	curr, err := s.waypointsRepo.GetWaypointByID(ctx, waypointID)
+	if err != nil {
+		return Waypoint{}, err
+	}
+	newSeq := req.SequenceOrder
+	if newSeq < 1 {
+		newSeq = curr.SequenceOrder
+	}
+
+	if newSeq != curr.SequenceOrder {
+		if newSeq > curr.SequenceOrder {
+			if err := s.waypointsRepo.DecrementSequenceBetween(ctx, routeID, curr.SequenceOrder, newSeq); err != nil {
+				return Waypoint{}, err
+			}
+		} else {
+			if err := s.waypointsRepo.IncrementSequenceRange(ctx, routeID, newSeq, curr.SequenceOrder); err != nil {
+				return Waypoint{}, err
+			}
+		}
+	}
 	err = s.waypointsRepo.UpdateWaypoint(ctx, UpdateWaypointInput{
 		WaypointID:    waypointID,
-		SequenceOrder: req.SequenceOrder,
+		SequenceOrder: newSeq,
 		Address:       req.Address,
 		Latitude:      req.Latitude,
 		Longitude:     req.Longitude,
@@ -116,7 +143,7 @@ func (s *WaypointsService) UpdateWaypoint(ctx context.Context, waypointID int64,
 	return s.waypointsRepo.GetWaypointByID(ctx, waypointID)
 }
 
-func (s *WaypointsService) DeleteWaypoint(ctx context.Context, waypointID int64) error {
+func (s *Service) DeleteWaypoint(ctx context.Context, waypointID int64) error {
 	routeID, err := s.waypointsRepo.GetWaypointRouteID(ctx, waypointID)
 	if err != nil {
 		return err
@@ -136,7 +163,7 @@ func (s *WaypointsService) DeleteWaypoint(ctx context.Context, waypointID int64)
 	return err
 }
 
-func (s *WaypointsService) ReorderWaypoints(ctx context.Context, updates []WaypointReorderItem) error {
+func (s *Service) ReorderWaypoints(ctx context.Context, updates []WaypointReorderItem) error {
 	if len(updates) == 0 {
 		return ErrInvalidWaypointInput
 	}
@@ -209,14 +236,7 @@ type UpdateWaypointRequest struct {
 	ActionType    string  `json:"action_type"`
 }
 
-type ReorderWaypointsRequest struct {
-	Waypoints []struct {
-		WaypointID    int64 `json:"waypoint_id"`
-		SequenceOrder int32 `json:"sequence_order"`
-	} `json:"waypoints"`
-}
-
-// ValidateReorderSequence checks that sequence_order is continuous (1,2,3...)
+// ValidateReorderSequence checks that sequence_order is continuous (1,2,3...).
 func ValidateReorderSequence(updates []WaypointReorderItem) error {
 	if len(updates) == 0 {
 		return nil
@@ -231,7 +251,6 @@ func ValidateReorderSequence(updates []WaypointReorderItem) error {
 		}
 		seen[u.SequenceOrder] = true
 	}
-	// Check continuity: must have 1..n
 	for i := 1; i <= len(updates); i++ {
 		if !seen[int32(i)] {
 			return ErrInvalidWaypointInput

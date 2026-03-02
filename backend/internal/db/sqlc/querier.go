@@ -10,11 +10,13 @@ import (
 
 type Querier interface {
 	CountActiveTripsForOrder(ctx context.Context, orderID int32) (int64, error)
+	CountClients(ctx context.Context, arg CountClientsParams) (int64, error)
 	CountDrivers(ctx context.Context, arg CountDriversParams) (int64, error)
 	CountVehicles(ctx context.Context, arg CountVehiclesParams) (int64, error)
 	CountWaypointsByRouteID(ctx context.Context, routeID int32) (int64, error)
 	CreateAdminUser(ctx context.Context, arg CreateAdminUserParams) (int64, error)
 	CreateAlert(ctx context.Context, arg CreateAlertParams) (int64, error)
+	CreateClient(ctx context.Context, arg CreateClientParams) (int64, error)
 	CreateDriver(ctx context.Context, arg CreateDriverParams) (int64, error)
 	CreateVehicle(ctx context.Context, arg CreateVehicleParams) (int64, error)
 	CreateWaypoint(ctx context.Context, arg CreateWaypointParams) (int64, error)
@@ -22,6 +24,7 @@ type Querier interface {
 	DeleteWaypoint(ctx context.Context, waypointID int32) (int64, error)
 	GetActiveAssignmentVehicleID(ctx context.Context, driverID int32) (int32, error)
 	GetAdminUserByID(ctx context.Context, userID int32) (GetAdminUserByIDRow, error)
+	GetClientByID(ctx context.Context, clientID int32) (Client, error)
 	GetDeletedDriverPESELByID(ctx context.Context, driverID int32) (string, error)
 	GetDeletedVehicleVINByID(ctx context.Context, vehicleID int32) (string, error)
 	GetDriverByID(ctx context.Context, driverID int32) (GetDriverByIDRow, error)
@@ -41,6 +44,7 @@ type Querier interface {
 	IncrementSequenceRange(ctx context.Context, arg IncrementSequenceRangeParams) error
 	ListActiveDriverPESELs(ctx context.Context) ([]ListActiveDriverPESELsRow, error)
 	ListAdminUsers(ctx context.Context) ([]ListAdminUsersRow, error)
+	ListClients(ctx context.Context, arg ListClientsParams) ([]Client, error)
 	ListDrivers(ctx context.Context, arg ListDriversParams) ([]ListDriversRow, error)
 	ListDriversForPESELSearch(ctx context.Context, arg ListDriversForPESELSearchParams) ([]ListDriversForPESELSearchRow, error)
 	ListDriversWithExpiringCertificates(ctx context.Context) ([]ListDriversWithExpiringCertificatesRow, error)
@@ -52,10 +56,12 @@ type Querier interface {
 	RestoreDriverByID(ctx context.Context, driverID int32) (int64, error)
 	RestoreVehicleByID(ctx context.Context, vehicleID int32) (int64, error)
 	SoftDeleteAdminUser(ctx context.Context, userID int32) (int64, error)
+	SoftDeleteClient(ctx context.Context, clientID int32) (int64, error)
 	SoftDeleteDriver(ctx context.Context, driverID int32) (int64, error)
 	SoftDeleteVehicle(ctx context.Context, vehicleID int32) (int64, error)
 	UnlockUserAccount(ctx context.Context, userID int32) (int64, error)
 	UpdateAdminUser(ctx context.Context, arg UpdateAdminUserParams) (int64, error)
+	UpdateClient(ctx context.Context, arg UpdateClientParams) (int64, error)
 	UpdateDriver(ctx context.Context, arg UpdateDriverParams) (int64, error)
 	UpdateUserLoginState(ctx context.Context, arg UpdateUserLoginStateParams) error
 	UpdateVehicle(ctx context.Context, arg UpdateVehicleParams) (int64, error)

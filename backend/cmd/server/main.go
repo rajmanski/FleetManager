@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"fleet-management/internal/auth"
+	"fleet-management/internal/clients"
 	"fleet-management/internal/config"
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/drivers"
@@ -53,6 +54,9 @@ func main() {
 	cargoRepository := repository.NewCargoRepository(queries)
 	driversService := drivers.NewService(driversRepository, cargoRepository)
 	driversHandler := drivers.NewHandler(driversService)
+	clientsRepository := repository.NewClientsRepository(queries)
+	clientsService := clients.NewService(clientsRepository)
+	clientsHandler := clients.NewHandler(clientsService)
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
 	routesHandler := routes.NewHandler(routesService)
 	waypointsRepository := repository.NewWaypointsRepository(queries)
@@ -183,6 +187,31 @@ func main() {
 		"/drivers/:id/can-transport-hazardous",
 		auth.RBACMiddleware(auth.ResourceDrivers, auth.PermissionRead),
 		driversHandler.CanDriverTransportHazardous,
+	)
+	protected.GET(
+		"/clients",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
+		clientsHandler.ListClients,
+	)
+	protected.GET(
+		"/clients/:id",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
+		clientsHandler.GetClient,
+	)
+	protected.POST(
+		"/clients",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
+		clientsHandler.CreateClient,
+	)
+	protected.PUT(
+		"/clients/:id",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
+		clientsHandler.UpdateClient,
+	)
+	protected.DELETE(
+		"/clients/:id",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
+		clientsHandler.DeleteClient,
 	)
 	protected.POST(
 		"/routes/geocode",

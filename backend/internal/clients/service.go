@@ -105,13 +105,11 @@ func validateBasicClientFields(companyName, nip string, contactEmail *string) er
 		return ErrInvalidInput
 	}
 
-	if len(nip) != 10 {
-		return ErrInvalidInput
-	}
-	for _, ch := range nip {
-		if ch < '0' || ch > '9' {
-			return ErrInvalidInput
+	if ok, err := ValidateNIP(nip); err != nil || !ok {
+		if err != nil {
+			return err
 		}
+		return ErrInvalidInput
 	}
 
 	if contactEmail != nil {

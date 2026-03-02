@@ -8,8 +8,6 @@ import (
 
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/clients"
-
-	mysqlDriver "github.com/go-sql-driver/mysql"
 )
 
 type ClientsRepository struct {
@@ -142,21 +140,5 @@ func mapClientRow(row sqlc.Client) clients.Client {
 		client.DeletedAt = &value
 	}
 	return client
-}
-
-func toNullString(value *string) sql.NullString {
-	if value == nil {
-		return sql.NullString{}
-	}
-	trimmed := strings.TrimSpace(*value)
-	if trimmed == "" {
-		return sql.NullString{}
-	}
-	return sql.NullString{String: trimmed, Valid: true}
-}
-
-func isDuplicateEntryError(err error) bool {
-	var mysqlErr *mysqlDriver.MySQLError
-	return errors.As(err, &mysqlErr) && mysqlErr.Number == 1062
 }
 

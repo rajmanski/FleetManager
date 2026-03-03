@@ -100,6 +100,18 @@ func (s *Service) DeleteClient(ctx context.Context, clientID int64) error {
 	return s.repo.DeleteClient(ctx, clientID)
 }
 
+func (s *Service) RestoreClient(ctx context.Context, clientID int64) (Client, error) {
+	if clientID <= 0 {
+		return Client{}, ErrInvalidInput
+	}
+
+	if err := s.repo.RestoreClient(ctx, clientID); err != nil {
+		return Client{}, err
+	}
+
+	return s.repo.GetClientByID(ctx, clientID)
+}
+
 func validateBasicClientFields(companyName, nip string, contactEmail *string) error {
 	if len(companyName) < 3 {
 		return ErrInvalidInput

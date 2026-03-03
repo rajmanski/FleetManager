@@ -66,3 +66,25 @@ SET deleted_at = NOW()
 WHERE client_id = ?
   AND deleted_at IS NULL;
 
+-- name: GetDeletedClientNIPByID :one
+SELECT nip
+FROM Clients
+WHERE client_id = ?
+  AND deleted_at IS NOT NULL
+LIMIT 1;
+
+-- name: HasActiveClientWithNIPExcludingID :one
+SELECT EXISTS(
+  SELECT 1
+  FROM Clients
+  WHERE nip = ?
+    AND deleted_at IS NULL
+    AND client_id <> ?
+) AS has_conflict;
+
+-- name: RestoreClientByID :execrows
+UPDATE Clients
+SET deleted_at = NULL
+WHERE client_id = ?
+  AND deleted_at IS NOT NULL;
+

@@ -213,6 +213,11 @@ func main() {
 		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
 		clientsHandler.DeleteClient,
 	)
+	protected.PUT(
+		"/clients/:id/restore",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
+		clientsHandler.RestoreClient,
+	)
 	protected.POST(
 		"/routes/geocode",
 		auth.RBACMiddleware(auth.ResourceRoutes, auth.PermissionRead),

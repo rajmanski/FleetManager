@@ -117,6 +117,37 @@ func (r *ClientsRepository) DeleteClient(ctx context.Context, clientID int64) er
 	return nil
 }
 
+func (r *ClientsRepository) RestoreClient(ctx context.Context, clientID int64) error {
+	nip, err := r.queries.GetDeletedClientNIPByID(ctx, int32(clientID))
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return clients.ErrClientNotFound
+		}
+		return err
+	}
+
+	nipConflict, err := r.queries.HasActiveClientWithNIPExcludingID(ctx, sqlc.HasActiveClientWithNIPExcludingIDParams{
+		Nip:      nip,
+		ClientID: int32(clientID),
+	})
+	if err != nil {
+		return err
+	}
+	if nipConflict {
+		return clients.ErrClientRestoreConflict
+	}
+
+	rows, err := r.queries.RestoreClientByID(ctx, int32(clientID))
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return clients.ErrClientNotFound
+	}
+
+	return nil
+}
+
 func mapClientRow(row sqlc.Client) clients.Client {
 	client := clients.Client{
 		ID:          int64(row.ClientID),

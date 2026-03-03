@@ -100,6 +100,43 @@ func (q *Queries) GetClientByID(ctx context.Context, clientID int32) (Client, er
 	return i, err
 }
 
+const getDeletedClientNIPByID = `-- name: GetDeletedClientNIPByID :one
+SELECT nip
+FROM Clients
+WHERE client_id = ?
+  AND deleted_at IS NOT NULL
+LIMIT 1
+`
+
+func (q *Queries) GetDeletedClientNIPByID(ctx context.Context, clientID int32) (string, error) {
+	row := q.db.QueryRowContext(ctx, getDeletedClientNIPByID, clientID)
+	var nip string
+	err := row.Scan(&nip)
+	return nip, err
+}
+
+const hasActiveClientWithNIPExcludingID = `-- name: HasActiveClientWithNIPExcludingID :one
+SELECT EXISTS(
+  SELECT 1
+  FROM Clients
+  WHERE nip = ?
+    AND deleted_at IS NULL
+    AND client_id <> ?
+) AS has_conflict
+`
+
+type HasActiveClientWithNIPExcludingIDParams struct {
+	Nip      string `json:"nip"`
+	ClientID int32  `json:"client_id"`
+}
+
+func (q *Queries) HasActiveClientWithNIPExcludingID(ctx context.Context, arg HasActiveClientWithNIPExcludingIDParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, hasActiveClientWithNIPExcludingID, arg.Nip, arg.ClientID)
+	var has_conflict bool
+	err := row.Scan(&has_conflict)
+	return has_conflict, err
+}
+
 const listClients = `-- name: ListClients :many
 SELECT
   client_id,
@@ -165,6 +202,21 @@ func (q *Queries) ListClients(ctx context.Context, arg ListClientsParams) ([]Cli
 		return nil, err
 	}
 	return items, nil
+}
+
+const restoreClientByID = `-- name: RestoreClientByID :execrows
+UPDATE Clients
+SET deleted_at = NULL
+WHERE client_id = ?
+  AND deleted_at IS NOT NULL
+`
+
+func (q *Queries) RestoreClientByID(ctx context.Context, clientID int32) (int64, error) {
+	result, err := q.db.ExecContext(ctx, restoreClientByID, clientID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }
 
 const softDeleteClient = `-- name: SoftDeleteClient :execrows

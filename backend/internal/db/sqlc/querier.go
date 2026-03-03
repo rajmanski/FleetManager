@@ -25,6 +25,7 @@ type Querier interface {
 	GetActiveAssignmentVehicleID(ctx context.Context, driverID int32) (int32, error)
 	GetAdminUserByID(ctx context.Context, userID int32) (GetAdminUserByIDRow, error)
 	GetClientByID(ctx context.Context, clientID int32) (Client, error)
+	GetDeletedClientNIPByID(ctx context.Context, clientID int32) (string, error)
 	GetDeletedDriverPESELByID(ctx context.Context, driverID int32) (string, error)
 	GetDeletedVehicleVINByID(ctx context.Context, vehicleID int32) (string, error)
 	GetDriverByID(ctx context.Context, driverID int32) (GetDriverByIDRow, error)
@@ -36,6 +37,7 @@ type Querier interface {
 	GetVehicleByID(ctx context.Context, vehicleID int32) (GetVehicleByIDRow, error)
 	GetWaypointByID(ctx context.Context, waypointID int32) (Routewaypoint, error)
 	GetWaypointRouteID(ctx context.Context, waypointID int32) (int32, error)
+	HasActiveClientWithNIPExcludingID(ctx context.Context, arg HasActiveClientWithNIPExcludingIDParams) (bool, error)
 	HasActiveDriverWithPESELExcludingID(ctx context.Context, arg HasActiveDriverWithPESELExcludingIDParams) (bool, error)
 	HasActiveTripsByDriverID(ctx context.Context, driverID int32) (bool, error)
 	HasActiveTripsByVehicleID(ctx context.Context, vehicleID int32) (bool, error)
@@ -53,6 +55,7 @@ type Querier interface {
 	ListWaypointsByRouteID(ctx context.Context, routeID int32) ([]Routewaypoint, error)
 	OrderHasHazardousCargo(ctx context.Context, orderID int32) (bool, error)
 	RenumberWaypointsAfterDelete(ctx context.Context, arg RenumberWaypointsAfterDeleteParams) error
+	RestoreClientByID(ctx context.Context, clientID int32) (int64, error)
 	RestoreDriverByID(ctx context.Context, driverID int32) (int64, error)
 	RestoreVehicleByID(ctx context.Context, vehicleID int32) (int64, error)
 	SoftDeleteAdminUser(ctx context.Context, userID int32) (int64, error)

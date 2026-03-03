@@ -158,6 +158,46 @@ func (h *Handler) DeleteClient(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
+func (h *Handler) RestoreClient(c *gin.Context) {
+	roleValue, exists := c.Get(auth.ContextRoleKey)
+	if !exists {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	role, ok := roleValue.(string)
+	if !ok || role != "Administrator" {
+		c.JSON(http.StatusForbidden, gin.H{"error": "forbidden"})
+		return
+	}
+
+	clientID, err := parseClientIDParam(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid client id"})
+		return
+	}
+
+	client, err := h.service.RestoreClient(c.Request.Context(), clientID)
+	if err != nil {
+		switch {
+		case errors.Is(err, ErrInvalidInput):
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			return
+		case errors.Is(err, ErrClientNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": "client not found"})
+			return
+		case errors.Is(err, ErrClientRestoreConflict):
+			c.JSON(http.StatusConflict, gin.H{"error": "nip conflicts with another active client"})
+			return
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, client)
+}
+
 func parseClientIDParam(c *gin.Context) (int64, error) {
 	value := c.Param("id")
 	clientID, err := strconv.ParseInt(value, 10, 64)

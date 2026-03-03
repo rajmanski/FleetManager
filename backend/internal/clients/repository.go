@@ -8,5 +8,6 @@ type Repository interface {
 	CreateClient(ctx context.Context, input CreateClientRequest) (int64, error)
 	UpdateClient(ctx context.Context, clientID int64, input UpdateClientRequest) error
 	DeleteClient(ctx context.Context, clientID int64) error
+	RestoreClient(ctx context.Context, clientID int64) error
 }
 

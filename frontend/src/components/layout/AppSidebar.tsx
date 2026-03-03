@@ -1,4 +1,4 @@
-import { BarChart3, MapPin, Truck, Users, UserCircle } from 'lucide-react'
+import { BarChart3, Building2, MapPin, Truck, Users, UserCircle } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -32,6 +32,15 @@ export function AppSidebar() {
           <UserCircle className="size-5" />
           <span>Drivers</span>
         </Link>
+        {(role === 'Administrator' || role === 'Spedytor') && (
+          <Link
+            to="/clients"
+            className={navItemClass(location.pathname.startsWith('/clients'))}
+          >
+            <Building2 className="size-5" />
+            <span>Clients</span>
+          </Link>
+        )}
         {canAccessRoutes && (
           <Link
             to="/routes"

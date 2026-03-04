@@ -1,4 +1,4 @@
-import { BarChart3, Building2, MapPin, Truck, Users, UserCircle } from 'lucide-react'
+import { BarChart3, Building2, ClipboardList, MapPin, Truck, Users, UserCircle } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -42,13 +42,22 @@ export function AppSidebar() {
           </Link>
         )}
         {canAccessRoutes && (
-          <Link
-            to="/routes"
+          <>
+            <Link
+              to="/orders"
+              className={navItemClass(location.pathname.startsWith('/orders'))}
+            >
+              <ClipboardList className="size-5" />
+              <span>Orders</span>
+            </Link>
+            <Link
+              to="/routes"
             className={navItemClass(location.pathname.startsWith('/routes'))}
           >
             <MapPin className="size-5" />
             <span>Routes</span>
           </Link>
+          </>
         )}
         {role === 'Administrator' && (
           <Link

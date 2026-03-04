@@ -12,6 +12,13 @@ export type Client = {
   createdAt?: string
 }
 
+export type ClientMutationPayload = {
+  companyName: string
+  nip: string
+  address?: string
+  contactEmail?: string
+}
+
 type ListClientsResponse = {
   data: Client[]
   page: number
@@ -55,9 +62,31 @@ export function useClients({ page, limit, search, showDeleted }: UseClientsParam
     },
   })
 
+  const createMutation = useMutation({
+    mutationFn: async (payload: ClientMutationPayload) => {
+      const res = await api.post<Client>('/api/v1/clients', payload)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+    },
+  })
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, payload }: { id: number; payload: ClientMutationPayload }) => {
+      const res = await api.put<Client>(`/api/v1/clients/${id}`, payload)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients'] })
+    },
+  })
+
   return {
     clientsQuery,
     restoreMutation,
+    createMutation,
+    updateMutation,
     isAdmin,
   }
 }

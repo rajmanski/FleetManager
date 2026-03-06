@@ -10,12 +10,17 @@ var allowedCargoTypes = map[string]bool{
 }
 
 type Service struct {
-	repo         Repository
-	orderChecker OrderChecker
+	repo              Repository
+	orderChecker      OrderChecker
+	waypointChecker   WaypointRouteChecker
 }
 
-func NewService(repo Repository, orderChecker OrderChecker) *Service {
-	return &Service{repo: repo, orderChecker: orderChecker}
+func NewService(repo Repository, orderChecker OrderChecker, waypointChecker WaypointRouteChecker) *Service {
+	return &Service{
+		repo:            repo,
+		orderChecker:    orderChecker,
+		waypointChecker: waypointChecker,
+	}
 }
 
 func (s *Service) ListCargo(ctx context.Context, orderID int64) ([]Cargo, error) {
@@ -134,8 +139,38 @@ func validateCargoRequest(weightKg, volumeM3 float64, cargoType string) error {
 	return nil
 }
 
+func (s *Service) AssignWaypoint(ctx context.Context, cargoID int64, req AssignWaypointRequest) (Cargo, error) {
+	if cargoID <= 0 {
+		return Cargo{}, ErrInvalidInput
+	}
+	existing, found, err := s.repo.GetCargoByID(ctx, cargoID)
+	if err != nil {
+		return Cargo{}, err
+	}
+	if !found {
+		return Cargo{}, ErrCargoNotFound
+	}
+	if req.DestinationWaypointID != nil && *req.DestinationWaypointID > 0 {
+		belongs, err := s.waypointChecker.WaypointBelongsToOrderRoute(ctx, *req.DestinationWaypointID, existing.OrderID)
+		if err != nil {
+			return Cargo{}, err
+		}
+		if !belongs {
+			return Cargo{}, ErrWaypointNotInOrderRoute
+		}
+	}
+	rows, err := s.repo.AssignCargoWaypoint(ctx, cargoID, req.DestinationWaypointID)
+	if err != nil {
+		return Cargo{}, err
+	}
+	if rows == 0 {
+		return Cargo{}, ErrCargoNotFound
+	}
+	return s.GetCargoByID(ctx, cargoID)
+}
+
 func rowToCargo(r CargoRow) Cargo {
-	return Cargo{
+	c := Cargo{
 		ID:          r.ID,
 		OrderID:     r.OrderID,
 		Description: r.Description,
@@ -143,4 +178,8 @@ func rowToCargo(r CargoRow) Cargo {
 		VolumeM3:    r.VolumeM3,
 		CargoType:   r.CargoType,
 	}
+	if r.DestinationWaypointID != nil {
+		c.DestinationWaypointID = r.DestinationWaypointID
+	}
+	return c
 }

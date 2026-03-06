@@ -1,12 +1,13 @@
 package cargo
 
 type Cargo struct {
-	ID          int64   `json:"id"`
-	OrderID     int64   `json:"orderId"`
-	Description string  `json:"description,omitempty"`
-	WeightKg    float64 `json:"weightKg,omitempty"`
-	VolumeM3    float64 `json:"volumeM3,omitempty"`
-	CargoType   string  `json:"cargoType"`
+	ID                   int64   `json:"id"`
+	OrderID              int64   `json:"orderId"`
+	DestinationWaypointID *int64 `json:"destinationWaypointId,omitempty"`
+	Description          string  `json:"description,omitempty"`
+	WeightKg             float64 `json:"weightKg,omitempty"`
+	VolumeM3             float64 `json:"volumeM3,omitempty"`
+	CargoType            string  `json:"cargoType"`
 }
 
 type CreateCargoRequest struct {
@@ -21,4 +22,8 @@ type UpdateCargoRequest struct {
 	WeightKg    float64 `json:"weightKg" binding:"required"`
 	VolumeM3    float64 `json:"volumeM3" binding:"required"`
 	CargoType   string  `json:"cargoType" binding:"required"`
+}
+
+type AssignWaypointRequest struct {
+	DestinationWaypointID *int64 `json:"destination_waypoint_id"`
 }

@@ -30,7 +30,7 @@ func (r *CargoRepository) ListCargoByOrderID(ctx context.Context, orderID int64)
 	}
 	result := make([]cargo.CargoRow, 0, len(rows))
 	for _, row := range rows {
-		result = append(result, sqlcCargoToRow(row))
+		result = append(result, listCargoRowToCargoRow(row))
 	}
 	return result, nil
 }
@@ -43,7 +43,7 @@ func (r *CargoRepository) GetCargoByID(ctx context.Context, cargoID int64) (carg
 		}
 		return cargo.CargoRow{}, false, err
 	}
-	return sqlcCargoToRow(row), true, nil
+	return getCargoRowToCargoRow(row), true, nil
 }
 
 func (r *CargoRepository) CreateCargo(ctx context.Context, orderID int64, description string, weightKg, volumeM3 float64, cargoType string) (int64, error) {
@@ -70,22 +70,67 @@ func (r *CargoRepository) DeleteCargo(ctx context.Context, cargoID int64) (int64
 	return r.queries.DeleteCargo(ctx, int32(cargoID))
 }
 
-func sqlcCargoToRow(c sqlc.Cargo) cargo.CargoRow {
+func (r *CargoRepository) AssignCargoWaypoint(ctx context.Context, cargoID int64, waypointID *int64) (int64, error) {
+	var wpID sql.NullInt32
+	if waypointID != nil && *waypointID > 0 {
+		wpID = sql.NullInt32{Int32: int32(*waypointID), Valid: true}
+	}
+	return r.queries.AssignCargoWaypoint(ctx, sqlc.AssignCargoWaypointParams{
+		DestinationWaypointID: wpID,
+		CargoID:               int32(cargoID),
+	})
+}
+
+func listCargoRowToCargoRow(row sqlc.ListCargoByOrderIDRow) cargo.CargoRow {
+	return cargoRowFromFields(
+		int64(row.CargoID),
+		int64(row.OrderID),
+		row.DestinationWaypointID,
+		row.Description,
+		row.WeightKg,
+		row.VolumeM3,
+		row.CargoType,
+	)
+}
+
+func getCargoRowToCargoRow(row sqlc.GetCargoByIDRow) cargo.CargoRow {
+	return cargoRowFromFields(
+		int64(row.CargoID),
+		int64(row.OrderID),
+		row.DestinationWaypointID,
+		row.Description,
+		row.WeightKg,
+		row.VolumeM3,
+		row.CargoType,
+	)
+}
+
+func cargoRowFromFields(
+	cargoID, orderID int64,
+	destWp sql.NullInt32,
+	desc sql.NullString,
+	weightKg, volumeM3 sql.NullString,
+	cargoType sqlc.NullCargoCargoType,
+) cargo.CargoRow {
 	row := cargo.CargoRow{
-		ID:        int64(c.CargoID),
-		OrderID:   int64(c.OrderID),
-		CargoType: string(c.CargoType.CargoCargoType),
+		ID:        cargoID,
+		OrderID:   orderID,
+		CargoType: string(cargoType.CargoCargoType),
 	}
-	if c.Description.Valid {
-		row.Description = c.Description.String
+	if destWp.Valid {
+		id := int64(destWp.Int32)
+		row.DestinationWaypointID = &id
 	}
-	if c.WeightKg.Valid {
-		if f, err := strconv.ParseFloat(c.WeightKg.String, 64); err == nil {
+	if desc.Valid {
+		row.Description = desc.String
+	}
+	if weightKg.Valid {
+		if f, err := strconv.ParseFloat(weightKg.String, 64); err == nil {
 			row.WeightKg = f
 		}
 	}
-	if c.VolumeM3.Valid {
-		if f, err := strconv.ParseFloat(c.VolumeM3.String, 64); err == nil {
+	if volumeM3.Valid {
+		if f, err := strconv.ParseFloat(volumeM3.String, 64); err == nil {
 			row.VolumeM3 = f
 		}
 	}

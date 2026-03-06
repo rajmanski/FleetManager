@@ -7,13 +7,13 @@ SELECT EXISTS(
 );
 
 -- name: ListCargoByOrderID :many
-SELECT cargo_id, order_id, description, weight_kg, volume_m3, cargo_type
+SELECT cargo_id, order_id, destination_waypoint_id, description, weight_kg, volume_m3, cargo_type
 FROM Cargo
 WHERE order_id = ?
 ORDER BY cargo_id;
 
 -- name: GetCargoByID :one
-SELECT cargo_id, order_id, description, weight_kg, volume_m3, cargo_type
+SELECT cargo_id, order_id, destination_waypoint_id, description, weight_kg, volume_m3, cargo_type
 FROM Cargo
 WHERE cargo_id = ?
 LIMIT 1;
@@ -29,3 +29,8 @@ WHERE cargo_id = ?;
 
 -- name: DeleteCargo :execrows
 DELETE FROM Cargo WHERE cargo_id = ?;
+
+-- name: AssignCargoWaypoint :execrows
+UPDATE Cargo
+SET destination_waypoint_id = ?
+WHERE cargo_id = ?;

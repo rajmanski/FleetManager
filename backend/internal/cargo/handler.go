@@ -136,6 +136,37 @@ func (h *Handler) DeleteCargo(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
+func (h *Handler) AssignWaypoint(c *gin.Context) {
+	cargoID, err := parseCargoIDParam(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid cargo id"})
+		return
+	}
+	var req AssignWaypointRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		return
+	}
+	cargo, err := h.service.AssignWaypoint(c.Request.Context(), cargoID, req)
+	if err != nil {
+		if errors.Is(err, ErrCargoNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "cargo not found"})
+			return
+		}
+		if errors.Is(err, ErrInvalidInput) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			return
+		}
+		if errors.Is(err, ErrWaypointNotInOrderRoute) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "waypoint does not belong to this order's route"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+	c.JSON(http.StatusOK, cargo)
+}
+
 func parseOrderIDParam(c *gin.Context) (int64, error) {
 	value := c.Param("id")
 	if value == "" {

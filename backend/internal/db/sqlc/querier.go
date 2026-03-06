@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	AssignCargoWaypoint(ctx context.Context, arg AssignCargoWaypointParams) (int64, error)
 	CancelOrderByID(ctx context.Context, orderID int32) (int64, error)
 	CountActiveTripsForOrder(ctx context.Context, orderID int32) (int64, error)
 	CountClients(ctx context.Context, arg CountClientsParams) (int64, error)
@@ -30,7 +31,7 @@ type Querier interface {
 	ExistsOrderWithOrderNumber(ctx context.Context, arg ExistsOrderWithOrderNumberParams) (bool, error)
 	GetActiveAssignmentVehicleID(ctx context.Context, driverID int32) (int32, error)
 	GetAdminUserByID(ctx context.Context, userID int32) (GetAdminUserByIDRow, error)
-	GetCargoByID(ctx context.Context, cargoID int32) (Cargo, error)
+	GetCargoByID(ctx context.Context, cargoID int32) (GetCargoByIDRow, error)
 	GetClientByID(ctx context.Context, clientID int32) (Client, error)
 	GetDeletedClientNIPByID(ctx context.Context, clientID int32) (string, error)
 	GetDeletedDriverPESELByID(ctx context.Context, driverID int32) (string, error)
@@ -54,7 +55,7 @@ type Querier interface {
 	IncrementSequenceRange(ctx context.Context, arg IncrementSequenceRangeParams) error
 	ListActiveDriverPESELs(ctx context.Context) ([]ListActiveDriverPESELsRow, error)
 	ListAdminUsers(ctx context.Context) ([]ListAdminUsersRow, error)
-	ListCargoByOrderID(ctx context.Context, orderID int32) ([]Cargo, error)
+	ListCargoByOrderID(ctx context.Context, orderID int32) ([]ListCargoByOrderIDRow, error)
 	ListClients(ctx context.Context, arg ListClientsParams) ([]Client, error)
 	ListDrivers(ctx context.Context, arg ListDriversParams) ([]ListDriversRow, error)
 	ListDriversForPESELSearch(ctx context.Context, arg ListDriversForPESELSearchParams) ([]ListDriversForPESELSearchRow, error)

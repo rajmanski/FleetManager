@@ -63,7 +63,8 @@ func main() {
 	ordersService := orders.NewService(ordersRepository)
 	ordersHandler := orders.NewHandler(ordersService)
 	cargoOrderChecker := cargo.NewOrderStatusChecker(ordersRepository)
-	cargoService := cargo.NewService(cargoRepository, cargoOrderChecker)
+	cargoWaypointChecker := cargo.NewWaypointRouteChecker(queries)
+	cargoService := cargo.NewService(cargoRepository, cargoOrderChecker, cargoWaypointChecker)
 	cargoHandler := cargo.NewHandler(cargoService)
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
 	routesHandler := routes.NewHandler(routesService)
@@ -270,6 +271,11 @@ func main() {
 		"/cargo/:id",
 		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
 		cargoHandler.UpdateCargo,
+	)
+	protected.PUT(
+		"/cargo/:id/assign-waypoint",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
+		cargoHandler.AssignWaypoint,
 	)
 	protected.DELETE(
 		"/cargo/:id",

@@ -291,12 +291,13 @@ type Assignment struct {
 }
 
 type Cargo struct {
-	CargoID     int32              `json:"cargo_id"`
-	OrderID     int32              `json:"order_id"`
-	Description sql.NullString     `json:"description"`
-	WeightKg    sql.NullString     `json:"weight_kg"`
-	VolumeM3    sql.NullString     `json:"volume_m3"`
-	CargoType   NullCargoCargoType `json:"cargo_type"`
+	CargoID               int32              `json:"cargo_id"`
+	OrderID               int32              `json:"order_id"`
+	Description           sql.NullString     `json:"description"`
+	WeightKg              sql.NullString     `json:"weight_kg"`
+	VolumeM3              sql.NullString     `json:"volume_m3"`
+	CargoType             NullCargoCargoType `json:"cargo_type"`
+	DestinationWaypointID sql.NullInt32      `json:"destination_waypoint_id"`
 }
 
 type Client struct {

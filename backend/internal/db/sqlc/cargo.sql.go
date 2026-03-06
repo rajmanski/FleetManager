@@ -10,6 +10,25 @@ import (
 	"database/sql"
 )
 
+const assignCargoWaypoint = `-- name: AssignCargoWaypoint :execrows
+UPDATE Cargo
+SET destination_waypoint_id = ?
+WHERE cargo_id = ?
+`
+
+type AssignCargoWaypointParams struct {
+	DestinationWaypointID sql.NullInt32 `json:"destination_waypoint_id"`
+	CargoID               int32         `json:"cargo_id"`
+}
+
+func (q *Queries) AssignCargoWaypoint(ctx context.Context, arg AssignCargoWaypointParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, assignCargoWaypoint, arg.DestinationWaypointID, arg.CargoID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const createCargo = `-- name: CreateCargo :execlastid
 INSERT INTO Cargo (order_id, description, weight_kg, volume_m3, cargo_type)
 VALUES (?, ?, ?, ?, ?)
@@ -50,18 +69,29 @@ func (q *Queries) DeleteCargo(ctx context.Context, cargoID int32) (int64, error)
 }
 
 const getCargoByID = `-- name: GetCargoByID :one
-SELECT cargo_id, order_id, description, weight_kg, volume_m3, cargo_type
+SELECT cargo_id, order_id, destination_waypoint_id, description, weight_kg, volume_m3, cargo_type
 FROM Cargo
 WHERE cargo_id = ?
 LIMIT 1
 `
 
-func (q *Queries) GetCargoByID(ctx context.Context, cargoID int32) (Cargo, error) {
+type GetCargoByIDRow struct {
+	CargoID               int32              `json:"cargo_id"`
+	OrderID               int32              `json:"order_id"`
+	DestinationWaypointID sql.NullInt32      `json:"destination_waypoint_id"`
+	Description           sql.NullString     `json:"description"`
+	WeightKg              sql.NullString     `json:"weight_kg"`
+	VolumeM3              sql.NullString     `json:"volume_m3"`
+	CargoType             NullCargoCargoType `json:"cargo_type"`
+}
+
+func (q *Queries) GetCargoByID(ctx context.Context, cargoID int32) (GetCargoByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getCargoByID, cargoID)
-	var i Cargo
+	var i GetCargoByIDRow
 	err := row.Scan(
 		&i.CargoID,
 		&i.OrderID,
+		&i.DestinationWaypointID,
 		&i.Description,
 		&i.WeightKg,
 		&i.VolumeM3,
@@ -71,24 +101,35 @@ func (q *Queries) GetCargoByID(ctx context.Context, cargoID int32) (Cargo, error
 }
 
 const listCargoByOrderID = `-- name: ListCargoByOrderID :many
-SELECT cargo_id, order_id, description, weight_kg, volume_m3, cargo_type
+SELECT cargo_id, order_id, destination_waypoint_id, description, weight_kg, volume_m3, cargo_type
 FROM Cargo
 WHERE order_id = ?
 ORDER BY cargo_id
 `
 
-func (q *Queries) ListCargoByOrderID(ctx context.Context, orderID int32) ([]Cargo, error) {
+type ListCargoByOrderIDRow struct {
+	CargoID               int32              `json:"cargo_id"`
+	OrderID               int32              `json:"order_id"`
+	DestinationWaypointID sql.NullInt32      `json:"destination_waypoint_id"`
+	Description           sql.NullString     `json:"description"`
+	WeightKg              sql.NullString     `json:"weight_kg"`
+	VolumeM3              sql.NullString     `json:"volume_m3"`
+	CargoType             NullCargoCargoType `json:"cargo_type"`
+}
+
+func (q *Queries) ListCargoByOrderID(ctx context.Context, orderID int32) ([]ListCargoByOrderIDRow, error) {
 	rows, err := q.db.QueryContext(ctx, listCargoByOrderID, orderID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Cargo
+	var items []ListCargoByOrderIDRow
 	for rows.Next() {
-		var i Cargo
+		var i ListCargoByOrderIDRow
 		if err := rows.Scan(
 			&i.CargoID,
 			&i.OrderID,
+			&i.DestinationWaypointID,
 			&i.Description,
 			&i.WeightKg,
 			&i.VolumeM3,

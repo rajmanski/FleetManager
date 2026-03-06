@@ -12,6 +12,7 @@ import (
 	"fleet-management/internal/repository"
 	"fleet-management/internal/routes"
 	"fleet-management/internal/users"
+	"fleet-management/internal/cargo"
 	"fleet-management/internal/orders"
 	"fleet-management/internal/waypoints"
 	"fleet-management/internal/vehicles"
@@ -61,6 +62,9 @@ func main() {
 	ordersRepository := repository.NewOrdersRepository(queries)
 	ordersService := orders.NewService(ordersRepository)
 	ordersHandler := orders.NewHandler(ordersService)
+	cargoOrderChecker := cargo.NewOrderStatusChecker(ordersRepository)
+	cargoService := cargo.NewService(cargoRepository, cargoOrderChecker)
+	cargoHandler := cargo.NewHandler(cargoService)
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
 	routesHandler := routes.NewHandler(routesService)
 	waypointsRepository := repository.NewWaypointsRepository(queries)
@@ -246,6 +250,31 @@ func main() {
 		"/orders/:id",
 		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
 		ordersHandler.DeleteOrder,
+	)
+	protected.GET(
+		"/orders/:id/cargo",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
+		cargoHandler.ListCargo,
+	)
+	protected.POST(
+		"/orders/:id/cargo",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
+		cargoHandler.CreateCargo,
+	)
+	protected.GET(
+		"/cargo/:id",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
+		cargoHandler.GetCargo,
+	)
+	protected.PUT(
+		"/cargo/:id",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
+		cargoHandler.UpdateCargo,
+	)
+	protected.DELETE(
+		"/cargo/:id",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
+		cargoHandler.DeleteCargo,
 	)
 	protected.POST(
 		"/routes/geocode",

@@ -7,7 +7,105 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 )
+
+const createCargo = `-- name: CreateCargo :execlastid
+INSERT INTO Cargo (order_id, description, weight_kg, volume_m3, cargo_type)
+VALUES (?, ?, ?, ?, ?)
+`
+
+type CreateCargoParams struct {
+	OrderID     int32              `json:"order_id"`
+	Description sql.NullString     `json:"description"`
+	WeightKg    sql.NullString     `json:"weight_kg"`
+	VolumeM3    sql.NullString     `json:"volume_m3"`
+	CargoType   NullCargoCargoType `json:"cargo_type"`
+}
+
+func (q *Queries) CreateCargo(ctx context.Context, arg CreateCargoParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, createCargo,
+		arg.OrderID,
+		arg.Description,
+		arg.WeightKg,
+		arg.VolumeM3,
+		arg.CargoType,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
+const deleteCargo = `-- name: DeleteCargo :execrows
+DELETE FROM Cargo WHERE cargo_id = ?
+`
+
+func (q *Queries) DeleteCargo(ctx context.Context, cargoID int32) (int64, error) {
+	result, err := q.db.ExecContext(ctx, deleteCargo, cargoID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
+const getCargoByID = `-- name: GetCargoByID :one
+SELECT cargo_id, order_id, description, weight_kg, volume_m3, cargo_type
+FROM Cargo
+WHERE cargo_id = ?
+LIMIT 1
+`
+
+func (q *Queries) GetCargoByID(ctx context.Context, cargoID int32) (Cargo, error) {
+	row := q.db.QueryRowContext(ctx, getCargoByID, cargoID)
+	var i Cargo
+	err := row.Scan(
+		&i.CargoID,
+		&i.OrderID,
+		&i.Description,
+		&i.WeightKg,
+		&i.VolumeM3,
+		&i.CargoType,
+	)
+	return i, err
+}
+
+const listCargoByOrderID = `-- name: ListCargoByOrderID :many
+SELECT cargo_id, order_id, description, weight_kg, volume_m3, cargo_type
+FROM Cargo
+WHERE order_id = ?
+ORDER BY cargo_id
+`
+
+func (q *Queries) ListCargoByOrderID(ctx context.Context, orderID int32) ([]Cargo, error) {
+	rows, err := q.db.QueryContext(ctx, listCargoByOrderID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Cargo
+	for rows.Next() {
+		var i Cargo
+		if err := rows.Scan(
+			&i.CargoID,
+			&i.OrderID,
+			&i.Description,
+			&i.WeightKg,
+			&i.VolumeM3,
+			&i.CargoType,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
 
 const orderHasHazardousCargo = `-- name: OrderHasHazardousCargo :one
 SELECT EXISTS(
@@ -23,4 +121,32 @@ func (q *Queries) OrderHasHazardousCargo(ctx context.Context, orderID int32) (bo
 	var exists bool
 	err := row.Scan(&exists)
 	return exists, err
+}
+
+const updateCargo = `-- name: UpdateCargo :execrows
+UPDATE Cargo
+SET description = ?, weight_kg = ?, volume_m3 = ?, cargo_type = ?
+WHERE cargo_id = ?
+`
+
+type UpdateCargoParams struct {
+	Description sql.NullString     `json:"description"`
+	WeightKg    sql.NullString     `json:"weight_kg"`
+	VolumeM3    sql.NullString     `json:"volume_m3"`
+	CargoType   NullCargoCargoType `json:"cargo_type"`
+	CargoID     int32              `json:"cargo_id"`
+}
+
+func (q *Queries) UpdateCargo(ctx context.Context, arg UpdateCargoParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, updateCargo,
+		arg.Description,
+		arg.WeightKg,
+		arg.VolumeM3,
+		arg.CargoType,
+		arg.CargoID,
+	)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
 }

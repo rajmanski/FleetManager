@@ -3,11 +3,12 @@ type FormFieldProps = {
   error?: string
   children: React.ReactNode
   required?: boolean
+  className?: string
 }
 
-export function FormField({ label, error, children, required }: FormFieldProps) {
+export function FormField({ label, error, children, required, className }: FormFieldProps) {
   return (
-    <div>
+    <div className={className}>
       <label className="mb-1 block text-sm font-medium text-gray-700">
         {label}
         {required && <span className="text-red-500" aria-hidden="true"> *</span>}

@@ -50,3 +50,8 @@ SELECT EXISTS(
   JOIN RouteWaypoints rw ON rw.route_id = r.route_id
   WHERE c.cargo_id = ? AND rw.waypoint_id = ?
 );
+
+-- name: SumCargoWeightByOrderID :one
+SELECT COALESCE(SUM(weight_kg), 0) AS total_weight
+FROM Cargo
+WHERE order_id = ?;

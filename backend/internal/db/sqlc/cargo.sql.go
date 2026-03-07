@@ -179,6 +179,19 @@ func (q *Queries) OrderHasHazardousCargo(ctx context.Context, orderID int32) (bo
 	return exists, err
 }
 
+const sumCargoWeightByOrderID = `-- name: SumCargoWeightByOrderID :one
+SELECT COALESCE(SUM(weight_kg), 0) AS total_weight
+FROM Cargo
+WHERE order_id = ?
+`
+
+func (q *Queries) SumCargoWeightByOrderID(ctx context.Context, orderID int32) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, sumCargoWeightByOrderID, orderID)
+	var total_weight interface{}
+	err := row.Scan(&total_weight)
+	return total_weight, err
+}
+
 const updateCargo = `-- name: UpdateCargo :execrows
 UPDATE Cargo
 SET description = ?, weight_kg = ?, volume_m3 = ?, cargo_type = ?

@@ -74,6 +74,7 @@ type Querier interface {
 	SoftDeleteClient(ctx context.Context, clientID int32) (int64, error)
 	SoftDeleteDriver(ctx context.Context, driverID int32) (int64, error)
 	SoftDeleteVehicle(ctx context.Context, vehicleID int32) (int64, error)
+	SumCargoWeightByOrderID(ctx context.Context, orderID int32) (interface{}, error)
 	UnlockUserAccount(ctx context.Context, userID int32) (int64, error)
 	UpdateAdminUser(ctx context.Context, arg UpdateAdminUserParams) (int64, error)
 	UpdateCargo(ctx context.Context, arg UpdateCargoParams) (int64, error)

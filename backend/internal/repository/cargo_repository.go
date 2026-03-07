@@ -99,6 +99,21 @@ func (r *CargoRepository) WaypointBelongsToCargoOrder(ctx context.Context, cargo
 	})
 }
 
+func (r *CargoRepository) SumCargoWeightByOrderID(ctx context.Context, orderID int64) (float64, error) {
+	val, err := r.queries.SumCargoWeightByOrderID(ctx, int32(orderID))
+	if err != nil {
+		return 0, err
+	}
+	switch v := val.(type) {
+	case float64:
+		return v, nil
+	case []byte:
+		return strconv.ParseFloat(string(v), 64)
+	default:
+		return strconv.ParseFloat(fmt.Sprintf("%v", v), 64)
+	}
+}
+
 func listCargoRowToCargoRow(row sqlc.ListCargoByOrderIDRow) cargo.CargoRow {
 	return cargoRowFromFields(
 		int64(row.CargoID),

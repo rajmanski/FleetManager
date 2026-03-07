@@ -11,6 +11,7 @@ type Repository interface {
 	AssignCargoWaypoint(ctx context.Context, cargoID int64, waypointID *int64) (int64, error)
 	GetOrderStatusByCargoID(ctx context.Context, cargoID int64) (string, error)
 	WaypointBelongsToCargoOrder(ctx context.Context, cargoID int64, waypointID int64) (bool, error)
+	SumCargoWeightByOrderID(ctx context.Context, orderID int64) (float64, error)
 }
 
 type CargoRow struct {

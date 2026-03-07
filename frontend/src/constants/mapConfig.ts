@@ -10,6 +10,19 @@ export const MARKER_COLORS = {
   default: '#6b7280',
 } as const
 
+export const CARGO_WAYPOINT_COLORS = [
+  '#ef4444',
+  '#3b82f6',
+  '#22c55e',
+  '#eab308',
+  '#8b5cf6',
+  '#f97316',
+] as const
+
 export function getMarkerColor(type?: string): string {
   return (MARKER_COLORS[type as keyof typeof MARKER_COLORS] ?? MARKER_COLORS.default)
+}
+
+export function getCargoWaypointColor(index: number): string {
+  return CARGO_WAYPOINT_COLORS[index % CARGO_WAYPOINT_COLORS.length]
 }

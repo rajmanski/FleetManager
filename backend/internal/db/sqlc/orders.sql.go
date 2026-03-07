@@ -111,15 +111,31 @@ SELECT
   o.creation_date,
   o.delivery_deadline,
   o.total_price_pln,
-  o.status
+  o.status,
+  c.company_name AS client_company_name,
+  r.route_id AS route_id
 FROM Orders o
+LEFT JOIN Clients c ON c.client_id = o.client_id AND c.deleted_at IS NULL
+LEFT JOIN Routes r ON r.order_id = o.order_id
 WHERE o.order_id = ?
 LIMIT 1
 `
 
-func (q *Queries) GetOrderByID(ctx context.Context, orderID int32) (Order, error) {
+type GetOrderByIDRow struct {
+	OrderID           int32            `json:"order_id"`
+	ClientID          int32            `json:"client_id"`
+	OrderNumber       string           `json:"order_number"`
+	CreationDate      sql.NullTime     `json:"creation_date"`
+	DeliveryDeadline  sql.NullTime     `json:"delivery_deadline"`
+	TotalPricePln     sql.NullString   `json:"total_price_pln"`
+	Status            NullOrdersStatus `json:"status"`
+	ClientCompanyName sql.NullString   `json:"client_company_name"`
+	RouteID           sql.NullInt32    `json:"route_id"`
+}
+
+func (q *Queries) GetOrderByID(ctx context.Context, orderID int32) (GetOrderByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getOrderByID, orderID)
-	var i Order
+	var i GetOrderByIDRow
 	err := row.Scan(
 		&i.OrderID,
 		&i.ClientID,
@@ -128,6 +144,8 @@ func (q *Queries) GetOrderByID(ctx context.Context, orderID int32) (Order, error
 		&i.DeliveryDeadline,
 		&i.TotalPricePln,
 		&i.Status,
+		&i.ClientCompanyName,
+		&i.RouteID,
 	)
 	return i, err
 }
@@ -141,7 +159,9 @@ SELECT
   o.delivery_deadline,
   o.total_price_pln,
   o.status,
-  c.company_name AS client_company_name
+  c.company_name AS client_company_name,
+  (SELECT GROUP_CONCAT(DISTINCT ca.cargo_type ORDER BY ca.cargo_type)
+   FROM Cargo ca WHERE ca.order_id = o.order_id) AS cargo_types
 FROM Orders o
 JOIN Clients c ON c.client_id = o.client_id AND c.deleted_at IS NULL
 WHERE (? = '' OR o.status = ?)
@@ -173,6 +193,7 @@ type ListOrdersRow struct {
 	TotalPricePln     sql.NullString   `json:"total_price_pln"`
 	Status            NullOrdersStatus `json:"status"`
 	ClientCompanyName string           `json:"client_company_name"`
+	CargoTypes        sql.NullString   `json:"cargo_types"`
 }
 
 func (q *Queries) ListOrders(ctx context.Context, arg ListOrdersParams) ([]ListOrdersRow, error) {
@@ -201,6 +222,7 @@ func (q *Queries) ListOrders(ctx context.Context, arg ListOrdersParams) ([]ListO
 			&i.TotalPricePln,
 			&i.Status,
 			&i.ClientCompanyName,
+			&i.CargoTypes,
 		); err != nil {
 			return nil, err
 		}

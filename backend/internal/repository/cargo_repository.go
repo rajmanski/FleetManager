@@ -81,6 +81,24 @@ func (r *CargoRepository) AssignCargoWaypoint(ctx context.Context, cargoID int64
 	})
 }
 
+func (r *CargoRepository) GetOrderStatusByCargoID(ctx context.Context, cargoID int64) (string, error) {
+	ns, err := r.queries.GetOrderStatusByCargoID(ctx, int32(cargoID))
+	if err != nil {
+		return "", err
+	}
+	if !ns.Valid {
+		return "", nil
+	}
+	return string(ns.OrdersStatus), nil
+}
+
+func (r *CargoRepository) WaypointBelongsToCargoOrder(ctx context.Context, cargoID int64, waypointID int64) (bool, error) {
+	return r.queries.WaypointBelongsToCargoOrder(ctx, sqlc.WaypointBelongsToCargoOrderParams{
+		CargoID:    int32(cargoID),
+		WaypointID: int32(waypointID),
+	})
+}
+
 func listCargoRowToCargoRow(row sqlc.ListCargoByOrderIDRow) cargo.CargoRow {
 	return cargoRowFromFields(
 		int64(row.CargoID),

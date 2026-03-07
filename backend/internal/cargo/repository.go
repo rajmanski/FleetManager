@@ -9,14 +9,8 @@ type Repository interface {
 	UpdateCargo(ctx context.Context, cargoID int64, description string, weightKg, volumeM3 float64, cargoType string) (int64, error)
 	DeleteCargo(ctx context.Context, cargoID int64) (int64, error)
 	AssignCargoWaypoint(ctx context.Context, cargoID int64, waypointID *int64) (int64, error)
-}
-
-type OrderChecker interface {
-	GetOrderStatus(ctx context.Context, orderID int64) (string, error)
-}
-
-type WaypointRouteChecker interface {
-	WaypointBelongsToOrderRoute(ctx context.Context, waypointID int64, orderID int64) (bool, error)
+	GetOrderStatusByCargoID(ctx context.Context, cargoID int64) (string, error)
+	WaypointBelongsToCargoOrder(ctx context.Context, cargoID int64, waypointID int64) (bool, error)
 }
 
 type CargoRow struct {

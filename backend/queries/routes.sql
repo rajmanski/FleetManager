@@ -9,3 +9,4 @@ SELECT COUNT(*)
 FROM Trips
 WHERE order_id = ?
   AND status IN ('Scheduled', 'Active');
+

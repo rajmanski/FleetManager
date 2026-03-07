@@ -10,17 +10,11 @@ var allowedCargoTypes = map[string]bool{
 }
 
 type Service struct {
-	repo              Repository
-	orderChecker      OrderChecker
-	waypointChecker   WaypointRouteChecker
+	repo Repository
 }
 
-func NewService(repo Repository, orderChecker OrderChecker, waypointChecker WaypointRouteChecker) *Service {
-	return &Service{
-		repo:            repo,
-		orderChecker:    orderChecker,
-		waypointChecker: waypointChecker,
-	}
+func NewService(repo Repository) *Service {
+	return &Service{repo: repo}
 }
 
 func (s *Service) ListCargo(ctx context.Context, orderID int64) ([]Cargo, error) {
@@ -73,14 +67,14 @@ func (s *Service) UpdateCargo(ctx context.Context, cargoID int64, req UpdateCarg
 	if err := validateCargoRequest(req.WeightKg, req.VolumeM3, req.CargoType); err != nil {
 		return Cargo{}, err
 	}
-	existing, found, err := s.repo.GetCargoByID(ctx, cargoID)
+	_, found, err := s.repo.GetCargoByID(ctx, cargoID)
 	if err != nil {
 		return Cargo{}, err
 	}
 	if !found {
 		return Cargo{}, ErrCargoNotFound
 	}
-	status, err := s.orderChecker.GetOrderStatus(ctx, existing.OrderID)
+	status, err := s.repo.GetOrderStatusByCargoID(ctx, cargoID)
 	if err != nil {
 		return Cargo{}, err
 	}
@@ -101,14 +95,14 @@ func (s *Service) DeleteCargo(ctx context.Context, cargoID int64) error {
 	if cargoID <= 0 {
 		return ErrInvalidInput
 	}
-	existing, found, err := s.repo.GetCargoByID(ctx, cargoID)
+	_, found, err := s.repo.GetCargoByID(ctx, cargoID)
 	if err != nil {
 		return err
 	}
 	if !found {
 		return ErrCargoNotFound
 	}
-	status, err := s.orderChecker.GetOrderStatus(ctx, existing.OrderID)
+	status, err := s.repo.GetOrderStatusByCargoID(ctx, cargoID)
 	if err != nil {
 		return err
 	}
@@ -143,7 +137,7 @@ func (s *Service) AssignWaypoint(ctx context.Context, cargoID int64, req AssignW
 	if cargoID <= 0 {
 		return Cargo{}, ErrInvalidInput
 	}
-	existing, found, err := s.repo.GetCargoByID(ctx, cargoID)
+	_, found, err := s.repo.GetCargoByID(ctx, cargoID)
 	if err != nil {
 		return Cargo{}, err
 	}
@@ -151,7 +145,7 @@ func (s *Service) AssignWaypoint(ctx context.Context, cargoID int64, req AssignW
 		return Cargo{}, ErrCargoNotFound
 	}
 	if req.DestinationWaypointID != nil && *req.DestinationWaypointID > 0 {
-		belongs, err := s.waypointChecker.WaypointBelongsToOrderRoute(ctx, *req.DestinationWaypointID, existing.OrderID)
+		belongs, err := s.repo.WaypointBelongsToCargoOrder(ctx, cargoID, *req.DestinationWaypointID)
 		if err != nil {
 			return Cargo{}, err
 		}

@@ -14,8 +14,8 @@ import (
 	"fleet-management/internal/users"
 	"fleet-management/internal/cargo"
 	"fleet-management/internal/orders"
-	"fleet-management/internal/waypoints"
 	"fleet-management/internal/vehicles"
+	"fleet-management/internal/waypoints"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -60,16 +60,14 @@ func main() {
 	clientsService := clients.NewService(clientsRepository)
 	clientsHandler := clients.NewHandler(clientsService)
 	ordersRepository := repository.NewOrdersRepository(queries)
+	routesRepository := repository.NewRoutesRepository(queries)
 	ordersService := orders.NewService(ordersRepository)
 	ordersHandler := orders.NewHandler(ordersService)
-	cargoOrderChecker := cargo.NewOrderStatusChecker(ordersRepository)
-	cargoWaypointChecker := cargo.NewWaypointRouteChecker(queries)
-	cargoService := cargo.NewService(cargoRepository, cargoOrderChecker, cargoWaypointChecker)
+	cargoService := cargo.NewService(cargoRepository)
 	cargoHandler := cargo.NewHandler(cargoService)
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
 	routesHandler := routes.NewHandler(routesService)
 	waypointsRepository := repository.NewWaypointsRepository(queries)
-	routesRepository := repository.NewRoutesRepository(queries)
 	waypointsService := waypoints.NewService(waypointsRepository, routesRepository)
 	waypointsHandler := waypoints.NewHandler(waypointsService)
 

@@ -11,6 +11,8 @@ export type Order = {
   totalPricePln?: number
   status: string
   clientCompany?: string
+  cargoTypes?: string
+  routeId?: number | null
 }
 
 type ListOrdersResponse = {

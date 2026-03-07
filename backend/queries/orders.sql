@@ -7,7 +7,9 @@ SELECT
   o.delivery_deadline,
   o.total_price_pln,
   o.status,
-  c.company_name AS client_company_name
+  c.company_name AS client_company_name,
+  (SELECT GROUP_CONCAT(DISTINCT ca.cargo_type ORDER BY ca.cargo_type)
+   FROM Cargo ca WHERE ca.order_id = o.order_id) AS cargo_types
 FROM Orders o
 JOIN Clients c ON c.client_id = o.client_id AND c.deleted_at IS NULL
 WHERE (? = '' OR o.status = ?)
@@ -38,8 +40,12 @@ SELECT
   o.creation_date,
   o.delivery_deadline,
   o.total_price_pln,
-  o.status
+  o.status,
+  c.company_name AS client_company_name,
+  r.route_id AS route_id
 FROM Orders o
+LEFT JOIN Clients c ON c.client_id = o.client_id AND c.deleted_at IS NULL
+LEFT JOIN Routes r ON r.order_id = o.order_id
 WHERE o.order_id = ?
 LIMIT 1;
 

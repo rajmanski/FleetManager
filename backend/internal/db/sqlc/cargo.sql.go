@@ -100,6 +100,21 @@ func (q *Queries) GetCargoByID(ctx context.Context, cargoID int32) (GetCargoByID
 	return i, err
 }
 
+const getOrderStatusByCargoID = `-- name: GetOrderStatusByCargoID :one
+SELECT o.status
+FROM Cargo c
+JOIN Orders o ON o.order_id = c.order_id
+WHERE c.cargo_id = ?
+LIMIT 1
+`
+
+func (q *Queries) GetOrderStatusByCargoID(ctx context.Context, cargoID int32) (NullOrdersStatus, error) {
+	row := q.db.QueryRowContext(ctx, getOrderStatusByCargoID, cargoID)
+	var status NullOrdersStatus
+	err := row.Scan(&status)
+	return status, err
+}
+
 const listCargoByOrderID = `-- name: ListCargoByOrderID :many
 SELECT cargo_id, order_id, destination_waypoint_id, description, weight_kg, volume_m3, cargo_type
 FROM Cargo
@@ -190,4 +205,26 @@ func (q *Queries) UpdateCargo(ctx context.Context, arg UpdateCargoParams) (int64
 		return 0, err
 	}
 	return result.RowsAffected()
+}
+
+const waypointBelongsToCargoOrder = `-- name: WaypointBelongsToCargoOrder :one
+SELECT EXISTS(
+  SELECT 1
+  FROM Cargo c
+  JOIN Routes r ON r.order_id = c.order_id
+  JOIN RouteWaypoints rw ON rw.route_id = r.route_id
+  WHERE c.cargo_id = ? AND rw.waypoint_id = ?
+)
+`
+
+type WaypointBelongsToCargoOrderParams struct {
+	CargoID    int32 `json:"cargo_id"`
+	WaypointID int32 `json:"waypoint_id"`
+}
+
+func (q *Queries) WaypointBelongsToCargoOrder(ctx context.Context, arg WaypointBelongsToCargoOrderParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, waypointBelongsToCargoOrder, arg.CargoID, arg.WaypointID)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }

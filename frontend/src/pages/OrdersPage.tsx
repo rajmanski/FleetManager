@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
@@ -50,7 +51,13 @@ function OrdersPage() {
         description="Transport orders list with filtering"
         action={
           canManageOrders ? (
-            <Button onClick={() => setAddModalOpen(true)}>Add order</Button>
+            <Button
+              onClick={() => setAddModalOpen(true)}
+              className="inline-flex items-center whitespace-nowrap"
+            >
+              <Plus className="mr-2 h-4 w-4 shrink-0" />
+              Add order
+            </Button>
           ) : undefined
         }
       />

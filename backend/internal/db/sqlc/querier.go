@@ -39,7 +39,8 @@ type Querier interface {
 	GetDriverByID(ctx context.Context, driverID int32) (GetDriverByIDRow, error)
 	GetDriverTripOnDate(ctx context.Context, arg GetDriverTripOnDateParams) (string, error)
 	GetMaxSequenceOrder(ctx context.Context, routeID int32) (interface{}, error)
-	GetOrderByID(ctx context.Context, orderID int32) (Order, error)
+	GetOrderByID(ctx context.Context, orderID int32) (GetOrderByIDRow, error)
+	GetOrderStatusByCargoID(ctx context.Context, cargoID int32) (NullOrdersStatus, error)
 	GetRoleIDByName(ctx context.Context, roleName string) (int32, error)
 	GetRouteByID(ctx context.Context, routeID int32) (Route, error)
 	GetUserByLogin(ctx context.Context, username string) (GetUserByLoginRow, error)
@@ -84,6 +85,7 @@ type Querier interface {
 	UpdateVehicleStatus(ctx context.Context, arg UpdateVehicleStatusParams) (int64, error)
 	UpdateWaypoint(ctx context.Context, arg UpdateWaypointParams) (int64, error)
 	UpdateWaypointSequence(ctx context.Context, arg UpdateWaypointSequenceParams) (int64, error)
+	WaypointBelongsToCargoOrder(ctx context.Context, arg WaypointBelongsToCargoOrderParams) (bool, error)
 }
 
 var _ Querier = (*Queries)(nil)

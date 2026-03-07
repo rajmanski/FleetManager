@@ -82,7 +82,7 @@ func (r *OrdersRepository) GetOrderByID(ctx context.Context, orderID int64) (ord
 		}
 		return orders.Order{}, err
 	}
-	return mapOrderRow(row), nil
+	return mapGetOrderByIDRow(row), nil
 }
 
 func (r *OrdersRepository) CreateOrder(ctx context.Context, input orders.CreateOrderRequest) (int64, error) {
@@ -144,10 +144,10 @@ func (r *OrdersRepository) CancelOrder(ctx context.Context, orderID int64) error
 
 func mapListOrdersRow(row sqlc.ListOrdersRow) orders.Order {
 	o := orders.Order{
-		ID:          int64(row.OrderID),
-		ClientID:    int64(row.ClientID),
-		OrderNumber: row.OrderNumber,
-		Status:      string(row.Status.OrdersStatus),
+		ID:            int64(row.OrderID),
+		ClientID:      int64(row.ClientID),
+		OrderNumber:   row.OrderNumber,
+		Status:        string(row.Status.OrdersStatus),
 		ClientCompany: row.ClientCompanyName,
 	}
 	if row.CreationDate.Valid {
@@ -163,10 +163,13 @@ func mapListOrdersRow(row sqlc.ListOrdersRow) orders.Order {
 		fmt.Sscanf(row.TotalPricePln.String, "%f", &f)
 		o.TotalPricePln = &f
 	}
+	if row.CargoTypes.Valid {
+		o.CargoTypes = row.CargoTypes.String
+	}
 	return o
 }
 
-func mapOrderRow(row sqlc.Order) orders.Order {
+func mapGetOrderByIDRow(row sqlc.GetOrderByIDRow) orders.Order {
 	o := orders.Order{
 		ID:          int64(row.OrderID),
 		ClientID:    int64(row.ClientID),
@@ -185,6 +188,13 @@ func mapOrderRow(row sqlc.Order) orders.Order {
 		var f float64
 		fmt.Sscanf(row.TotalPricePln.String, "%f", &f)
 		o.TotalPricePln = &f
+	}
+	if row.ClientCompanyName.Valid {
+		o.ClientCompany = row.ClientCompanyName.String
+	}
+	if row.RouteID.Valid {
+		rid := int64(row.RouteID.Int32)
+		o.RouteID = &rid
 	}
 	return o
 }

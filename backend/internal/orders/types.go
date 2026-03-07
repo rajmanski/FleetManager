@@ -11,6 +11,8 @@ type Order struct {
 	TotalPricePln    *float64   `json:"totalPricePln,omitempty"`
 	Status           string     `json:"status"`
 	ClientCompany    string     `json:"clientCompany,omitempty"`
+	CargoTypes       string     `json:"cargoTypes,omitempty"`
+	RouteID          *int64     `json:"routeId,omitempty"`
 }
 
 type ListOrdersQuery struct {

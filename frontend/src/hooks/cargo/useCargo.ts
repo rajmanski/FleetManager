@@ -69,9 +69,31 @@ export function useCargo(orderId: number | null) {
     },
   })
 
+  const assignWaypointMutation = useMutation({
+    mutationFn: async ({
+      cargoId,
+      orderId: oid,
+      destinationWaypointId,
+    }: {
+      cargoId: number
+      orderId: number
+      destinationWaypointId: number | null
+    }) => {
+      await api.put(`/api/v1/cargo/${cargoId}/assign-waypoint`, {
+        destination_waypoint_id: destinationWaypointId,
+      })
+      return { cargoId, orderId: oid }
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['cargo', variables.orderId] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+  })
+
   return {
     listQuery,
     createMutation,
     deleteMutation,
+    assignWaypointMutation,
   }
 }

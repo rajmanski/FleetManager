@@ -13,6 +13,7 @@ import VehiclesPage from './pages/VehiclesPage.tsx'
 import DriversPage from './pages/DriversPage.tsx'
 import ClientsPage from './pages/ClientsPage.tsx'
 import OrdersPage from './pages/OrdersPage.tsx'
+import OrderDetailPage from './pages/OrderDetailPage.tsx'
 import RoutePlanningPage from './pages/RoutePlanningPage.tsx'
 import { RequireAdmin } from './routes/RequireAdmin.tsx'
 import RequireAuth from './routes/RequireAuth.tsx'
@@ -53,6 +54,14 @@ createRoot(document.getElementById('root')!).render(
               element={
                 <RequireRoutesAccess>
                   <OrdersPage />
+                </RequireRoutesAccess>
+              }
+            />
+            <Route
+              path="orders/:id"
+              element={
+                <RequireRoutesAccess>
+                  <OrderDetailPage />
                 </RequireRoutesAccess>
               }
             />

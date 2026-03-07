@@ -34,3 +34,19 @@ DELETE FROM Cargo WHERE cargo_id = ?;
 UPDATE Cargo
 SET destination_waypoint_id = ?
 WHERE cargo_id = ?;
+
+-- name: GetOrderStatusByCargoID :one
+SELECT o.status
+FROM Cargo c
+JOIN Orders o ON o.order_id = c.order_id
+WHERE c.cargo_id = ?
+LIMIT 1;
+
+-- name: WaypointBelongsToCargoOrder :one
+SELECT EXISTS(
+  SELECT 1
+  FROM Cargo c
+  JOIN Routes r ON r.order_id = c.order_id
+  JOIN RouteWaypoints rw ON rw.route_id = r.route_id
+  WHERE c.cargo_id = ? AND rw.waypoint_id = ?
+);

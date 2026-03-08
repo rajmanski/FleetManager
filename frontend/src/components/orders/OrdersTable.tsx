@@ -7,10 +7,6 @@ import {
   CircleDot,
   Calendar,
   Banknote,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  Clock,
   ChevronRight,
 } from 'lucide-react'
 import type { Order } from '@/hooks/orders/useOrders'
@@ -18,21 +14,14 @@ import type { PaginationHelpers } from '@/hooks/usePagination'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { CargoTypeBadges } from '@/components/orders/CargoTypeBadges'
 import { formatDateTime } from '@/utils/date'
+import { formatPrice } from '@/utils/price'
+import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge'
 
 type OrdersTableProps = {
   orders: Order[]
   page: number
   total: number
   pagination: Pick<PaginationHelpers, 'totalPages' | 'canGoPrev' | 'canGoNext' | 'goPrev' | 'goNext'>
-}
-
-function formatPrice(pln?: number): string {
-  if (pln == null) return '-'
-  return new Intl.NumberFormat('pl-PL', {
-    style: 'currency',
-    currency: 'PLN',
-    minimumFractionDigits: 2,
-  }).format(pln)
 }
 
 export function OrdersTable({
@@ -119,32 +108,7 @@ export function OrdersTable({
                     <CargoTypeBadges cargoTypesStr={order.cargoTypes} />
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
-                        order.status === 'Completed'
-                          ? 'bg-green-100 text-green-800'
-                          : order.status === 'Cancelled'
-                            ? 'bg-red-100 text-red-800'
-                            : order.status === 'InProgress'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {order.status === 'Completed' && (
-                        <CheckCircle2 className="h-4 w-4" />
-                      )}
-                      {order.status === 'Cancelled' && (
-                        <XCircle className="h-4 w-4" />
-                      )}
-                      {order.status === 'InProgress' && (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      )}
-                      {(order.status === 'New' ||
-                        order.status === 'Planned') && (
-                        <Clock className="h-4 w-4" />
-                      )}
-                      {order.status}
-                    </span>
+                    <OrderStatusBadge status={order.status} />
                   </td>
                   <td className="px-4 py-3">
                     {formatDateTime(order.deliveryDeadline)}

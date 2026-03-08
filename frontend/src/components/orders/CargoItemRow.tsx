@@ -1,10 +1,6 @@
 import { Button } from '@/components/ui/Button'
-import { FormField } from '@/components/ui/FormField'
-import {
-  INPUT_CLASS_COMPACT,
-  INPUT_NUMERIC_CLASS,
-  INPUT_NUMERIC_DECIMAL_CLASS,
-} from '@/constants/inputStyles'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
 import { CARGO_TYPES, type CargoItemDraft, type CargoType } from '@/schemas/cargo'
 import { Trash2 } from 'lucide-react'
 import type { CargoItemErrors } from '@/utils/cargo'
@@ -43,92 +39,84 @@ export function CargoItemRow({
         </Button>
       </div>
       <div className="flex flex-wrap items-end gap-2">
-        <FormField label="Qty" required error={errors.quantity} className="shrink-0">
-          <input
+        <div className="shrink-0">
+          <Input
+            label="Qty"
             type="number"
-            min="1"
+            variant="numeric"
+            required
+            error={errors.quantity}
+            min={1}
             value={item.quantity}
             onChange={(e) => onUpdate({ quantity: e.target.value })}
             placeholder="1"
-            className={INPUT_NUMERIC_CLASS}
           />
-        </FormField>
-        <FormField
-          label="Vol. (m³)"
-          required
-          error={errors.volumePerUnitM3}
-          className="shrink-0"
-        >
-          <input
+        </div>
+        <div className="shrink-0">
+          <Input
+            label="Vol. (m³)"
             type="number"
-            step="1"
-            min="0"
+            variant="numericDecimal"
+            required
+            error={errors.volumePerUnitM3}
+            step={1}
+            min={0}
             value={item.volumePerUnitM3}
             onChange={(e) => onUpdate({ volumePerUnitM3: e.target.value })}
             placeholder="0"
-            className={INPUT_NUMERIC_DECIMAL_CLASS}
           />
-        </FormField>
-        <FormField
-          label="Weight (kg)"
-          required
-          error={errors.weightPerUnitKg}
-          className="shrink-0"
-        >
-          <input
+        </div>
+        <div className="shrink-0">
+          <Input
+            label="Weight (kg)"
             type="number"
-            step="1"
-            min="0"
+            variant="numericDecimal"
+            required
+            error={errors.weightPerUnitKg}
+            step={1}
+            min={0}
             value={item.weightPerUnitKg}
             onChange={(e) => onUpdate({ weightPerUnitKg: e.target.value })}
             placeholder="0"
-            className={INPUT_NUMERIC_DECIMAL_CLASS}
           />
-        </FormField>
-        <FormField label="Type" required className="shrink-0">
-          <select
+        </div>
+        <div className="shrink-0">
+          <Select
+            label="Type"
+            required
+            variant="compact"
+            options={CARGO_TYPES}
             value={item.cargoType}
             onChange={(e) => onUpdate({ cargoType: e.target.value as CargoType })}
-            className={`${INPUT_CLASS_COMPACT} min-w-[6rem]`}
-          >
-            {CARGO_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-        </FormField>
-        <FormField label="Description" error={undefined} className="min-w-0 flex-1">
-          <input
-            type="text"
+            className="min-w-[6rem]"
+          />
+        </div>
+        <div className="min-w-0 flex-1">
+          <Input
+            label="Description"
+            variant="compact"
             value={item.description}
             onChange={(e) => onUpdate({ description: e.target.value })}
             placeholder="e.g. Palety z elektroniką"
-            className={INPUT_CLASS_COMPACT}
           />
-        </FormField>
+        </div>
       </div>
       {dropoffOptions.length > 0 && (
         <div className="mt-2">
-          <FormField label="Dropoff point (optional)">
-            <select
-              value={item.destinationWaypointId ?? ''}
-              onChange={(e) => {
-                const v = e.target.value
-                onUpdate({
-                  destinationWaypointId: v === '' ? null : parseInt(v, 10),
-                })
-              }}
-              className={INPUT_CLASS_COMPACT}
-            >
-              <option value="">No specific point</option>
-              {dropoffOptions.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.address}
-                </option>
-              ))}
-            </select>
-          </FormField>
+          <Select
+            label="Dropoff point (optional)"
+            variant="compact"
+            options={dropoffOptions.map((w) => ({ value: w.id, label: w.address }))}
+            allowEmpty
+            emptyLabel="No specific point"
+            value={item.destinationWaypointId ?? ''}
+            onChange={(e) => {
+              const v = e.target.value
+              onUpdate({
+                destinationWaypointId: v === '' ? null : parseInt(v, 10),
+              })
+            }}
+          />
         </div>
       )}
     </div>

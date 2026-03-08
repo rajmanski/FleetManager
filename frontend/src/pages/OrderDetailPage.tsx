@@ -9,6 +9,8 @@ import { useOrder } from '@/hooks/orders/useOrder'
 import { useOrderWaypoints } from '@/hooks/orders/useOrderWaypoints'
 import { useCargo } from '@/hooks/cargo/useCargo'
 import { formatDateTime } from '@/utils/date'
+import { formatPrice } from '@/utils/price'
+import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge'
 import {
   ArrowLeft,
   ClipboardList,
@@ -20,18 +22,9 @@ import {
   MapPin,
   Scale,
   Box,
-  MapPinned,
 } from 'lucide-react'
-import { INPUT_CLASS_COMPACT } from '@/constants/inputStyles'
-
-function formatPrice(pln?: number): string {
-  if (pln == null) return '-'
-  return new Intl.NumberFormat('pl-PL', {
-    style: 'currency',
-    currency: 'PLN',
-    minimumFractionDigits: 2,
-  }).format(pln)
-}
+import { Select } from '@/components/ui/Select'
+import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -44,6 +37,11 @@ export default function OrderDetailPage() {
     listQuery: cargoQuery,
     assignWaypointMutation,
   } = useCargo(orderId)
+
+  const assignCallbacks = useMutationCallbacks({
+    successMessage: 'Dropoff point updated',
+    errorFallback: 'Failed to update dropoff point',
+  })
 
   const cargo = cargoQuery.data?.data ?? []
 
@@ -60,11 +58,14 @@ export default function OrderDetailPage() {
   }
 
   const handleDropoffChange = (cargoId: number, waypointId: number | null) => {
-    assignWaypointMutation.mutate({
-      cargoId,
-      orderId,
-      destinationWaypointId: waypointId,
-    })
+    assignWaypointMutation.mutate(
+      {
+        cargoId,
+        orderId,
+        destinationWaypointId: waypointId,
+      },
+      { onSuccess: assignCallbacks.onSuccess, onError: assignCallbacks.onError }
+    )
   }
 
   return (
@@ -111,19 +112,7 @@ export default function OrderDetailPage() {
                 Status
               </dt>
               <dd>
-                <span
-                  className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                    order.status === 'Completed'
-                      ? 'bg-green-100 text-green-800'
-                      : order.status === 'Cancelled'
-                        ? 'bg-red-100 text-red-800'
-                        : order.status === 'InProgress'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-gray-100 text-gray-800'
-                  }`}
-                >
-                  {order.status}
-                </span>
+                <OrderStatusBadge status={order.status} showIcon={false} />
               </dd>
             </div>
           </div>
@@ -191,31 +180,22 @@ export default function OrderDetailPage() {
                   <CargoTypeBadges cargoTypesStr={item.cargoType} />
                 </div>
                 {dropoffOptions.length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <MapPinned className="h-4 w-4 text-gray-500" />
-                    <label className="text-xs font-medium text-gray-600">
-                      Dropoff point:
-                    </label>
-                    <select
-                      value={item.destinationWaypointId ?? ''}
-                      onChange={(e) => {
-                        const v = e.target.value
-                        handleDropoffChange(
-                          item.id,
-                          v === '' ? null : parseInt(v, 10)
-                        )
-                      }}
-                      disabled={assignWaypointMutation.isPending}
-                      className={INPUT_CLASS_COMPACT}
-                    >
-                      <option value="">No specific point</option>
-                      {dropoffOptions.map((w) => (
-                        <option key={w.id} value={w.id}>
-                          {w.address}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <Select
+                    label="Dropoff point"
+                    variant="compact"
+                    options={dropoffOptions.map((w) => ({ value: w.id, label: w.address }))}
+                    allowEmpty
+                    emptyLabel="No specific point"
+                    value={item.destinationWaypointId ?? ''}
+                    onChange={(e) => {
+                      const v = e.target.value
+                      handleDropoffChange(
+                        item.id,
+                        v === '' ? null : parseInt(v, 10)
+                      )
+                    }}
+                    disabled={assignWaypointMutation.isPending}
+                  />
                 )}
               </div>
             ))}

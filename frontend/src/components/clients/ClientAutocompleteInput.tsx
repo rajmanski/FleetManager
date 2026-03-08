@@ -1,26 +1,18 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
-import { FormField } from '@/components/ui/FormField'
+import { AutocompleteInput } from '@/components/ui/AutocompleteInput'
 import { Button } from '@/components/ui/Button'
-import { INPUT_CLASS } from '@/constants/inputStyles'
 import api from '@/services/api'
 import { useDebouncedCallback } from '@/hooks/useDebouncedCallback'
 import { ClientFormModal, type ClientFormValues } from '@/components/clients/ClientFormModal'
 import { useClients } from '@/hooks/clients/useClients'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { extractApiError } from '@/utils/api'
+import { formatNipDisplay } from '@/utils/nip'
 import type { Client } from '@/hooks/clients/useClients'
 
 const DEBOUNCE_MS = 300
 const LIMIT = 10
-
-function formatNipDisplay(nip: string) {
-  const d = nip.replace(/\D/g, '').slice(0, 10)
-  if (d.length <= 3) return d
-  if (d.length <= 6) return `${d.slice(0, 3)}-${d.slice(3)}`
-  if (d.length <= 8) return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`
-  return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6, 8)}-${d.slice(8)}`
-}
 
 function clientDisplay(client: Client) {
   const nipFormatted = formatNipDisplay(client.nip)
@@ -53,10 +45,8 @@ export function ClientAutocompleteInput({
   disabled,
   canAddClient = true,
 }: ClientAutocompleteInputProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
   const [inputValue, setInputValue] = useState(() => (value ? clientDisplay(value) : ''))
   const [results, setResults] = useState<Client[]>([])
-  const [showDropdown, setShowDropdown] = useState(false)
   const [loading, setLoading] = useState(false)
   const [addModalOpen, setAddModalOpen] = useState(false)
 
@@ -83,7 +73,6 @@ export function ClientAutocompleteInput({
         params: { q: query.trim(), limit: LIMIT, page: 1, include_deleted: 'false' },
       })
       setResults(res.data.data ?? [])
-      setShowDropdown(true)
     } catch {
       setResults([])
     } finally {
@@ -99,18 +88,7 @@ export function ClientAutocompleteInput({
     }
   }, [value])
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setShowDropdown(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const v = e.target.value
+  const handleInputChange = (v: string) => {
     setInputValue(v)
     onSelect(null)
     debouncedFetch(v)
@@ -120,7 +98,6 @@ export function ClientAutocompleteInput({
   const handleSelect = (client: Client) => {
     onSelect(client)
     setInputValue(clientDisplay(client))
-    setShowDropdown(false)
   }
 
   const handleAddClick = () => {
@@ -141,7 +118,6 @@ export function ClientAutocompleteInput({
           setAddModalOpen(false)
           onSelect(data)
           setInputValue(clientDisplay(data))
-          setShowDropdown(false)
         },
         onError: createCallbacks.onError,
       }
@@ -149,20 +125,22 @@ export function ClientAutocompleteInput({
   }
 
   return (
-    <div ref={containerRef} className="relative">
-      <FormField label={label} error={error} required={required}>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={inputValue}
-            onChange={handleInputChange}
-            onFocus={() => results.length > 0 && setShowDropdown(true)}
-            placeholder="Search by company name or NIP..."
-            disabled={disabled}
-            className={INPUT_CLASS}
-            autoComplete="off"
-          />
-          {canAddClient && (
+    <>
+      <AutocompleteInput<Client>
+        label={label}
+        error={error}
+        required={required}
+        value={inputValue}
+        onChange={handleInputChange}
+        options={results}
+        getOptionKey={(c) => c.id}
+        renderOption={clientDisplay}
+        onSelect={handleSelect}
+        loading={loading}
+        placeholder="Search by company name or NIP..."
+        disabled={disabled}
+        trailingSlot={
+          canAddClient ? (
             <Button
               type="button"
               variant="secondary"
@@ -173,33 +151,9 @@ export function ClientAutocompleteInput({
             >
               <Plus className="size-4" />
             </Button>
-          )}
-        </div>
-      </FormField>
-      {loading && (
-        <p className="mt-1 text-sm text-gray-500">Searching...</p>
-      )}
-      {showDropdown && results.length > 0 && (
-        <ul
-          className="absolute z-50 mt-1 max-h-48 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-lg"
-          role="listbox"
-        >
-          {results.map((client) => (
-            <li
-              key={client.id}
-              role="option"
-              tabIndex={0}
-              className="cursor-pointer px-3 py-2 text-sm hover:bg-gray-100"
-              onClick={() => handleSelect(client)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSelect(client)
-              }}
-            >
-              {clientDisplay(client)}
-            </li>
-          ))}
-        </ul>
-      )}
+          ) : undefined
+        }
+      />
 
       {addModalOpen && (
         <ClientFormModal
@@ -211,6 +165,6 @@ export function ClientAutocompleteInput({
           errorMessage={extractApiError(createMutation.error)}
         />
       )}
-    </div>
+    </>
   )
 }

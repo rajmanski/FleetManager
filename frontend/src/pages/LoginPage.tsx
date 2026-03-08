@@ -5,8 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
-import { FormField } from '@/components/ui/FormField'
-import { INPUT_CLASS } from '@/constants/inputStyles'
+import { Input } from '@/components/ui/Input'
 import { getAccessToken } from '@/services/authStorage'
 import { loginSchema, type LoginFormValues } from '@/schemas/auth'
 import { useLogin } from '@/hooks/useLogin'
@@ -70,25 +69,25 @@ function LoginPage() {
               className="mt-6 space-y-4"
               onSubmit={handleSubmit((data) => void onSubmit(data))}
             >
-              <FormField label="Login" error={errors.login?.message} required>
-                <input
-                  id="login"
-                  type="text"
-                  autoComplete="username"
-                  {...register('login')}
-                  className={INPUT_CLASS}
-                />
-              </FormField>
+              <Input
+                label="Login"
+                type="text"
+                error={errors.login?.message}
+                required
+                autoComplete="username"
+                id="login"
+                {...register('login')}
+              />
 
-              <FormField label="Password" error={errors.password?.message} required>
-                <input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
-                  {...register('password')}
-                  className={INPUT_CLASS}
-                />
-              </FormField>
+              <Input
+                label="Password"
+                type="password"
+                error={errors.password?.message}
+                required
+                autoComplete="current-password"
+                id="password"
+                {...register('password')}
+              />
 
               {displayError && (
                 <ErrorMessage message={displayError} variant="soft" />

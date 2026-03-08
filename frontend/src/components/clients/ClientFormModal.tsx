@@ -1,16 +1,14 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { FormField } from '@/components/ui/FormField'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Input } from '@/components/ui/Input'
+import { Textarea } from '@/components/ui/Textarea'
 import { Modal } from '@/components/ui/Modal'
 import { ModalFooter } from '@/components/ui/ModalFooter'
-import { INPUT_CLASS } from '@/constants/inputStyles'
+import { clientFormSchema, type ClientFormValues } from '@/schemas/clients'
+import { formatNipDisplay, normalizeNipDigits } from '@/utils/nip'
 
-export type ClientFormValues = {
-  companyName: string
-  nip: string
-  address: string
-  contactEmail: string
-}
+export type { ClientFormValues }
 
 export type ClientFormModalProps = {
   title: string
@@ -20,25 +18,6 @@ export type ClientFormModalProps = {
   onSubmit: (values: ClientFormValues) => void
   isSubmitting: boolean
   errorMessage: string | null
-}
-
-function normalizeNipDigits(value: string) {
-  return value.replace(/\D/g, '').slice(0, 10)
-}
-
-function formatNipDisplay(digits: string) {
-  const d = normalizeNipDigits(digits)
-  const parts = []
-  if (d.length <= 3) {
-    parts.push(d)
-  } else if (d.length <= 6) {
-    parts.push(d.slice(0, 3), d.slice(3))
-  } else if (d.length <= 8) {
-    parts.push(d.slice(0, 3), d.slice(3, 6), d.slice(6))
-  } else {
-    parts.push(d.slice(0, 3), d.slice(3, 6), d.slice(6, 8), d.slice(8))
-  }
-  return parts.join('-')
 }
 
 export function ClientFormModal({
@@ -57,6 +36,7 @@ export function ClientFormModal({
     watch,
     formState: { errors },
   } = useForm<ClientFormValues>({
+    resolver: zodResolver(clientFormSchema),
     defaultValues: {
       companyName: initialData?.companyName ?? '',
       nip: formatNipDisplay(initialData?.nip ?? ''),
@@ -75,10 +55,9 @@ export function ClientFormModal({
   }, [nipValue, setValue])
 
   const onFormSubmit = (values: ClientFormValues) => {
-    const digitsOnly = normalizeNipDigits(values.nip)
     onSubmit({
       companyName: values.companyName.trim(),
-      nip: digitsOnly,
+      nip: normalizeNipDigits(values.nip),
       address: values.address.trim(),
       contactEmail: values.contactEmail.trim(),
     })
@@ -87,59 +66,34 @@ export function ClientFormModal({
   return (
     <Modal title={title} error={errorMessage}>
       <form className="mt-4 space-y-4" onSubmit={handleSubmit(onFormSubmit)}>
-        <FormField label="Company name" error={errors.companyName?.message} required>
-          <input
-            type="text"
-            {...register('companyName', {
-              validate: (value) => value.trim().length >= 3 || 'Company name must be at least 3 characters.',
-            })}
-            className={INPUT_CLASS}
-          />
-        </FormField>
+        <Input
+          label="Company name"
+          error={errors.companyName?.message}
+          required
+          {...register('companyName')}
+        />
 
-        <FormField label="NIP" error={errors.nip?.message} required>
-          <input
-            type="text"
-            inputMode="numeric"
-            {...register('nip', {
-              validate: (value) => {
-                const digits = normalizeNipDigits(value)
-                if (digits.length !== 10) {
-                  return 'NIP must contain exactly 10 digits.'
-                }
-                if (!/^\d{10}$/.test(digits)) {
-                  return 'NIP must contain only digits.'
-                }
-                return true
-              },
-            })}
-            className={INPUT_CLASS}
-            placeholder="XXX-XXX-XX-XX"
-          />
-        </FormField>
+        <Input
+          label="NIP"
+          error={errors.nip?.message}
+          required
+          inputMode="numeric"
+          placeholder="XXX-XXX-XX-XX"
+          {...register('nip')}
+        />
 
-        <FormField label="Address" error={errors.address?.message}>
-          <textarea
-            rows={3}
-            {...register('address')}
-            className={INPUT_CLASS}
-          />
-        </FormField>
+        <Textarea
+          label="Address"
+          error={errors.address?.message}
+          {...register('address')}
+        />
 
-        <FormField label="Contact email" error={errors.contactEmail?.message}>
-          <input
-            type="email"
-            {...register('contactEmail', {
-              validate: (value) => {
-                const trimmed = value.trim()
-                if (trimmed === '') return true
-                const hasAt = trimmed.includes('@')
-                return hasAt || 'Invalid email format.'
-              },
-            })}
-            className={INPUT_CLASS}
-          />
-        </FormField>
+        <Input
+          label="Contact email"
+          type="email"
+          error={errors.contactEmail?.message}
+          {...register('contactEmail')}
+        />
 
         <ModalFooter
           onCancel={onClose}

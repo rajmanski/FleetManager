@@ -1,12 +1,11 @@
 import { useState, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { FormField } from '@/components/ui/FormField'
+import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { ModalFooter } from '@/components/ui/ModalFooter'
 import { ClientAutocompleteInput } from '@/components/clients/ClientAutocompleteInput'
 import { CargoSection } from '@/components/orders/CargoSection'
-import { INPUT_CLASS } from '@/constants/inputStyles'
 import { type CargoItemDraft, type CargoPayload } from '@/schemas/cargo'
 import { orderFormSchema, type OrderFormValues } from '@/schemas/orders'
 import { parseCargoDraftsToPayloads, type CargoItemErrors } from '@/utils/cargo'
@@ -111,27 +110,28 @@ export function OrderFormModal({
                   error={clientError ?? undefined}
                 />
               </div>
-              <FormField label="Order number" error={errors.orderNumber?.message} required>
-                <input
-                  type="text"
-                  {...register('orderNumber')}
-                  placeholder="e.g. ORD-2026-001"
-                  className={INPUT_CLASS}
-                />
-              </FormField>
-              <FormField label="Delivery deadline" error={errors.deliveryDeadline?.message}>
-                <input type="date" {...register('deliveryDeadline')} className={INPUT_CLASS} />
-              </FormField>
-              <FormField label="Total price (PLN)" error={errors.totalPricePln?.message}>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  {...register('totalPricePln')}
-                  placeholder="0.00"
-                  className={INPUT_CLASS}
-                />
-              </FormField>
+              <Input
+                label="Order number"
+                error={errors.orderNumber?.message}
+                required
+                placeholder="e.g. ORD-2026-001"
+                {...register('orderNumber')}
+              />
+              <Input
+                label="Delivery deadline"
+                type="date"
+                error={errors.deliveryDeadline?.message}
+                {...register('deliveryDeadline')}
+              />
+              <Input
+                label="Total price (PLN)"
+                type="number"
+                error={errors.totalPricePln?.message}
+                step={0.01}
+                min={0}
+                placeholder="0.00"
+                {...register('totalPricePln')}
+              />
             </div>
 
             <div className="border-t border-gray-200 pt-4">

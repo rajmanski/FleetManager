@@ -1,9 +1,8 @@
 import { useForm } from 'react-hook-form'
-import { FormField } from '@/components/ui/FormField'
+import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { ModalFooter } from '@/components/ui/ModalFooter'
 import type { VehicleMutationPayload } from '@/hooks/vehicles/useVehicles'
-import { INPUT_CLASS } from '@/constants/inputStyles'
 import { isValidVin } from '@/utils/vin'
 
 export type VehicleFormModalProps = {
@@ -82,70 +81,66 @@ export function VehicleFormModal({
   return (
     <Modal title={title} error={errorMessage}>
       <form className="mt-4 space-y-3" onSubmit={handleSubmit(onFormSubmit)}>
-        <FormField label="VIN" error={errors.vin?.message} required>
-          <input
-            type="text"
-            {...register('vin', {
-              validate: (value) =>
-                isValidVin(value.trim().toUpperCase()) || 'Invalid VIN format or checksum.',
-            })}
-            className={INPUT_CLASS}
-          />
-        </FormField>
-        <FormField label="Plate number" error={errors.plate_number?.message}>
-          <input {...register('plate_number')} className={INPUT_CLASS} />
-        </FormField>
-        <FormField label="Brand" error={errors.brand?.message} required>
-          <input
-            {...register('brand', {
-              validate: (value) => value.trim() !== '' || 'Brand is required.',
-            })}
-            className={INPUT_CLASS}
-          />
-        </FormField>
-        <FormField label="Model" error={errors.model?.message} required>
-          <input
-            {...register('model', {
-              validate: (value) => value.trim() !== '' || 'Model is required.',
-            })}
-            className={INPUT_CLASS}
-          />
-        </FormField>
-        <FormField label="Production year" error={errors.production_year?.message} required>
-          <input
-            type="number"
-            {...register('production_year', {
-              valueAsNumber: true,
-              validate: (value) =>
-                (Number.isInteger(value) && value >= 1900 && value <= 2100) ||
-                'Production year must be between 1900 and 2100.',
-            })}
-            className={INPUT_CLASS}
-          />
-        </FormField>
-        <FormField label="Capacity (kg)" error={errors.capacity_kg?.message}>
-          <input
-            type="number"
-            {...register('capacity_kg', {
-              validate: (value) =>
-                value.trim() === '' ||
-                (Number.isInteger(Number(value)) && Number(value) >= 0) ||
-                'Capacity must be a non-negative integer.',
-            })}
-            className={INPUT_CLASS}
-          />
-        </FormField>
-        <FormField label="Mileage (km)" error={errors.current_mileage_km?.message} required>
-          <input
-            type="number"
-            {...register('current_mileage_km', {
-              valueAsNumber: true,
-              validate: (value) =>
-                (Number.isFinite(value) && value >= 0) || 'Mileage must be a non-negative number.',
-            })}
-            className={INPUT_CLASS}
-          />
-        </FormField>
+        <Input
+          label="VIN"
+          error={errors.vin?.message}
+          required
+          {...register('vin', {
+            validate: (value) =>
+              isValidVin(value.trim().toUpperCase()) || 'Invalid VIN format or checksum.',
+          })}
+        />
+        <Input label="Plate number" error={errors.plate_number?.message} {...register('plate_number')} />
+        <Input
+          label="Brand"
+          error={errors.brand?.message}
+          required
+          {...register('brand', {
+            validate: (value) => value.trim() !== '' || 'Brand is required.',
+          })}
+        />
+        <Input
+          label="Model"
+          error={errors.model?.message}
+          required
+          {...register('model', {
+            validate: (value) => value.trim() !== '' || 'Model is required.',
+          })}
+        />
+        <Input
+          label="Production year"
+          type="number"
+          error={errors.production_year?.message}
+          required
+          {...register('production_year', {
+            valueAsNumber: true,
+            validate: (value) =>
+              (Number.isInteger(value) && value >= 1900 && value <= 2100) ||
+              'Production year must be between 1900 and 2100.',
+          })}
+        />
+        <Input
+          label="Capacity (kg)"
+          type="number"
+          error={errors.capacity_kg?.message}
+          {...register('capacity_kg', {
+            validate: (value) =>
+              value.trim() === '' ||
+              (Number.isInteger(Number(value)) && Number(value) >= 0) ||
+              'Capacity must be a non-negative integer.',
+          })}
+        />
+        <Input
+          label="Mileage (km)"
+          type="number"
+          error={errors.current_mileage_km?.message}
+          required
+          {...register('current_mileage_km', {
+            valueAsNumber: true,
+            validate: (value) =>
+              (Number.isFinite(value) && value >= 0) || 'Mileage must be a non-negative number.',
+          })}
+        />
         <ModalFooter
           onCancel={onClose}
           submitLabel={submitLabel}

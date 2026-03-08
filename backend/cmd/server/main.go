@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 
+	"fleet-management/internal/assignments"
 	"fleet-management/internal/auth"
 	"fleet-management/internal/clients"
 	"fleet-management/internal/config"
@@ -70,6 +71,9 @@ func main() {
 	waypointsRepository := repository.NewWaypointsRepository(queries)
 	waypointsService := waypoints.NewService(waypointsRepository, routesRepository)
 	waypointsHandler := waypoints.NewHandler(waypointsService)
+	assignmentsRepository := repository.NewAssignmentsRepository(queries)
+	assignmentsService := assignments.NewService(assignmentsRepository)
+	assignmentsHandler := assignments.NewHandler(assignmentsService)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -314,6 +318,21 @@ func main() {
 		"/waypoints/:id",
 		auth.RBACMiddleware(auth.ResourceRoutes, auth.PermissionWrite),
 		waypointsHandler.DeleteWaypoint,
+	)
+	protected.GET(
+		"/assignments",
+		auth.RBACMiddleware(auth.ResourceAssignments, auth.PermissionRead),
+		assignmentsHandler.ListAssignments,
+	)
+	protected.POST(
+		"/assignments",
+		auth.RBACMiddleware(auth.ResourceAssignments, auth.PermissionWrite),
+		assignmentsHandler.CreateAssignment,
+	)
+	protected.PUT(
+		"/assignments/:id/end",
+		auth.RBACMiddleware(auth.ResourceAssignments, auth.PermissionWrite),
+		assignmentsHandler.EndAssignment,
 	)
 
 	protected.GET("/db-check", func(c *gin.Context) {

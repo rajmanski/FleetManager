@@ -21,6 +21,7 @@ const (
 	ResourceDrivers           Resource = "Drivers"
 	ResourceOrders            Resource = "Orders"
 	ResourceRoutes            Resource = "Routes"
+	ResourceAssignments       Resource = "Assignments"
 	ResourceMaintenancePolicy Resource = "MaintenancePolicies"
 	ResourceCostsFuel         Resource = "CostsFuel"
 	ResourceAuditLog          Resource = "AuditLog"
@@ -33,6 +34,7 @@ var permissionMatrix = map[string]map[Resource]map[Permission]bool{
 		ResourceDrivers:           {PermissionRead: true, PermissionWrite: true},
 		ResourceOrders:            {PermissionRead: true, PermissionWrite: true},
 		ResourceRoutes:            {PermissionRead: true, PermissionWrite: true},
+		ResourceAssignments:       {PermissionRead: true, PermissionWrite: true},
 		ResourceMaintenancePolicy: {PermissionRead: true, PermissionWrite: true},
 		ResourceCostsFuel:         {PermissionRead: true, PermissionWrite: true},
 		ResourceAuditLog:          {PermissionRead: true},
@@ -48,6 +50,7 @@ var permissionMatrix = map[string]map[Resource]map[Permission]bool{
 	"Mechanik": {
 		ResourceVehicles:          {PermissionRead: true, PermissionWrite: true},
 		ResourceDrivers:           {PermissionRead: true, PermissionWrite: true},
+		ResourceAssignments:       {PermissionRead: true, PermissionWrite: true},
 		ResourceMaintenancePolicy: {PermissionRead: true, PermissionWrite: true},
 		ResourceCostsFuel:         {PermissionRead: true, PermissionWrite: true},
 	},

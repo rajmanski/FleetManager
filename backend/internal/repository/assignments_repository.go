@@ -113,6 +113,58 @@ func (r *AssignmentsRepository) DriverExists(ctx context.Context, driverID int64
 	return true, nil
 }
 
+func (r *AssignmentsRepository) ListAssignmentsByVehicleID(ctx context.Context, vehicleID int64) ([]assignments.AssignmentHistoryItem, error) {
+	rows, err := r.queries.ListAssignmentsByVehicleID(ctx, int32(vehicleID))
+	if err != nil {
+		return nil, err
+	}
+	result := make([]assignments.AssignmentHistoryItem, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, mapAssignmentHistoryFromVehicleRow(row))
+	}
+	return result, nil
+}
+
+func (r *AssignmentsRepository) ListAssignmentsByDriverID(ctx context.Context, driverID int64) ([]assignments.AssignmentHistoryItem, error) {
+	rows, err := r.queries.ListAssignmentsByDriverID(ctx, int32(driverID))
+	if err != nil {
+		return nil, err
+	}
+	result := make([]assignments.AssignmentHistoryItem, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, mapAssignmentHistoryFromDriverRow(row))
+	}
+	return result, nil
+}
+
+func mapAssignmentHistoryFromVehicleRow(row sqlc.ListAssignmentsByVehicleIDRow) assignments.AssignmentHistoryItem {
+	return mapAssignmentHistoryRow(row.AssignmentID, row.VehicleID, row.DriverID, row.AssignedFrom, row.AssignedTo, row.Vin, row.FirstName, row.LastName)
+}
+
+func mapAssignmentHistoryFromDriverRow(row sqlc.ListAssignmentsByDriverIDRow) assignments.AssignmentHistoryItem {
+	return mapAssignmentHistoryRow(row.AssignmentID, row.VehicleID, row.DriverID, row.AssignedFrom, row.AssignedTo, row.Vin, row.FirstName, row.LastName)
+}
+
+func mapAssignmentHistoryRow(assignmentID, vehicleID, driverID int32, assignedFrom time.Time, assignedTo sql.NullTime, vin, firstName, lastName string) assignments.AssignmentHistoryItem {
+	item := assignments.AssignmentHistoryItem{
+		AssignmentID: int64(assignmentID),
+		Driver: assignments.DriverRef{
+			ID:   int64(driverID),
+			Name: firstName + " " + lastName,
+		},
+		Vehicle: assignments.VehicleRef{
+			ID:  int64(vehicleID),
+			VIN: vin,
+		},
+		AssignedFrom: assignedFrom.Format("2006-01-02"),
+	}
+	if assignedTo.Valid {
+		s := assignedTo.Time.Format("2006-01-02")
+		item.AssignedTo = &s
+	}
+	return item
+}
+
 func mapListAssignmentsRow(row sqlc.ListAssignmentsRow) assignments.Assignment {
 	a := assignments.Assignment{
 		AssignmentID: int64(row.AssignmentID),

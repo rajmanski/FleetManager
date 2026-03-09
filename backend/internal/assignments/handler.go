@@ -97,8 +97,52 @@ func (h *Handler) EndAssignment(c *gin.Context) {
 	c.JSON(http.StatusOK, assignment)
 }
 
+func (h *Handler) GetVehicleAssignmentHistory(c *gin.Context) {
+	vehicleID, err := parseInt64Param(c, "id")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle id"})
+		return
+	}
+
+	history, err := h.service.GetVehicleAssignmentHistory(c.Request.Context(), vehicleID)
+	if err != nil {
+		if errors.Is(err, ErrInvalidInput) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, history)
+}
+
+func (h *Handler) GetDriverAssignmentHistory(c *gin.Context) {
+	driverID, err := parseInt64Param(c, "id")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid driver id"})
+		return
+	}
+
+	history, err := h.service.GetDriverAssignmentHistory(c.Request.Context(), driverID)
+	if err != nil {
+		if errors.Is(err, ErrInvalidInput) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, history)
+}
+
 func parseAssignmentIDParam(c *gin.Context) (int64, error) {
-	value := c.Param("id")
+	return parseInt64Param(c, "id")
+}
+
+func parseInt64Param(c *gin.Context, name string) (int64, error) {
+	value := c.Param(name)
 	id, err := strconv.ParseInt(value, 10, 64)
 	if err != nil || id <= 0 {
 		return 0, ErrInvalidInput

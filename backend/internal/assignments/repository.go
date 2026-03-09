@@ -7,6 +7,8 @@ import (
 
 type Repository interface {
 	ListAssignments(ctx context.Context, query ListAssignmentsQuery) ([]Assignment, int64, error)
+	ListAssignmentsByVehicleID(ctx context.Context, vehicleID int64) ([]AssignmentHistoryItem, error)
+	ListAssignmentsByDriverID(ctx context.Context, driverID int64) ([]AssignmentHistoryItem, error)
 	GetAssignmentByID(ctx context.Context, assignmentID int64) (Assignment, error)
 	CreateAssignment(ctx context.Context, input CreateAssignmentRequest) (int64, error)
 	EndAssignment(ctx context.Context, assignmentID int64, endTime time.Time) error

@@ -114,3 +114,17 @@ func (s *Service) EndAssignment(ctx context.Context, assignmentID int64) (Assign
 
 	return s.repo.GetAssignmentByID(ctx, assignmentID)
 }
+
+func (s *Service) GetVehicleAssignmentHistory(ctx context.Context, vehicleID int64) ([]AssignmentHistoryItem, error) {
+	if vehicleID <= 0 {
+		return nil, ErrInvalidInput
+	}
+	return s.repo.ListAssignmentsByVehicleID(ctx, vehicleID)
+}
+
+func (s *Service) GetDriverAssignmentHistory(ctx context.Context, driverID int64) ([]AssignmentHistoryItem, error) {
+	if driverID <= 0 {
+		return nil, ErrInvalidInput
+	}
+	return s.repo.ListAssignmentsByDriverID(ctx, driverID)
+}

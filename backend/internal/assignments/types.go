@@ -32,3 +32,21 @@ type CreateAssignmentRequest struct {
 	DriverID     int64     `json:"driver_id" binding:"required"`
 	AssignedFrom time.Time `json:"assigned_from" binding:"required"`
 }
+
+type AssignmentHistoryItem struct {
+	AssignmentID int64     `json:"assignment_id"`
+	Driver       DriverRef `json:"driver"`
+	Vehicle      VehicleRef `json:"vehicle"`
+	AssignedFrom string    `json:"assigned_from"`
+	AssignedTo   *string   `json:"assigned_to,omitempty"`
+}
+
+type DriverRef struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+type VehicleRef struct {
+	ID  int64  `json:"id"`
+	VIN string `json:"vin"`
+}

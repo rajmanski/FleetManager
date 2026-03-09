@@ -233,3 +233,135 @@ func (q *Queries) ListAssignments(ctx context.Context, arg ListAssignmentsParams
 	}
 	return items, nil
 }
+
+const listAssignmentsByDriverID = `-- name: ListAssignmentsByDriverID :many
+SELECT
+  a.assignment_id,
+  a.vehicle_id,
+  a.driver_id,
+  a.assigned_from,
+  a.assigned_to,
+  v.vin,
+  v.brand,
+  v.model,
+  d.first_name,
+  d.last_name
+FROM Assignments a
+JOIN Vehicles v ON v.vehicle_id = a.vehicle_id
+JOIN Drivers d ON d.driver_id = a.driver_id
+WHERE a.driver_id = ?
+ORDER BY a.assigned_from DESC
+`
+
+type ListAssignmentsByDriverIDRow struct {
+	AssignmentID int32          `json:"assignment_id"`
+	VehicleID    int32          `json:"vehicle_id"`
+	DriverID     int32          `json:"driver_id"`
+	AssignedFrom time.Time      `json:"assigned_from"`
+	AssignedTo   sql.NullTime   `json:"assigned_to"`
+	Vin          string         `json:"vin"`
+	Brand        sql.NullString `json:"brand"`
+	Model        sql.NullString `json:"model"`
+	FirstName    string         `json:"first_name"`
+	LastName     string         `json:"last_name"`
+}
+
+func (q *Queries) ListAssignmentsByDriverID(ctx context.Context, driverID int32) ([]ListAssignmentsByDriverIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, listAssignmentsByDriverID, driverID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAssignmentsByDriverIDRow
+	for rows.Next() {
+		var i ListAssignmentsByDriverIDRow
+		if err := rows.Scan(
+			&i.AssignmentID,
+			&i.VehicleID,
+			&i.DriverID,
+			&i.AssignedFrom,
+			&i.AssignedTo,
+			&i.Vin,
+			&i.Brand,
+			&i.Model,
+			&i.FirstName,
+			&i.LastName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAssignmentsByVehicleID = `-- name: ListAssignmentsByVehicleID :many
+SELECT
+  a.assignment_id,
+  a.vehicle_id,
+  a.driver_id,
+  a.assigned_from,
+  a.assigned_to,
+  v.vin,
+  v.brand,
+  v.model,
+  d.first_name,
+  d.last_name
+FROM Assignments a
+JOIN Vehicles v ON v.vehicle_id = a.vehicle_id
+JOIN Drivers d ON d.driver_id = a.driver_id
+WHERE a.vehicle_id = ?
+ORDER BY a.assigned_from DESC
+`
+
+type ListAssignmentsByVehicleIDRow struct {
+	AssignmentID int32          `json:"assignment_id"`
+	VehicleID    int32          `json:"vehicle_id"`
+	DriverID     int32          `json:"driver_id"`
+	AssignedFrom time.Time      `json:"assigned_from"`
+	AssignedTo   sql.NullTime   `json:"assigned_to"`
+	Vin          string         `json:"vin"`
+	Brand        sql.NullString `json:"brand"`
+	Model        sql.NullString `json:"model"`
+	FirstName    string         `json:"first_name"`
+	LastName     string         `json:"last_name"`
+}
+
+func (q *Queries) ListAssignmentsByVehicleID(ctx context.Context, vehicleID int32) ([]ListAssignmentsByVehicleIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, listAssignmentsByVehicleID, vehicleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListAssignmentsByVehicleIDRow
+	for rows.Next() {
+		var i ListAssignmentsByVehicleIDRow
+		if err := rows.Scan(
+			&i.AssignmentID,
+			&i.VehicleID,
+			&i.DriverID,
+			&i.AssignedFrom,
+			&i.AssignedTo,
+			&i.Vin,
+			&i.Brand,
+			&i.Model,
+			&i.FirstName,
+			&i.LastName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

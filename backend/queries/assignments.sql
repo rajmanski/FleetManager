@@ -69,3 +69,39 @@ SELECT EXISTS(
     AND assigned_from <= ?
     AND (assigned_to IS NULL OR assigned_to > ?)
 );
+
+-- name: ListAssignmentsByVehicleID :many
+SELECT
+  a.assignment_id,
+  a.vehicle_id,
+  a.driver_id,
+  a.assigned_from,
+  a.assigned_to,
+  v.vin,
+  v.brand,
+  v.model,
+  d.first_name,
+  d.last_name
+FROM Assignments a
+JOIN Vehicles v ON v.vehicle_id = a.vehicle_id
+JOIN Drivers d ON d.driver_id = a.driver_id
+WHERE a.vehicle_id = ?
+ORDER BY a.assigned_from DESC;
+
+-- name: ListAssignmentsByDriverID :many
+SELECT
+  a.assignment_id,
+  a.vehicle_id,
+  a.driver_id,
+  a.assigned_from,
+  a.assigned_to,
+  v.vin,
+  v.brand,
+  v.model,
+  d.first_name,
+  d.last_name
+FROM Assignments a
+JOIN Vehicles v ON v.vehicle_id = a.vehicle_id
+JOIN Drivers d ON d.driver_id = a.driver_id
+WHERE a.driver_id = ?
+ORDER BY a.assigned_from DESC;

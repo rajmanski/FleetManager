@@ -59,14 +59,18 @@ type UpdateDriverRequest struct {
 	ADRExpiryDate     *time.Time `json:"adr_expiry_date,omitempty"`
 }
 
-// DriverAvailabilityResponse is the response for GET /drivers/{id}/availability
-type DriverAvailabilityResponse struct {
-	DriverID  int64   `json:"driver_id"`
-	Date      string  `json:"date"`
-	Available bool    `json:"available"`
-	Reason    *string `json:"reason,omitempty"`
+type DriverCurrentAssignment struct {
+	VehicleID  int64  `json:"vehicle_id"`
+	VehicleVIN string `json:"vehicle_vin"`
 }
 
+type DriverAvailabilityResponse struct {
+	DriverID          int64                   `json:"driver_id"`
+	Date              string                  `json:"date,omitempty"`
+	Available         bool                    `json:"available"`
+	Reason            *string                 `json:"reason,omitempty"`
+	CurrentAssignment *DriverCurrentAssignment `json:"current_assignment,omitempty"`
+}
 
 type CanTransportHazardousResponse struct {
 	CanTransport bool   `json:"can_transport"`

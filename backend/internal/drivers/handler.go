@@ -211,27 +211,55 @@ func (h *Handler) GetDriverAvailability(c *gin.Context) {
 		return
 	}
 
+	dateFrom := c.Query("date_from")
+	dateTo := c.Query("date_to")
 	date := c.Query("date")
-	if date == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "date query parameter is required (YYYY-MM-DD)"})
-		return
-	}
 
-	resp, err := h.service.GetDriverAvailability(c.Request.Context(), driverID, date)
-	if err != nil {
-		if errors.Is(err, ErrDriverNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})
+	switch {
+	case dateFrom != "" || dateTo != "":
+		if dateFrom == "" || dateTo == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "date_from and date_to are required together (YYYY-MM-DD)"})
 			return
 		}
-		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid date format (expected YYYY-MM-DD)"})
+		resp, err := h.service.GetDriverAvailabilityInRange(c.Request.Context(), driverID, dateFrom, dateTo)
+		if err != nil {
+			if errors.Is(err, ErrDriverNotFound) {
+				c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})
+				return
+			}
+			if errors.Is(err, ErrInvalidInput) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid date range (expected YYYY-MM-DD)"})
+				return
+			}
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+
+		c.JSON(http.StatusOK, resp)
+		return
+
+	case date != "":
+		resp, err := h.service.GetDriverAvailabilityByDate(c.Request.Context(), driverID, date)
+		if err != nil {
+			if errors.Is(err, ErrDriverNotFound) {
+				c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})
+				return
+			}
+			if errors.Is(err, ErrInvalidInput) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid date format (expected YYYY-MM-DD)"})
+				return
+			}
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			return
+		}
+
+		c.JSON(http.StatusOK, resp)
+		return
+
+	default:
+		c.JSON(http.StatusBadRequest, gin.H{"error": "either date or date_from/date_to query parameters are required"})
 		return
 	}
-
-	c.JSON(http.StatusOK, resp)
 }
 
 func (h *Handler) CanDriverTransportHazardous(c *gin.Context) {

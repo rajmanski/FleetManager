@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"fleet-management/internal/assignments"
 )
 
 const (
@@ -17,13 +19,22 @@ type CargoChecker interface {
 	OrderHasHazardousCargo(ctx context.Context, orderID int64) (bool, error)
 }
 
-type Service struct {
-	repo        Repository
-	cargoChecker CargoChecker
+type AssignmentsReader interface {
+	ListAssignmentsByDriverID(ctx context.Context, driverID int64) ([]assignments.AssignmentHistoryItem, error)
 }
 
-func NewService(repo Repository, cargoChecker CargoChecker) *Service {
-	return &Service{repo: repo, cargoChecker: cargoChecker}
+type Service struct {
+	repo             Repository
+	cargoChecker     CargoChecker
+	assignmentsReader AssignmentsReader
+}
+
+func NewService(repo Repository, cargoChecker CargoChecker, assignmentsReader AssignmentsReader) *Service {
+	return &Service{
+		repo:              repo,
+		cargoChecker:      cargoChecker,
+		assignmentsReader: assignmentsReader,
+	}
 }
 
 func (s *Service) ListDrivers(ctx context.Context, query ListDriversQuery) (ListDriversResponse, error) {
@@ -159,7 +170,7 @@ func isAllowedDriverStatus(status string) bool {
 	}
 }
 
-func (s *Service) GetDriverAvailability(ctx context.Context, driverID int64, date string) (DriverAvailabilityResponse, error) {
+func (s *Service) GetDriverAvailabilityByDate(ctx context.Context, driverID int64, date string) (DriverAvailabilityResponse, error) {
 	if driverID <= 0 {
 		return DriverAvailabilityResponse{}, ErrInvalidInput
 	}
@@ -168,12 +179,7 @@ func (s *Service) GetDriverAvailability(ctx context.Context, driverID int64, dat
 		return DriverAvailabilityResponse{}, ErrInvalidInput
 	}
 
-	_, err := s.repo.GetDriverByID(ctx, driverID)
-	if err != nil {
-		return DriverAvailabilityResponse{}, err
-	}
-
-	orderNumber, err := s.repo.GetDriverTripOrderNumberOnDate(ctx, driverID, date)
+	driver, err := s.repo.GetDriverByID(ctx, driverID)
 	if err != nil {
 		return DriverAvailabilityResponse{}, err
 	}
@@ -181,13 +187,111 @@ func (s *Service) GetDriverAvailability(ctx context.Context, driverID int64, dat
 	resp := DriverAvailabilityResponse{
 		DriverID:  driverID,
 		Date:      date,
-		Available: orderNumber == "",
+		Available: true,
 	}
+
+	if driver.Status != "Available" {
+		reason := fmt.Sprintf("Driver status is %s", driver.Status)
+		resp.Available = false
+		resp.Reason = &reason
+		resp.CurrentAssignment, _ = s.getCurrentAssignment(ctx, driverID)
+		return resp, nil
+	}
+
+	orderNumber, err := s.repo.GetDriverTripOrderNumberOnDate(ctx, driverID, date)
+	if err != nil {
+		return DriverAvailabilityResponse{}, err
+	}
+
 	if orderNumber != "" {
+		resp.Available = false
 		reason := fmt.Sprintf("Assigned to order %s", orderNumber)
 		resp.Reason = &reason
 	}
+
+	resp.CurrentAssignment, _ = s.getCurrentAssignment(ctx, driverID)
 	return resp, nil
+}
+
+func (s *Service) GetDriverAvailabilityInRange(ctx context.Context, driverID int64, dateFrom, dateTo string) (DriverAvailabilityResponse, error) {
+	if driverID <= 0 {
+		return DriverAvailabilityResponse{}, ErrInvalidInput
+	}
+
+	fromStr := strings.TrimSpace(dateFrom)
+	toStr := strings.TrimSpace(dateTo)
+	if fromStr == "" || toStr == "" {
+		return DriverAvailabilityResponse{}, ErrInvalidInput
+	}
+
+	from, err := time.Parse("2006-01-02", fromStr)
+	if err != nil {
+		return DriverAvailabilityResponse{}, ErrInvalidInput
+	}
+	to, err := time.Parse("2006-01-02", toStr)
+	if err != nil {
+		return DriverAvailabilityResponse{}, ErrInvalidInput
+	}
+	if to.Before(from) {
+		return DriverAvailabilityResponse{}, ErrInvalidInput
+	}
+
+	driver, err := s.repo.GetDriverByID(ctx, driverID)
+	if err != nil {
+		return DriverAvailabilityResponse{}, err
+	}
+
+	resp := DriverAvailabilityResponse{
+		DriverID:  driverID,
+		Available: true,
+	}
+
+	if driver.Status != "Available" {
+		reason := fmt.Sprintf("Driver status is %s", driver.Status)
+		resp.Available = false
+		resp.Reason = &reason
+		resp.CurrentAssignment, _ = s.getCurrentAssignment(ctx, driverID)
+		return resp, nil
+	}
+
+	for d := from; !d.After(to); d = d.AddDate(0, 0, 1) {
+		date := d.Format("2006-01-02")
+		orderNumber, err := s.repo.GetDriverTripOrderNumberOnDate(ctx, driverID, date)
+		if err != nil {
+			return DriverAvailabilityResponse{}, err
+		}
+		if orderNumber != "" {
+			resp.Available = false
+			reason := fmt.Sprintf("Assigned to order %s in requested period", orderNumber)
+			resp.Reason = &reason
+			break
+		}
+	}
+
+	resp.CurrentAssignment, _ = s.getCurrentAssignment(ctx, driverID)
+	return resp, nil
+}
+
+func (s *Service) getCurrentAssignment(ctx context.Context, driverID int64) (*DriverCurrentAssignment, error) {
+	if s.assignmentsReader == nil {
+		return nil, nil
+	}
+
+	history, err := s.assignmentsReader.ListAssignmentsByDriverID(ctx, driverID)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, item := range history {
+		if item.AssignedTo == nil {
+			return &DriverCurrentAssignment{
+				VehicleID:  item.Vehicle.ID,
+				VehicleVIN: item.Vehicle.VIN,
+			}, nil
+		}
+	}
+
+	return nil, nil
 }
 
 func (s *Service) CanDriverTransportHazardousCargo(ctx context.Context, driverID, orderID int64) (CanTransportHazardousResponse, error) {

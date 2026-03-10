@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 
+	"fleet-management/internal/cargo"
 	"fleet-management/internal/assignments"
 	"fleet-management/internal/auth"
 	"fleet-management/internal/clients"
@@ -13,7 +14,6 @@ import (
 	"fleet-management/internal/repository"
 	"fleet-management/internal/routes"
 	"fleet-management/internal/users"
-	"fleet-management/internal/cargo"
 	"fleet-management/internal/orders"
 	"fleet-management/internal/vehicles"
 	"fleet-management/internal/waypoints"
@@ -55,8 +55,6 @@ func main() {
 	vehiclesHandler := vehicles.NewHandler(vehiclesService)
 	driversRepository := repository.NewDriversRepository(queries, cfg.EncryptionKey)
 	cargoRepository := repository.NewCargoRepository(queries)
-	driversService := drivers.NewService(driversRepository, cargoRepository)
-	driversHandler := drivers.NewHandler(driversService)
 	clientsRepository := repository.NewClientsRepository(queries)
 	clientsService := clients.NewService(clientsRepository)
 	clientsHandler := clients.NewHandler(clientsService)
@@ -69,11 +67,13 @@ func main() {
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
 	routesHandler := routes.NewHandler(routesService)
 	waypointsRepository := repository.NewWaypointsRepository(queries)
-	waypointsService := waypoints.NewService(waypointsRepository, routesRepository)
-	waypointsHandler := waypoints.NewHandler(waypointsService)
 	assignmentsRepository := repository.NewAssignmentsRepository(queries)
 	assignmentsService := assignments.NewService(assignmentsRepository)
 	assignmentsHandler := assignments.NewHandler(assignmentsService)
+	waypointsService := waypoints.NewService(waypointsRepository, routesRepository)
+	waypointsHandler := waypoints.NewHandler(waypointsService)
+	driversService := drivers.NewService(driversRepository, cargoRepository, assignmentsRepository)
+	driversHandler := drivers.NewHandler(driversService)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{

@@ -235,6 +235,37 @@ func (h *Handler) RestoreVehicle(c *gin.Context) {
 	c.JSON(http.StatusOK, vehicle)
 }
 
+func (h *Handler) GetVehicleAvailability(c *gin.Context) {
+	vehicleID, err := parseVehicleIDParam(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle id"})
+		return
+	}
+
+	dateFrom := c.Query("date_from")
+	dateTo := c.Query("date_to")
+	if dateFrom == "" || dateTo == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "date_from and date_to are required (YYYY-MM-DD)"})
+		return
+	}
+
+	resp, err := h.service.GetVehicleAvailability(c.Request.Context(), vehicleID, dateFrom, dateTo)
+	if err != nil {
+		if errors.Is(err, ErrInvalidInput) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			return
+		}
+		if errors.Is(err, ErrVehicleNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "vehicle not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
 func parseVehicleIDParam(c *gin.Context) (int64, error) {
 	value := c.Param("id")
 	vehicleID, err := strconv.ParseInt(value, 10, 64)

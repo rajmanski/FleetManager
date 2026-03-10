@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"strings"
+	"time"
 
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/vehicles"
@@ -190,6 +191,39 @@ func (r *VehiclesRepository) UpdateVehicleStatus(ctx context.Context, vehicleID 
 		return vehicles.ErrVehicleNotFound
 	}
 	return nil
+}
+
+func (r *VehiclesRepository) GetTripInRange(ctx context.Context, vehicleID int64, from, to time.Time) (*vehicles.VehicleTripInfo, error) {
+	params := sqlc.GetVehicleTripInRangeParams{
+		VehicleID:     int32(vehicleID),
+		FromStartTime: sql.NullTime{Time: from, Valid: true},
+		ToStartTime:   sql.NullTime{Time: to, Valid: true},
+		FromEndTime:   sql.NullTime{Time: from, Valid: true},
+		ToEndTime:     sql.NullTime{Time: to, Valid: true},
+		StartTime:     sql.NullTime{Time: from, Valid: true},
+		EndTime:       sql.NullTime{Time: to, Valid: true},
+	}
+
+	row, err := r.queries.GetVehicleTripInRange(ctx, params)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	info := &vehicles.VehicleTripInfo{
+		TripID: int64(row.TripID),
+		Status: string(row.Status.TripsStatus),
+	}
+	if row.StartTime.Valid {
+		info.Start = row.StartTime.Time
+	}
+	if row.EndTime.Valid {
+		t := row.EndTime.Time
+		info.End = &t
+	}
+	return info, nil
 }
 
 func toNullString(value *string) sql.NullString {

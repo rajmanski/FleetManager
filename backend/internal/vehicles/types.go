@@ -57,3 +57,17 @@ type UpdateVehicleRequest struct {
 type UpdateVehicleStatusRequest struct {
 	Status string `json:"status"`
 }
+
+type VehicleAvailabilityResponse struct {
+	VehicleID int64   `json:"vehicle_id"`
+	Available bool    `json:"available"`
+	Reason    *string `json:"reason,omitempty"`
+	Status    string  `json:"status"`
+}
+
+type VehicleTripInfo struct {
+	TripID int64
+	Status string
+	Start  time.Time
+	End    *time.Time
+}

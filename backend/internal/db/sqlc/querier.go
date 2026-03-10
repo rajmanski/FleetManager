@@ -49,6 +49,7 @@ type Querier interface {
 	GetRouteByID(ctx context.Context, routeID int32) (Route, error)
 	GetUserByLogin(ctx context.Context, username string) (GetUserByLoginRow, error)
 	GetVehicleByID(ctx context.Context, vehicleID int32) (GetVehicleByIDRow, error)
+	GetVehicleTripInRange(ctx context.Context, arg GetVehicleTripInRangeParams) (GetVehicleTripInRangeRow, error)
 	GetWaypointByID(ctx context.Context, waypointID int32) (Routewaypoint, error)
 	GetWaypointRouteID(ctx context.Context, waypointID int32) (int32, error)
 	HasActiveClientWithNIPExcludingID(ctx context.Context, arg HasActiveClientWithNIPExcludingIDParams) (bool, error)

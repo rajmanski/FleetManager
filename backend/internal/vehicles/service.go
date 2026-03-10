@@ -2,7 +2,9 @@ package vehicles
 
 import (
 	"context"
+	"fmt"
 	"strings"
+	"time"
 )
 
 const (
@@ -152,6 +154,60 @@ func (s *Service) RestoreVehicle(ctx context.Context, vehicleID int64) (Vehicle,
 	}
 
 	return s.repo.GetVehicleByID(ctx, vehicleID)
+}
+
+func (s *Service) GetVehicleAvailability(ctx context.Context, vehicleID int64, dateFrom, dateTo string) (VehicleAvailabilityResponse, error) {
+	if vehicleID <= 0 {
+		return VehicleAvailabilityResponse{}, ErrInvalidInput
+	}
+
+	vehicle, err := s.repo.GetVehicleByID(ctx, vehicleID)
+	if err != nil {
+		return VehicleAvailabilityResponse{}, err
+	}
+
+	resp := VehicleAvailabilityResponse{
+		VehicleID: vehicle.ID,
+		Status:    vehicle.Status,
+		Available: true,
+	}
+
+	if vehicle.Status == "Service" || vehicle.Status == "Inactive" {
+		reason := fmt.Sprintf("Vehicle status is %s", vehicle.Status)
+		resp.Available = false
+		resp.Reason = &reason
+		return resp, nil
+	}
+
+	from, err := time.Parse("2006-01-02", strings.TrimSpace(dateFrom))
+	if err != nil {
+		return VehicleAvailabilityResponse{}, ErrInvalidInput
+	}
+	to, err := time.Parse("2006-01-02", strings.TrimSpace(dateTo))
+	if err != nil {
+		return VehicleAvailabilityResponse{}, ErrInvalidInput
+	}
+	if to.Before(from) {
+		return VehicleAvailabilityResponse{}, ErrInvalidInput
+	}
+
+	trip, err := s.repo.GetTripInRange(ctx, vehicleID, from, to)
+	if err != nil {
+		return VehicleAvailabilityResponse{}, err
+	}
+	if trip == nil {
+		return resp, nil
+	}
+
+	startStr := trip.Start.Format("2006-01-02")
+	endStr := "ongoing"
+	if trip.End != nil {
+		endStr = trip.End.Format("2006-01-02")
+	}
+	reason := fmt.Sprintf("Vehicle already assigned to Trip #%d (%s to %s)", trip.TripID, startStr, endStr)
+	resp.Available = false
+	resp.Reason = &reason
+	return resp, nil
 }
 
 func normalizeStatus(status string) string {

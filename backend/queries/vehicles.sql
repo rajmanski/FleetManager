@@ -115,3 +115,20 @@ UPDATE Vehicles
 SET deleted_at = NULL, updated_at = NOW()
 WHERE vehicle_id = ?
   AND deleted_at IS NOT NULL;
+
+-- name: GetVehicleTripInRange :one
+SELECT
+  trip_id,
+  status,
+  start_time,
+  end_time
+FROM Trips
+WHERE vehicle_id = ?
+  AND status IN ('Scheduled', 'Active')
+  AND (
+    (start_time BETWEEN ? AND ?)
+    OR (end_time IS NOT NULL AND end_time BETWEEN ? AND ?)
+    OR (start_time <= ? AND (end_time IS NULL OR end_time >= ?))
+  )
+ORDER BY start_time
+LIMIT 1;

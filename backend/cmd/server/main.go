@@ -160,6 +160,11 @@ func main() {
 		vehiclesHandler.RestoreVehicle,
 	)
 	protected.GET(
+		"/vehicles/:id/availability",
+		auth.RBACMiddleware(auth.ResourceVehicles, auth.PermissionRead),
+		vehiclesHandler.GetVehicleAvailability,
+	)
+	protected.GET(
 		"/vehicles/:id/assignment-history",
 		auth.RBACMiddleware(auth.ResourceVehicles, auth.PermissionRead),
 		assignmentsHandler.GetVehicleAssignmentHistory,

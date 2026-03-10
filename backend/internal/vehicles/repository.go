@@ -1,6 +1,9 @@
 package vehicles
 
-import "context"
+import (
+	"context"
+	"time"
+)
 
 type Repository interface {
 	ListVehicles(ctx context.Context, query ListVehiclesQuery) ([]Vehicle, int64, error)
@@ -11,4 +14,5 @@ type Repository interface {
 	HasActiveTrips(ctx context.Context, vehicleID int64) (bool, error)
 	DeleteVehicle(ctx context.Context, vehicleID int64) error
 	RestoreVehicle(ctx context.Context, vehicleID int64) error
+	GetTripInRange(ctx context.Context, vehicleID int64, from, to time.Time) (*VehicleTripInfo, error)
 }

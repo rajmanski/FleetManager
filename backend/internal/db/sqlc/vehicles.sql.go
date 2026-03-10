@@ -150,6 +150,61 @@ func (q *Queries) GetVehicleByID(ctx context.Context, vehicleID int32) (GetVehic
 	return i, err
 }
 
+const getVehicleTripInRange = `-- name: GetVehicleTripInRange :one
+SELECT
+  trip_id,
+  status,
+  start_time,
+  end_time
+FROM Trips
+WHERE vehicle_id = ?
+  AND status IN ('Scheduled', 'Active')
+  AND (
+    (start_time BETWEEN ? AND ?)
+    OR (end_time IS NOT NULL AND end_time BETWEEN ? AND ?)
+    OR (start_time <= ? AND (end_time IS NULL OR end_time >= ?))
+  )
+ORDER BY start_time
+LIMIT 1
+`
+
+type GetVehicleTripInRangeParams struct {
+	VehicleID     int32        `json:"vehicle_id"`
+	FromStartTime sql.NullTime `json:"from_start_time"`
+	ToStartTime   sql.NullTime `json:"to_start_time"`
+	FromEndTime   sql.NullTime `json:"from_end_time"`
+	ToEndTime     sql.NullTime `json:"to_end_time"`
+	StartTime     sql.NullTime `json:"start_time"`
+	EndTime       sql.NullTime `json:"end_time"`
+}
+
+type GetVehicleTripInRangeRow struct {
+	TripID    int32           `json:"trip_id"`
+	Status    NullTripsStatus `json:"status"`
+	StartTime sql.NullTime    `json:"start_time"`
+	EndTime   sql.NullTime    `json:"end_time"`
+}
+
+func (q *Queries) GetVehicleTripInRange(ctx context.Context, arg GetVehicleTripInRangeParams) (GetVehicleTripInRangeRow, error) {
+	row := q.db.QueryRowContext(ctx, getVehicleTripInRange,
+		arg.VehicleID,
+		arg.FromStartTime,
+		arg.ToStartTime,
+		arg.FromEndTime,
+		arg.ToEndTime,
+		arg.StartTime,
+		arg.EndTime,
+	)
+	var i GetVehicleTripInRangeRow
+	err := row.Scan(
+		&i.TripID,
+		&i.Status,
+		&i.StartTime,
+		&i.EndTime,
+	)
+	return i, err
+}
+
 const hasActiveTripsByVehicleID = `-- name: HasActiveTripsByVehicleID :one
 SELECT EXISTS(
   SELECT 1

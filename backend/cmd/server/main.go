@@ -15,6 +15,7 @@ import (
 	"fleet-management/internal/routes"
 	"fleet-management/internal/users"
 	"fleet-management/internal/orders"
+	"fleet-management/internal/trips"
 	"fleet-management/internal/vehicles"
 	"fleet-management/internal/waypoints"
 
@@ -74,6 +75,9 @@ func main() {
 	waypointsHandler := waypoints.NewHandler(waypointsService)
 	driversService := drivers.NewService(driversRepository, cargoRepository, assignmentsRepository)
 	driversHandler := drivers.NewHandler(driversService)
+	tripsRepository := repository.NewTripsRepository(dbConn)
+	tripsService := trips.NewService(tripsRepository, cargoRepository, vehiclesRepository, driversService, vehiclesService)
+	tripsHandler := trips.NewHandler(tripsService)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -348,6 +352,37 @@ func main() {
 		"/assignments/:id/end",
 		auth.RBACMiddleware(auth.ResourceAssignments, auth.PermissionWrite),
 		assignmentsHandler.EndAssignment,
+	)
+
+	protected.GET(
+		"/trips",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
+		tripsHandler.ListTrips,
+	)
+	protected.GET(
+		"/trips/:id",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
+		tripsHandler.GetTrip,
+	)
+	protected.POST(
+		"/trips",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
+		tripsHandler.CreateTrip,
+	)
+	protected.PATCH(
+		"/trips/:id/start",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
+		tripsHandler.StartTrip,
+	)
+	protected.PATCH(
+		"/trips/:id/finish",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
+		tripsHandler.FinishTrip,
+	)
+	protected.PATCH(
+		"/trips/:id/abort",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
+		tripsHandler.AbortTrip,
 	)
 
 	protected.GET("/db-check", func(c *gin.Context) {

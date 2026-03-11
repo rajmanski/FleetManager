@@ -213,6 +213,19 @@ func (r *TripsRepository) FinishTripAndSetAvailable(ctx context.Context, tripID 
 		return err
 	}
 
+	activeTripsCount, err := qtx.CountActiveTripsForOrder(ctx, ids.OrderID)
+	if err != nil {
+		return err
+	}
+	if activeTripsCount == 0 {
+		if _, err := qtx.UpdateOrderStatusByID(ctx, sqlc.UpdateOrderStatusByIDParams{
+			Status:  toNullOrdersStatus("Completed"),
+			OrderID: ids.OrderID,
+		}); err != nil {
+			return err
+		}
+	}
+
 	return tx.Commit()
 }
 

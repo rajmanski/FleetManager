@@ -25,6 +25,8 @@ import {
 } from 'lucide-react'
 import { Select } from '@/components/ui/Select'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
+import { useState, useMemo } from 'react'
+import { CreateTripModal } from '@/components/trips/CreateTripModal'
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -44,6 +46,13 @@ export default function OrderDetailPage() {
   })
 
   const cargo = cargoQuery.data?.data ?? []
+
+  const [isCreateTripOpen, setIsCreateTripOpen] = useState(false)
+
+  const totalCargoWeightKg = useMemo(
+    () => cargo.reduce((sum, item) => sum + (item.weightKg ?? 0), 0),
+    [cargo]
+  )
 
   if (orderId == null || Number.isNaN(orderId)) {
     return <ErrorMessage message="Invalid order ID" />
@@ -74,15 +83,23 @@ export default function OrderDetailPage() {
         title={`Order #${order.id}`}
         description={order.orderNumber}
         action={
-          <Link to="/orders">
+          <div className="flex items-center gap-2">
             <Button
-              variant="secondary"
-              className="inline-flex items-center whitespace-nowrap"
+              variant="primary"
+              onClick={() => setIsCreateTripOpen(true)}
             >
-              <ArrowLeft className="mr-2 h-4 w-4 shrink-0" />
-              Back to list
+              Create trip
             </Button>
-          </Link>
+            <Link to="/orders">
+              <Button
+                variant="secondary"
+                className="inline-flex items-center whitespace-nowrap"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4 shrink-0" />
+                Back to list
+              </Button>
+            </Link>
+          </div>
         }
       />
 
@@ -216,6 +233,14 @@ export default function OrderDetailPage() {
             <CargoWaypointMap waypoints={waypoints} cargo={cargo} />
           </div>
         )}
+      {orderId != null && orderId > 0 && (
+        <CreateTripModal
+          orderId={orderId}
+          isOpen={isCreateTripOpen}
+          onClose={() => setIsCreateTripOpen(false)}
+          totalCargoWeightKg={totalCargoWeightKg}
+        />
+      )}
     </div>
   )
 }

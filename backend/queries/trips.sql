@@ -3,19 +3,23 @@ SELECT
   t.trip_id,
   t.order_id,
   o.order_number,
+  c.company_name AS client_company,
   t.vehicle_id,
   v.vin AS vehicle_vin,
   t.driver_id,
   d.first_name,
   d.last_name,
+  r.planned_distance_km,
   t.start_time,
   t.end_time,
   t.actual_distance_km,
   t.status
 FROM Trips t
 JOIN Orders o ON o.order_id = t.order_id
+JOIN Clients c ON c.client_id = o.client_id
 JOIN Vehicles v ON v.vehicle_id = t.vehicle_id
 JOIN Drivers d ON d.driver_id = t.driver_id
+LEFT JOIN Routes r ON r.order_id = o.order_id
 WHERE (? = '' OR t.status = ?)
 ORDER BY t.trip_id DESC;
 
@@ -24,19 +28,23 @@ SELECT
   t.trip_id,
   t.order_id,
   o.order_number,
+  c.company_name AS client_company,
   t.vehicle_id,
   v.vin AS vehicle_vin,
   t.driver_id,
   d.first_name,
   d.last_name,
+  r.planned_distance_km,
   t.start_time,
   t.end_time,
   t.actual_distance_km,
   t.status
 FROM Trips t
 JOIN Orders o ON o.order_id = t.order_id
+JOIN Clients c ON c.client_id = o.client_id
 JOIN Vehicles v ON v.vehicle_id = t.vehicle_id
 JOIN Drivers d ON d.driver_id = t.driver_id
+LEFT JOIN Routes r ON r.order_id = o.order_id
 WHERE t.trip_id = ?
 LIMIT 1;
 

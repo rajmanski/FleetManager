@@ -15,6 +15,7 @@ import ClientsPage from './pages/ClientsPage.tsx'
 import OrdersPage from './pages/OrdersPage.tsx'
 import OrderDetailPage from './pages/OrderDetailPage.tsx'
 import RoutePlanningPage from './pages/RoutePlanningPage.tsx'
+import TripsPage from './pages/TripsPage.tsx'
 import { RequireAdmin } from './routes/RequireAdmin.tsx'
 import RequireAuth from './routes/RequireAuth.tsx'
 import { RequireRoutesAccess } from './routes/RequireRoutesAccess.tsx'
@@ -54,6 +55,14 @@ createRoot(document.getElementById('root')!).render(
               element={
                 <RequireRoutesAccess>
                   <OrdersPage />
+                </RequireRoutesAccess>
+              }
+            />
+            <Route
+              path="trips"
+              element={
+                <RequireRoutesAccess>
+                  <TripsPage />
                 </RequireRoutesAccess>
               }
             />

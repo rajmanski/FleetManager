@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"strconv"
 	"strings"
 	"time"
 
@@ -322,14 +323,21 @@ func toNullVehiclesStatus(status string) sqlc.NullVehiclesStatus {
 
 func mapTripRow(row sqlc.ListTripsRow) trips.Trip {
 	t := trips.Trip{
-		ID:          int64(row.TripID),
-		OrderID:     int64(row.OrderID),
-		OrderNumber: row.OrderNumber,
-		VehicleID:   int64(row.VehicleID),
-		VehicleVIN:  row.VehicleVin,
-		DriverID:    int64(row.DriverID),
-		DriverName:  row.FirstName + " " + row.LastName,
-		Status:      string(row.Status.TripsStatus),
+		ID:            int64(row.TripID),
+		OrderID:       int64(row.OrderID),
+		OrderNumber:   row.OrderNumber,
+		ClientCompany: row.ClientCompany,
+		VehicleID:     int64(row.VehicleID),
+		VehicleVIN:    row.VehicleVin,
+		DriverID:      int64(row.DriverID),
+		DriverName:    row.FirstName + " " + row.LastName,
+		Status:        string(row.Status.TripsStatus),
+	}
+	if row.PlannedDistanceKm.Valid {
+		if v, err := strconv.Atoi(row.PlannedDistanceKm.String); err == nil {
+			value := int32(v)
+			t.PlannedDistanceKm = &value
+		}
 	}
 	if row.StartTime.Valid {
 		v := row.StartTime.Time
@@ -348,14 +356,21 @@ func mapTripRow(row sqlc.ListTripsRow) trips.Trip {
 
 func mapGetTripRow(row sqlc.GetTripByIDRow) trips.Trip {
 	t := trips.Trip{
-		ID:          int64(row.TripID),
-		OrderID:     int64(row.OrderID),
-		OrderNumber: row.OrderNumber,
-		VehicleID:   int64(row.VehicleID),
-		VehicleVIN:  row.VehicleVin,
-		DriverID:    int64(row.DriverID),
-		DriverName:  row.FirstName + " " + row.LastName,
-		Status:      string(row.Status.TripsStatus),
+		ID:            int64(row.TripID),
+		OrderID:       int64(row.OrderID),
+		OrderNumber:   row.OrderNumber,
+		ClientCompany: row.ClientCompany,
+		VehicleID:     int64(row.VehicleID),
+		VehicleVIN:    row.VehicleVin,
+		DriverID:      int64(row.DriverID),
+		DriverName:    row.FirstName + " " + row.LastName,
+		Status:        string(row.Status.TripsStatus),
+	}
+	if row.PlannedDistanceKm.Valid {
+		if v, err := strconv.Atoi(row.PlannedDistanceKm.String); err == nil {
+			value := int32(v)
+			t.PlannedDistanceKm = &value
+		}
 	}
 	if row.StartTime.Valid {
 		v := row.StartTime.Time

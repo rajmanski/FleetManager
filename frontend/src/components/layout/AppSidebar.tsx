@@ -51,12 +51,19 @@ export function AppSidebar() {
               <span>Orders</span>
             </Link>
             <Link
+              to="/trips"
+              className={navItemClass(location.pathname.startsWith('/trips'))}
+            >
+              <Truck className="size-5" />
+              <span>Trips</span>
+            </Link>
+            <Link
               to="/routes"
-            className={navItemClass(location.pathname.startsWith('/routes'))}
-          >
-            <MapPin className="size-5" />
-            <span>Routes</span>
-          </Link>
+              className={navItemClass(location.pathname.startsWith('/routes'))}
+            >
+              <MapPin className="size-5" />
+              <span>Routes</span>
+            </Link>
           </>
         )}
         {role === 'Administrator' && (

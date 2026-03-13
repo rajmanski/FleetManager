@@ -42,8 +42,46 @@ export function useTrips() {
     },
   })
 
+  const startTripMutation = useMutation({
+    mutationFn: async (tripId: number) => {
+      const res = await api.patch<Trip>(`/api/v1/trips/${tripId}/start`)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trips'] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+  })
+
+  const finishTripMutation = useMutation({
+    mutationFn: async (args: { tripId: number; actualDistanceKm: number }) => {
+      const res = await api.patch<Trip>(`/api/v1/trips/${args.tripId}/finish`, {
+        actual_distance_km: args.actualDistanceKm,
+      })
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trips'] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+  })
+
+  const abortTripMutation = useMutation({
+    mutationFn: async (tripId: number) => {
+      const res = await api.patch<Trip>(`/api/v1/trips/${tripId}/abort`)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trips'] })
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    },
+  })
+
   return {
     createTripMutation,
+    startTripMutation,
+    finishTripMutation,
+    abortTripMutation,
   }
 }
 

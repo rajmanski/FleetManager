@@ -2,6 +2,7 @@ import type { Trip } from '@/hooks/trips/useTrips'
 import type { PaginationHelpers } from '@/hooks/usePagination'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { formatDateTime } from '@/utils/date'
+import { Link } from 'react-router-dom'
 
 type TripsTableProps = {
   trips: Trip[]
@@ -37,8 +38,22 @@ export function TripsTable({ trips, page, total, pagination }: TripsTableProps) 
             <tbody className="divide-y divide-gray-200 bg-white">
               {trips.map((trip) => (
                 <tr key={trip.id}>
-                  <td className="px-4 py-3">{trip.id}</td>
-                  <td className="px-4 py-3">{trip.order_number}</td>
+                  <td className="px-4 py-3">
+                    <Link
+                      to={`/trips/${trip.id}`}
+                      className="text-slate-700 underline-offset-2 hover:underline"
+                    >
+                      {trip.id}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Link
+                      to={`/orders/${trip.order_id}`}
+                      className="text-slate-700 underline-offset-2 hover:underline"
+                    >
+                      {trip.order_number}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3">{trip.client_company}</td>
                   <td className="px-4 py-3">{trip.vehicle_vin}</td>
                   <td className="px-4 py-3">{trip.driver_name}</td>

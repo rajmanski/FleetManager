@@ -1596,14 +1596,14 @@ Checksum: nip[9] == suma
 ---
 
 ### E7.11: Frontend - przypisywanie kierowcy do pojazdu (Assignments)
-- [ ] Strona/modal "Przypisania długoterminowe"
-- [ ] Lista aktywnych przypisań (Assignment WHERE assigned_to IS NULL)
-- [ ] Formularz dodawania:
+- [x] Strona/modal "Przypisania długoterminowe"
+- [x] Lista aktywnych przypisań (Assignment WHERE assigned_to IS NULL)
+- [x] Formularz dodawania:
   - Select: Pojazd
   - Select: Kierowca
   - DatePicker: Data rozpoczęcia (domyślnie dzisiaj)
-- [ ] Lista historycznych przypisań (opcjonalnie, rozwijana sekcja)
-- [ ] Przycisk "Zakończ przypisanie" (ustawia assigned_to=NOW())
+- [x] Lista historycznych przypisań (opcjonalnie, rozwijana sekcja)
+- [x] Przycisk "Zakończ przypisanie" (ustawia assigned_to=NOW())
 
 **Autoryzacja widoku:** Administrator, Mechanik
 

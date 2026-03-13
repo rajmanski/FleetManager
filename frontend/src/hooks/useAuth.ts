@@ -10,6 +10,7 @@ export function useAuth() {
       canManageVehicles: role === 'Administrator' || role === 'Mechanik',
       canManageDrivers: role === 'Administrator' || role === 'Mechanik',
       canAccessRoutes: role === 'Administrator' || role === 'Spedytor',
+      canAccessAssignments: role === 'Administrator' || role === 'Mechanik',
     }),
     [role]
   )

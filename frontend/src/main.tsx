@@ -17,9 +17,11 @@ import OrderDetailPage from './pages/OrderDetailPage.tsx'
 import RoutePlanningPage from './pages/RoutePlanningPage.tsx'
 import TripsPage from './pages/TripsPage.tsx'
 import TripDetailPage from './pages/TripDetailPage.tsx'
+import AssignmentsPage from './pages/AssignmentsPage.tsx'
 import { RequireAdmin } from './routes/RequireAdmin.tsx'
 import RequireAuth from './routes/RequireAuth.tsx'
 import { RequireRoutesAccess } from './routes/RequireRoutesAccess.tsx'
+import { RequireAssignmentsAccess } from './routes/RequireAssignmentsAccess.tsx'
 
 const queryClient = new QueryClient()
 
@@ -51,6 +53,14 @@ createRoot(document.getElementById('root')!).render(
             <Route path="vehicles/:id" element={<VehicleDetailsPage />} />
             <Route path="drivers" element={<DriversPage />} />
             <Route path="clients" element={<ClientsPage />} />
+            <Route
+              path="assignments"
+              element={
+                <RequireAssignmentsAccess>
+                  <AssignmentsPage />
+                </RequireAssignmentsAccess>
+              }
+            />
             <Route
               path="orders"
               element={

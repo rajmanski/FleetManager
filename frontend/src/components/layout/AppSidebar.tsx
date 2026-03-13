@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth'
 
 export function AppSidebar() {
   const location = useLocation()
-  const { role, canAccessRoutes } = useAuth()
+  const { role, canAccessRoutes, canAccessAssignments } = useAuth()
 
   const navItemClass = (active: boolean) =>
     `w-full flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
@@ -32,6 +32,15 @@ export function AppSidebar() {
           <UserCircle className="size-5" />
           <span>Drivers</span>
         </Link>
+        {canAccessAssignments && (
+          <Link
+            to="/assignments"
+            className={navItemClass(location.pathname.startsWith('/assignments'))}
+          >
+            <Users className="size-5" />
+            <span>Assignments</span>
+          </Link>
+        )}
         {(role === 'Administrator' || role === 'Spedytor') && (
           <Link
             to="/clients"

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { useVehicles } from '@/hooks/vehicles/useVehicles'
-import { useDrivers } from '@/hooks/drivers/useDrivers'
+import { useDrivers, type Driver } from '@/hooks/drivers/useDrivers'
 import { useTrips } from '@/hooks/trips/useTrips'
 
 type CreateTripModalProps = {
@@ -12,6 +12,25 @@ type CreateTripModalProps = {
   isOpen: boolean
   onClose: () => void
   totalCargoWeightKg: number
+  hasHazardousCargo: boolean
+}
+
+function isAdrValid(driver: Driver | undefined): boolean {
+  if (!driver?.adr_certified) {
+    return false
+  }
+
+  if (!driver.adr_expiry_date) {
+    return true
+  }
+
+  const expiry = new Date(driver.adr_expiry_date)
+  if (Number.isNaN(expiry.getTime())) {
+    return false
+  }
+
+  const now = new Date()
+  return expiry >= now
 }
 
 export function CreateTripModal({
@@ -19,6 +38,7 @@ export function CreateTripModal({
   isOpen,
   onClose,
   totalCargoWeightKg,
+  hasHazardousCargo,
 }: CreateTripModalProps) {
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>('')
   const [selectedDriverId, setSelectedDriverId] = useState<string>('')
@@ -62,6 +82,17 @@ export function CreateTripModal({
     )
   }, [driversQuery.data])
 
+  const eligibleDrivers = useMemo(() => {
+    if (!hasHazardousCargo) {
+      return availableDrivers
+    }
+
+    return availableDrivers.filter((driver) => isAdrValid(driver))
+  }, [availableDrivers, hasHazardousCargo])
+
+  const noEligibleDriversForHazardous =
+    hasHazardousCargo && eligibleDrivers.length === 0
+
   if (!isOpen) {
     return null
   }
@@ -69,6 +100,13 @@ export function CreateTripModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    if (noEligibleDriversForHazardous) {
+      setError(
+        'No available drivers with valid ADR certificate for hazardous cargo. Please adjust the schedule or update drivers.'
+      )
+      return
+    }
 
     if (!selectedVehicleId || !selectedDriverId || !startDateTime) {
       setError('Please select vehicle, driver and start time.')
@@ -131,12 +169,14 @@ export function CreateTripModal({
           label="Driver"
           value={selectedDriverId}
           onChange={(e) => setSelectedDriverId(e.target.value)}
-          options={availableDrivers.map((d) => ({
+          options={eligibleDrivers.map((d) => ({
             value: d.id,
-            label: `${d.first_name} ${d.last_name}`,
+            label: hasHazardousCargo
+              ? `${d.first_name} ${d.last_name} (ADR)`
+              : `${d.first_name} ${d.last_name}`,
           }))}
           required
-          disabled={driversQuery.isLoading || isSubmitting}
+          disabled={driversQuery.isLoading || isSubmitting || noEligibleDriversForHazardous}
         />
         <Input
           label="Planned start"
@@ -146,8 +186,22 @@ export function CreateTripModal({
           required
         />
         <p className="text-xs text-gray-500">
-          Total cargo weight: <span className="font-semibold">{totalCargoWeightKg} kg</span>
+          Total cargo weight:{' '}
+          <span className="font-semibold">{totalCargoWeightKg} kg</span>
         </p>
+        {hasHazardousCargo && (
+          <p className="text-xs text-amber-700">
+            This order contains hazardous cargo. Only drivers with a valid ADR
+            certificate are available for selection.
+          </p>
+        )}
+        {noEligibleDriversForHazardous && (
+          <p className="text-xs font-semibold text-red-600">
+            There are no available drivers with a valid ADR certificate for
+            hazardous cargo at the selected time. Please adjust the schedule or
+            update drivers.
+          </p>
+        )}
         <div className="mt-4 flex justify-end gap-2">
           <Button
             variant="secondary"

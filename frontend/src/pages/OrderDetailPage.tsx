@@ -54,6 +54,11 @@ export default function OrderDetailPage() {
     [cargo]
   )
 
+  const hasHazardousCargo = useMemo(
+    () => cargo.some((item) => item.cargoType === 'Hazardous'),
+    [cargo]
+  )
+
   if (orderId == null || Number.isNaN(orderId)) {
     return <ErrorMessage message="Invalid order ID" />
   }
@@ -239,6 +244,7 @@ export default function OrderDetailPage() {
           isOpen={isCreateTripOpen}
           onClose={() => setIsCreateTripOpen(false)}
           totalCargoWeightKg={totalCargoWeightKg}
+          hasHazardousCargo={hasHazardousCargo}
         />
       )}
     </div>

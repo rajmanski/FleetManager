@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
@@ -99,6 +99,18 @@ function AssignmentsPage() {
     () => driversQuery.data?.data ?? [],
     [driversQuery.data]
   )
+
+  useEffect(() => {
+    if (!vehicleId && vehicles.length > 0) {
+      setVehicleId(String(vehicles[0].id))
+    }
+  }, [vehicles, vehicleId])
+
+  useEffect(() => {
+    if (!driverId && drivers.length > 0) {
+      setDriverId(String(drivers[0].id))
+    }
+  }, [drivers, driverId])
 
   const handleCreateAssignment = (e: React.FormEvent) => {
     e.preventDefault()

@@ -82,6 +82,18 @@ export function CreateTripModal({
     )
   }, [driversQuery.data])
 
+  useEffect(() => {
+    if (!selectedVehicleId && availableVehicles.length > 0) {
+      setSelectedVehicleId(String(availableVehicles[0].id))
+    }
+  }, [availableVehicles, selectedVehicleId])
+
+  useEffect(() => {
+    if (!selectedDriverId && availableDrivers.length > 0) {
+      setSelectedDriverId(String(availableDrivers[0].id))
+    }
+  }, [availableDrivers, selectedDriverId])
+
   const eligibleDrivers = useMemo(() => {
     if (!hasHazardousCargo) {
       return availableDrivers

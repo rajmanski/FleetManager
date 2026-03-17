@@ -20,7 +20,7 @@ type InputProps = {
   label: string
   error?: string
   required?: boolean
-  type?: 'text' | 'email' | 'password' | 'number' | 'date'
+  type?: 'text' | 'email' | 'password' | 'number' | 'date' | 'datetime-local'
   variant?: InputVariant
   className?: string
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, 'className'>

@@ -15,6 +15,7 @@ import (
 	"fleet-management/internal/routes"
 	"fleet-management/internal/users"
 	"fleet-management/internal/orders"
+	"fleet-management/internal/maintenance"
 	"fleet-management/internal/trips"
 	"fleet-management/internal/vehicles"
 	"fleet-management/internal/waypoints"
@@ -63,6 +64,9 @@ func main() {
 	routesRepository := repository.NewRoutesRepository(queries)
 	ordersService := orders.NewService(ordersRepository)
 	ordersHandler := orders.NewHandler(ordersService)
+	maintenanceRepository := repository.NewMaintenanceRepository(queries)
+	maintenanceService := maintenance.NewService(maintenanceRepository)
+	maintenanceHandler := maintenance.NewHandler(maintenanceService)
 	cargoService := cargo.NewService(cargoRepository)
 	cargoHandler := cargo.NewHandler(cargoService)
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
@@ -383,6 +387,32 @@ func main() {
 		"/trips/:id/abort",
 		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
 		tripsHandler.AbortTrip,
+	)
+
+	protected.GET(
+		"/maintenance",
+		auth.RBACMiddleware(auth.ResourceMaintenancePolicy, auth.PermissionRead),
+		maintenanceHandler.ListMaintenance,
+	)
+	protected.GET(
+		"/maintenance/:id",
+		auth.RBACMiddleware(auth.ResourceMaintenancePolicy, auth.PermissionRead),
+		maintenanceHandler.GetMaintenance,
+	)
+	protected.POST(
+		"/maintenance",
+		auth.RBACMiddleware(auth.ResourceMaintenancePolicy, auth.PermissionWrite),
+		maintenanceHandler.CreateMaintenance,
+	)
+	protected.PUT(
+		"/maintenance/:id",
+		auth.RBACMiddleware(auth.ResourceMaintenancePolicy, auth.PermissionWrite),
+		maintenanceHandler.UpdateMaintenance,
+	)
+	protected.PATCH(
+		"/maintenance/:id/status",
+		auth.RBACMiddleware(auth.ResourceMaintenancePolicy, auth.PermissionWrite),
+		maintenanceHandler.UpdateMaintenanceStatus,
 	)
 
 	protected.GET("/db-check", func(c *gin.Context) {

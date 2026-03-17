@@ -97,6 +97,92 @@ func (ns NullDriversStatus) Value() (driver.Value, error) {
 	return string(ns.DriversStatus), nil
 }
 
+type MaintenanceStatus string
+
+const (
+	MaintenanceStatusScheduled  MaintenanceStatus = "Scheduled"
+	MaintenanceStatusInProgress MaintenanceStatus = "InProgress"
+	MaintenanceStatusCompleted  MaintenanceStatus = "Completed"
+)
+
+func (e *MaintenanceStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = MaintenanceStatus(s)
+	case string:
+		*e = MaintenanceStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for MaintenanceStatus: %T", src)
+	}
+	return nil
+}
+
+type NullMaintenanceStatus struct {
+	MaintenanceStatus MaintenanceStatus `json:"maintenance_status"`
+	Valid             bool              `json:"valid"` // Valid is true if MaintenanceStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullMaintenanceStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.MaintenanceStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.MaintenanceStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullMaintenanceStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.MaintenanceStatus), nil
+}
+
+type MaintenanceType string
+
+const (
+	MaintenanceTypeRoutine    MaintenanceType = "Routine"
+	MaintenanceTypeRepair     MaintenanceType = "Repair"
+	MaintenanceTypeTireChange MaintenanceType = "TireChange"
+)
+
+func (e *MaintenanceType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = MaintenanceType(s)
+	case string:
+		*e = MaintenanceType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for MaintenanceType: %T", src)
+	}
+	return nil
+}
+
+type NullMaintenanceType struct {
+	MaintenanceType MaintenanceType `json:"maintenance_type"`
+	Valid           bool            `json:"valid"` // Valid is true if MaintenanceType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullMaintenanceType) Scan(value interface{}) error {
+	if value == nil {
+		ns.MaintenanceType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.MaintenanceType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullMaintenanceType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.MaintenanceType), nil
+}
+
 type OrdersStatus string
 
 const (
@@ -326,6 +412,21 @@ type Driver struct {
 	LicenseExpiryDate sql.NullTime      `json:"license_expiry_date"`
 	AdrCertified      bool              `json:"adr_certified"`
 	AdrExpiryDate     sql.NullTime      `json:"adr_expiry_date"`
+}
+
+type Maintenance struct {
+	MaintenanceID int32             `json:"maintenance_id"`
+	VehicleID     int32             `json:"vehicle_id"`
+	StartDate     sql.NullTime      `json:"start_date"`
+	EndDate       sql.NullTime      `json:"end_date"`
+	Type          MaintenanceType   `json:"type"`
+	Status        MaintenanceStatus `json:"status"`
+	Description   sql.NullString    `json:"description"`
+	LaborCostPln  string            `json:"labor_cost_pln"`
+	PartsCostPln  string            `json:"parts_cost_pln"`
+	TotalCostPln  sql.NullString    `json:"total_cost_pln"`
+	CreatedAt     sql.NullTime      `json:"created_at"`
+	UpdatedAt     sql.NullTime      `json:"updated_at"`
 }
 
 type Order struct {

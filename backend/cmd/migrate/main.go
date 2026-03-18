@@ -16,6 +16,7 @@ import (
 func main() {
 	direction := flag.String("direction", "up", "Migration direction: up or down")
 	steps := flag.Int("steps", 0, "Number of steps (0 means all pending for up, one step for down)")
+	forceVersion := flag.Int("force_version", -1, "Force schema_migrations version (use to recover from dirty state)")
 	flag.Parse()
 
 	cfg, err := config.Load()
@@ -36,6 +37,12 @@ func main() {
 			log.Printf("migrate database close error: %v", dbErr)
 		}
 	}()
+
+	if *forceVersion >= 0 {
+		if err := m.Force(*forceVersion); err != nil {
+			log.Fatal("migrate force:", err)
+		}
+	}
 
 	switch *direction {
 	case "up":

@@ -1,6 +1,7 @@
 services:
   mysql:
     image: mysql:8.0
+    command: ["mysqld", "--log-bin-trust-function-creators=1"]
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}

@@ -18,6 +18,7 @@ import RoutePlanningPage from './pages/RoutePlanningPage.tsx'
 import TripsPage from './pages/TripsPage.tsx'
 import TripDetailPage from './pages/TripDetailPage.tsx'
 import AssignmentsPage from './pages/AssignmentsPage.tsx'
+import MaintenancePage from './pages/MaintenancePage.tsx'
 import { RequireAdmin } from './routes/RequireAdmin.tsx'
 import RequireAuth from './routes/RequireAuth.tsx'
 import { RequireRoutesAccess } from './routes/RequireRoutesAccess.tsx'
@@ -101,6 +102,7 @@ createRoot(document.getElementById('root')!).render(
                 </RequireRoutesAccess>
               }
             />
+            <Route path="maintenance" element={<MaintenancePage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -1,21 +1,27 @@
 import { useCallback, useMemo, useState } from 'react'
+import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
 import { MaintenanceFiltersBar } from '@/components/maintenance/MaintenanceFiltersBar'
 import { MaintenanceTable } from '@/components/maintenance/MaintenanceTable'
+import { MaintenanceFormModal } from '@/components/maintenance/MaintenanceFormModal'
 import { useMaintenanceList } from '@/hooks/maintenance/useMaintenance'
 import { useVehicles } from '@/hooks/vehicles/useVehicles'
 import { usePagination } from '@/hooks/usePagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
+import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
+import { extractApiError } from '@/utils/api'
+import type { MaintenanceFormValues } from '@/schemas/maintenance'
 
 function MaintenancePage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [vehicleFilter, setVehicleFilter] = useState('')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE)
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
 
-  const { maintenanceQuery } = useMaintenanceList({
+  const { maintenanceQuery, createMaintenanceMutation } = useMaintenanceList({
     page,
     limit,
     vehicleId: vehicleFilter,
@@ -70,9 +76,40 @@ function MaintenancePage() {
     [pagination],
   )
 
+  const createCallbacks = useMutationCallbacks({
+    successMessage: 'Maintenance record created',
+    errorFallback: 'Failed to create maintenance record',
+    onSuccess: () => setIsCreateOpen(false),
+  })
+
+  const handleCreate = (values: MaintenanceFormValues) => {
+    const startDateIso = `${values.scheduledDate}T00:00:00Z`
+    createMaintenanceMutation.mutate(
+      {
+        vehicleId: Number(values.vehicleId),
+        startDate: startDateIso,
+        type: values.type,
+        description: values.description?.trim() ? values.description.trim() : undefined,
+        laborCostPln: values.laborCostPln,
+        partsCostPln: values.partsCostPln,
+      },
+      createCallbacks,
+    )
+  }
+
+  const createError = extractApiError(createMaintenanceMutation.error)
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Maintenance" description="Service and repair records" />
+      <PageHeader
+        title="Maintenance"
+        description="Service and repair records"
+        action={
+          <Button type="button" onClick={() => setIsCreateOpen(true)}>
+            Add maintenance
+          </Button>
+        }
+      />
 
       <MaintenanceFiltersBar
         statusFilter={statusFilter}
@@ -96,6 +133,18 @@ function MaintenancePage() {
           total={total}
           pagination={pagination}
           vehicleLabelsById={vehicleLabelsById}
+        />
+      )}
+
+      {isCreateOpen && (
+        <MaintenanceFormModal
+          title="Add maintenance"
+          submitLabel="Create"
+          vehicleOptions={vehicleOptions}
+          onClose={() => setIsCreateOpen(false)}
+          onSubmit={handleCreate}
+          isSubmitting={createMaintenanceMutation.isPending}
+          errorMessage={createError}
         />
       )}
     </div>

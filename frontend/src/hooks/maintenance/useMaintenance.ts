@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/services/api'
 
 export type Maintenance = {
@@ -30,12 +30,23 @@ export type UseMaintenanceListParams = {
   status: string
 }
 
+export type CreateMaintenancePayload = {
+  vehicleId: number
+  startDate: string
+  type: 'Routine' | 'Repair' | 'TireChange'
+  description?: string
+  laborCostPln: number
+  partsCostPln: number
+}
+
 export function useMaintenanceList({
   page,
   limit,
   vehicleId,
   status,
 }: UseMaintenanceListParams) {
+  const queryClient = useQueryClient()
+
   const maintenanceQuery = useQuery({
     queryKey: ['maintenance', { page, limit, vehicleId, status }],
     queryFn: async () => {
@@ -51,6 +62,16 @@ export function useMaintenanceList({
     },
   })
 
-  return { maintenanceQuery }
+  const createMaintenanceMutation = useMutation({
+    mutationFn: async (payload: CreateMaintenancePayload) => {
+      const res = await api.post<Maintenance>('/api/v1/maintenance', payload)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['maintenance'] })
+    },
+  })
+
+  return { maintenanceQuery, createMaintenanceMutation }
 }
 

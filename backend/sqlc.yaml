@@ -3,7 +3,17 @@ sql:
   - engine: "mysql"
     queries: "queries/"
     schema:
-      - "migrations/"
+      - "migrations/000001_init_schema.up.sql"
+      - "migrations/000002_create_vehicles.up.sql"
+      - "migrations/000003_create_drivers.up.sql"
+      - "migrations/000004_create_assignments_and_trips.up.sql"
+      - "migrations/000005_add_driver_certifications.up.sql"
+      - "migrations/000006_create_cargo.up.sql"
+      - "migrations/000007_create_alerts.up.sql"
+      - "migrations/000008_create_routes_and_waypoints.up.sql"
+      - "migrations/000009_add_cargo_destination_waypoint.up.sql"
+      - "migrations/000010_create_maintenance.up.sql"
+      - "migrations/000012_add_next_inspection_date_column_only.up.sql"
     gen:
       go:
         package: "sqlc"

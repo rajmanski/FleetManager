@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -66,7 +67,7 @@ func (r *VehiclesRepository) ListVehicles(ctx context.Context, query vehicles.Li
 
 	result := make([]vehicles.Vehicle, 0, len(rows))
 	for _, row := range rows {
-		result = append(result, mapVehicleRow(row))
+		result = append(result, mapListVehicleRow(row))
 	}
 	return result, total, nil
 }
@@ -226,6 +227,73 @@ func (r *VehiclesRepository) GetTripInRange(ctx context.Context, vehicleID int64
 	return info, nil
 }
 
+func (r *VehiclesRepository) ListVehicleMaintenanceHistory(ctx context.Context, vehicleID int64, typeFilter, statusFilter string) ([]vehicles.MaintenanceHistoryItem, error) {
+	typeColumnValue := interface{}(typeFilter)
+	typ := sqlc.MaintenanceType(typeFilter)
+	if strings.TrimSpace(typeFilter) == "" {
+		typeColumnValue = ""
+		typ = sqlc.MaintenanceTypeRoutine
+	}
+
+	statusColumnValue := interface{}(statusFilter)
+	status := sqlc.MaintenanceStatus(statusFilter)
+	if strings.TrimSpace(statusFilter) == "" {
+		statusColumnValue = ""
+		status = sqlc.MaintenanceStatusScheduled
+	}
+
+	rows, err := r.queries.ListVehicleMaintenanceHistory(ctx, sqlc.ListVehicleMaintenanceHistoryParams{
+		VehicleID: int32(vehicleID),
+		Column2:   typeColumnValue,
+		Type:      typ,
+		Column4:   statusColumnValue,
+		Status:    status,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]vehicles.MaintenanceHistoryItem, 0, len(rows))
+	for _, row := range rows {
+		item := vehicles.MaintenanceHistoryItem{
+			MaintenanceID: int64(row.MaintenanceID),
+			Type:          string(row.Type),
+			Status:        string(row.Status),
+		}
+		if row.StartDate.Valid {
+			s := row.StartDate.Time.Format("2006-01-02")
+			item.StartDate = &s
+		}
+		if row.EndDate.Valid {
+			s := row.EndDate.Time.Format("2006-01-02")
+			item.EndDate = &s
+		}
+		if row.Description.Valid {
+			s := row.Description.String
+			item.Description = &s
+		}
+		{
+			var f float64
+			fmt.Sscanf(row.PartsCostPln, "%f", &f)
+			item.PartsCostPln = f
+		}
+		{
+			var f float64
+			fmt.Sscanf(row.LaborCostPln, "%f", &f)
+			item.LaborCostPln = f
+		}
+		{
+			var f float64
+			if row.TotalCostPln.Valid {
+				fmt.Sscanf(row.TotalCostPln.String, "%f", &f)
+			}
+			item.TotalCostPln = f
+		}
+		result = append(result, item)
+	}
+	return result, nil
+}
+
 func toNullString(value *string) sql.NullString {
 	if value == nil {
 		return sql.NullString{}
@@ -262,6 +330,51 @@ func toNullStatus(status string) sqlc.NullVehiclesStatus {
 }
 
 func mapVehicleRow(row sqlc.Vehicle) vehicles.Vehicle {
+	vehicle := vehicles.Vehicle{
+		ID:     int64(row.VehicleID),
+		VIN:    row.Vin,
+		Status: string(row.Status.VehiclesStatus),
+	}
+	if row.PlateNumber.Valid {
+		value := row.PlateNumber.String
+		vehicle.PlateNumber = &value
+	}
+	if row.Brand.Valid {
+		value := row.Brand.String
+		vehicle.Brand = &value
+	}
+	if row.Model.Valid {
+		value := row.Model.String
+		vehicle.Model = &value
+	}
+	if row.CapacityKg.Valid {
+		value := row.CapacityKg.Int32
+		vehicle.CapacityKg = &value
+	}
+	if row.ProductionYear.Valid {
+		value := row.ProductionYear.Int16
+		vehicle.ProductionYear = &value
+	}
+	if row.CurrentMileageKm.Valid {
+		value := row.CurrentMileageKm.Int32
+		vehicle.CurrentMileageKm = &value
+	}
+	if row.CreatedAt.Valid {
+		value := row.CreatedAt.Time
+		vehicle.CreatedAt = &value
+	}
+	if row.DeletedAt.Valid {
+		value := row.DeletedAt.Time
+		vehicle.DeletedAt = &value
+	}
+	if row.UpdatedAt.Valid {
+		value := row.UpdatedAt.Time
+		vehicle.UpdatedAt = &value
+	}
+	return vehicle
+}
+
+func mapListVehicleRow(row sqlc.ListVehiclesRow) vehicles.Vehicle {
 	vehicle := vehicles.Vehicle{
 		ID:     int64(row.VehicleID),
 		VIN:    row.Vin,

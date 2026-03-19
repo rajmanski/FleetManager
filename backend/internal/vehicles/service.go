@@ -222,3 +222,44 @@ func isAllowedStatus(status string) bool {
 		return false
 	}
 }
+
+func (s *Service) GetVehicleMaintenanceHistory(ctx context.Context, vehicleID int64, typeFilter, statusFilter string) ([]MaintenanceHistoryItem, error) {
+	if vehicleID <= 0 {
+		return nil, ErrInvalidInput
+	}
+
+	// Ensure vehicle exists (consistent 404 behavior).
+	if _, err := s.repo.GetVehicleByID(ctx, vehicleID); err != nil {
+		return nil, err
+	}
+
+	typeFilter = strings.TrimSpace(typeFilter)
+	if typeFilter != "" && !isAllowedMaintenanceType(typeFilter) {
+		return nil, ErrInvalidInput
+	}
+
+	statusFilter = strings.TrimSpace(statusFilter)
+	if statusFilter != "" && !isAllowedMaintenanceStatus(statusFilter) {
+		return nil, ErrInvalidInput
+	}
+
+	return s.repo.ListVehicleMaintenanceHistory(ctx, vehicleID, typeFilter, statusFilter)
+}
+
+func isAllowedMaintenanceType(value string) bool {
+	switch value {
+	case "Routine", "Repair", "TireChange":
+		return true
+	default:
+		return false
+	}
+}
+
+func isAllowedMaintenanceStatus(value string) bool {
+	switch value {
+	case "Scheduled", "InProgress", "Completed":
+		return true
+	default:
+		return false
+	}
+}

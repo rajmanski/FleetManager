@@ -178,6 +178,11 @@ func main() {
 		assignmentsHandler.GetVehicleAssignmentHistory,
 	)
 	protected.GET(
+		"/vehicles/:id/maintenance-history",
+		auth.RBACMiddleware(auth.ResourceMaintenancePolicy, auth.PermissionRead),
+		vehiclesHandler.GetVehicleMaintenanceHistory,
+	)
+	protected.GET(
 		"/drivers",
 		auth.RBACMiddleware(auth.ResourceDrivers, auth.PermissionRead),
 		driversHandler.ListDrivers,

@@ -132,3 +132,20 @@ WHERE vehicle_id = ?
   )
 ORDER BY start_time
 LIMIT 1;
+
+-- name: ListVehicleMaintenanceHistory :many
+SELECT
+  maintenance_id,
+  type,
+  status,
+  start_date,
+  end_date,
+  parts_cost_pln,
+  labor_cost_pln,
+  total_cost_pln,
+  description
+FROM Maintenance
+WHERE vehicle_id = ?
+  AND (? = '' OR type = ?)
+  AND (? = '' OR status = ?)
+ORDER BY COALESCE(end_date, start_date, created_at) DESC, maintenance_id DESC;

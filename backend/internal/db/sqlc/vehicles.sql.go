@@ -243,6 +243,83 @@ func (q *Queries) HasActiveVehicleWithVINExcludingID(ctx context.Context, arg Ha
 	return exists, err
 }
 
+const listVehicleMaintenanceHistory = `-- name: ListVehicleMaintenanceHistory :many
+SELECT
+  maintenance_id,
+  type,
+  status,
+  start_date,
+  end_date,
+  parts_cost_pln,
+  labor_cost_pln,
+  total_cost_pln,
+  description
+FROM Maintenance
+WHERE vehicle_id = ?
+  AND (? = '' OR type = ?)
+  AND (? = '' OR status = ?)
+ORDER BY COALESCE(end_date, start_date, created_at) DESC, maintenance_id DESC
+`
+
+type ListVehicleMaintenanceHistoryParams struct {
+	VehicleID int32             `json:"vehicle_id"`
+	Column2   interface{}       `json:"column_2"`
+	Type      MaintenanceType   `json:"type"`
+	Column4   interface{}       `json:"column_4"`
+	Status    MaintenanceStatus `json:"status"`
+}
+
+type ListVehicleMaintenanceHistoryRow struct {
+	MaintenanceID int32             `json:"maintenance_id"`
+	Type          MaintenanceType   `json:"type"`
+	Status        MaintenanceStatus `json:"status"`
+	StartDate     sql.NullTime      `json:"start_date"`
+	EndDate       sql.NullTime      `json:"end_date"`
+	PartsCostPln  string            `json:"parts_cost_pln"`
+	LaborCostPln  string            `json:"labor_cost_pln"`
+	TotalCostPln  sql.NullString    `json:"total_cost_pln"`
+	Description   sql.NullString    `json:"description"`
+}
+
+func (q *Queries) ListVehicleMaintenanceHistory(ctx context.Context, arg ListVehicleMaintenanceHistoryParams) ([]ListVehicleMaintenanceHistoryRow, error) {
+	rows, err := q.db.QueryContext(ctx, listVehicleMaintenanceHistory,
+		arg.VehicleID,
+		arg.Column2,
+		arg.Type,
+		arg.Column4,
+		arg.Status,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListVehicleMaintenanceHistoryRow
+	for rows.Next() {
+		var i ListVehicleMaintenanceHistoryRow
+		if err := rows.Scan(
+			&i.MaintenanceID,
+			&i.Type,
+			&i.Status,
+			&i.StartDate,
+			&i.EndDate,
+			&i.PartsCostPln,
+			&i.LaborCostPln,
+			&i.TotalCostPln,
+			&i.Description,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listVehicles = `-- name: ListVehicles :many
 SELECT
   vehicle_id,
@@ -276,7 +353,22 @@ type ListVehiclesParams struct {
 	Offset  int32              `json:"offset"`
 }
 
-func (q *Queries) ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]Vehicle, error) {
+type ListVehiclesRow struct {
+	VehicleID        int32              `json:"vehicle_id"`
+	Vin              string             `json:"vin"`
+	PlateNumber      sql.NullString     `json:"plate_number"`
+	Brand            sql.NullString     `json:"brand"`
+	Model            sql.NullString     `json:"model"`
+	ProductionYear   sql.NullInt16      `json:"production_year"`
+	CapacityKg       sql.NullInt32      `json:"capacity_kg"`
+	CurrentMileageKm sql.NullInt32      `json:"current_mileage_km"`
+	Status           NullVehiclesStatus `json:"status"`
+	DeletedAt        sql.NullTime       `json:"deleted_at"`
+	CreatedAt        sql.NullTime       `json:"created_at"`
+	UpdatedAt        sql.NullTime       `json:"updated_at"`
+}
+
+func (q *Queries) ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]ListVehiclesRow, error) {
 	rows, err := q.db.QueryContext(ctx, listVehicles,
 		arg.Column1,
 		arg.Column2,
@@ -291,9 +383,9 @@ func (q *Queries) ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]V
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Vehicle
+	var items []ListVehiclesRow
 	for rows.Next() {
-		var i Vehicle
+		var i ListVehiclesRow
 		if err := rows.Scan(
 			&i.VehicleID,
 			&i.Vin,

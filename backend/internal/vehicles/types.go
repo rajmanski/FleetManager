@@ -71,3 +71,15 @@ type VehicleTripInfo struct {
 	Start  time.Time
 	End    *time.Time
 }
+
+type MaintenanceHistoryItem struct {
+	MaintenanceID int64   `json:"maintenance_id"`
+	Type          string  `json:"type"`
+	Status        string  `json:"status"`
+	StartDate     *string `json:"start_date,omitempty"`
+	EndDate       *string `json:"end_date,omitempty"`
+	PartsCostPln  float64 `json:"parts_cost_pln"`
+	LaborCostPln  float64 `json:"labor_cost_pln"`
+	TotalCostPln  float64 `json:"total_cost_pln"`
+	Description   *string `json:"description,omitempty"`
+}

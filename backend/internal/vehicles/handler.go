@@ -266,6 +266,33 @@ func (h *Handler) GetVehicleAvailability(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+func (h *Handler) GetVehicleMaintenanceHistory(c *gin.Context) {
+	vehicleID, err := parseVehicleIDParam(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle id"})
+		return
+	}
+
+	typeFilter := c.Query("type")
+	statusFilter := c.Query("status")
+
+	rows, err := h.service.GetVehicleMaintenanceHistory(c.Request.Context(), vehicleID, typeFilter, statusFilter)
+	if err != nil {
+		if errors.Is(err, ErrVehicleNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "vehicle not found"})
+			return
+		}
+		if errors.Is(err, ErrInvalidInput) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, rows)
+}
+
 func parseVehicleIDParam(c *gin.Context) (int64, error) {
 	value := c.Param("id")
 	vehicleID, err := strconv.ParseInt(value, 10, 64)

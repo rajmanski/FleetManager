@@ -6,6 +6,7 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { MileageHistorySection } from '@/components/vehicles/MileageHistorySection'
+import { MaintenanceHistorySection } from '@/components/vehicles/MaintenanceHistorySection'
 import { VehicleFormModal } from '@/components/vehicles/VehicleFormModal'
 import { useVehicle } from '@/hooks/vehicles/useVehicle'
 import type { VehicleMutationPayload } from '@/hooks/vehicles/useVehicles'
@@ -86,6 +87,8 @@ function VehicleDetailsPage() {
         currentMileageKm={vehicle.current_mileage_km}
         recordedAt={vehicle.updated_at ?? vehicle.created_at}
       />
+
+      <MaintenanceHistorySection vehicleId={vehicle.id} />
 
       <div className="flex flex-wrap items-center gap-2">
         {canManage && !isDeleted && (

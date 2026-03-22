@@ -1,4 +1,14 @@
-import { BarChart3, Building2, ClipboardList, MapPin, Truck, Users, UserCircle, Wrench } from 'lucide-react'
+import {
+  BarChart3,
+  Building2,
+  ClipboardList,
+  MapPin,
+  Shield,
+  Truck,
+  Users,
+  UserCircle,
+  Wrench,
+} from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -81,6 +91,13 @@ export function AppSidebar() {
         >
           <Wrench className="size-5" />
           <span>Maintenance</span>
+        </Link>
+        <Link
+          to="/insurance"
+          className={navItemClass(location.pathname.startsWith('/insurance'))}
+        >
+          <Shield className="size-5" />
+          <span>Insurance</span>
         </Link>
         {role === 'Administrator' && (
           <Link

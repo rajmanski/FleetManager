@@ -97,6 +97,48 @@ func (ns NullDriversStatus) Value() (driver.Value, error) {
 	return string(ns.DriversStatus), nil
 }
 
+type InsurancePoliciesType string
+
+const (
+	InsurancePoliciesTypeOC InsurancePoliciesType = "OC"
+	InsurancePoliciesTypeAC InsurancePoliciesType = "AC"
+)
+
+func (e *InsurancePoliciesType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = InsurancePoliciesType(s)
+	case string:
+		*e = InsurancePoliciesType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for InsurancePoliciesType: %T", src)
+	}
+	return nil
+}
+
+type NullInsurancePoliciesType struct {
+	InsurancePoliciesType InsurancePoliciesType `json:"insurance_policies_type"`
+	Valid                 bool                  `json:"valid"` // Valid is true if InsurancePoliciesType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullInsurancePoliciesType) Scan(value interface{}) error {
+	if value == nil {
+		ns.InsurancePoliciesType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.InsurancePoliciesType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullInsurancePoliciesType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.InsurancePoliciesType), nil
+}
+
 type MaintenanceStatus string
 
 const (
@@ -412,6 +454,19 @@ type Driver struct {
 	LicenseExpiryDate sql.NullTime      `json:"license_expiry_date"`
 	AdrCertified      bool              `json:"adr_certified"`
 	AdrExpiryDate     sql.NullTime      `json:"adr_expiry_date"`
+}
+
+type InsurancePolicy struct {
+	ID           int32                 `json:"id"`
+	VehicleID    int32                 `json:"vehicle_id"`
+	Type         InsurancePoliciesType `json:"type"`
+	PolicyNumber string                `json:"policy_number"`
+	Insurer      string                `json:"insurer"`
+	StartDate    time.Time             `json:"start_date"`
+	EndDate      time.Time             `json:"end_date"`
+	Cost         string                `json:"cost"`
+	CreatedAt    sql.NullTime          `json:"created_at"`
+	UpdatedAt    sql.NullTime          `json:"updated_at"`
 }
 
 type Maintenance struct {

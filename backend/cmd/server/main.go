@@ -11,6 +11,7 @@ import (
 	"fleet-management/internal/config"
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/drivers"
+	"fleet-management/internal/insurance"
 	"fleet-management/internal/repository"
 	"fleet-management/internal/routes"
 	"fleet-management/internal/users"
@@ -67,6 +68,9 @@ func main() {
 	maintenanceRepository := repository.NewMaintenanceRepository(queries)
 	maintenanceService := maintenance.NewService(maintenanceRepository)
 	maintenanceHandler := maintenance.NewHandler(maintenanceService)
+	insuranceRepository := repository.NewInsuranceRepository(queries)
+	insuranceService := insurance.NewService(insuranceRepository)
+	insuranceHandler := insurance.NewHandler(insuranceService)
 	cargoService := cargo.NewService(cargoRepository)
 	cargoHandler := cargo.NewHandler(cargoService)
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
@@ -418,6 +422,32 @@ func main() {
 		"/maintenance/:id/status",
 		auth.RBACMiddleware(auth.ResourceMaintenancePolicy, auth.PermissionWrite),
 		maintenanceHandler.UpdateMaintenanceStatus,
+	)
+
+	protected.GET(
+		"/insurance",
+		auth.RBACMiddleware(auth.ResourceMaintenancePolicy, auth.PermissionRead),
+		insuranceHandler.ListInsurancePolicies,
+	)
+	protected.GET(
+		"/insurance/:id",
+		auth.RBACMiddleware(auth.ResourceMaintenancePolicy, auth.PermissionRead),
+		insuranceHandler.GetInsurancePolicy,
+	)
+	protected.POST(
+		"/insurance",
+		auth.RBACMiddleware(auth.ResourceMaintenancePolicy, auth.PermissionWrite),
+		insuranceHandler.CreateInsurancePolicy,
+	)
+	protected.PUT(
+		"/insurance/:id",
+		auth.RBACMiddleware(auth.ResourceMaintenancePolicy, auth.PermissionWrite),
+		insuranceHandler.UpdateInsurancePolicy,
+	)
+	protected.DELETE(
+		"/insurance/:id",
+		auth.RBACMiddleware(auth.ResourceMaintenancePolicy, auth.PermissionWrite),
+		insuranceHandler.DeleteInsurancePolicy,
 	)
 
 	protected.GET("/db-check", func(c *gin.Context) {

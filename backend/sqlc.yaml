@@ -14,6 +14,7 @@ sql:
       - "migrations/000009_add_cargo_destination_waypoint.up.sql"
       - "migrations/000010_create_maintenance.up.sql"
       - "migrations/000012_add_next_inspection_date_column_only.up.sql"
+      - "migrations/000013_create_insurance_policies.up.sql"
     gen:
       go:
         package: "sqlc"

@@ -11,6 +11,33 @@ type CreateFuelRequest struct {
 	Location     string  `json:"location" binding:"required,min=1"`
 }
 
+type FuelLog struct {
+	ID             int64      `json:"id"`
+	VehicleID     int64      `json:"vehicle_id"`
+	Date          time.Time  `json:"date"`
+	Liters        float64    `json:"liters"`
+	PricePerLiter float64    `json:"price_per_liter"`
+	TotalCost     float64    `json:"total_cost"`
+	Mileage       int64      `json:"mileage"`
+	Location      string     `json:"location"`
+	CreatedAt     *time.Time `json:"created_at,omitempty"`
+}
+
+type ListFuelLogsQuery struct {
+	VehicleID int64
+	DateFrom  string
+	DateTo    string
+	Page       int32
+	Limit      int32
+}
+
+type ListFuelLogsResponse struct {
+	Data  []FuelLog `json:"data"`
+	Page  int32      `json:"page"`
+	Limit int32      `json:"limit"`
+	Total int64      `json:"total"`
+}
+
 type FuelAlert struct {
 	Type    string `json:"type"`
 	Message string `json:"message"`

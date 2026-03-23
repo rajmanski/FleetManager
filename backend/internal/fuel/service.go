@@ -110,3 +110,67 @@ func parseDate(dateStr string) (time.Time, error) {
 	return time.Parse("2006-01-02", d)
 }
 
+const (
+	defaultListPage  int32 = 1
+	defaultListLimit int32 = 50
+	maxListLimit     int32 = 100
+)
+
+func (s *Service) ListFuelLogs(ctx context.Context, query ListFuelLogsQuery) (ListFuelLogsResponse, error) {
+	page := query.Page
+	limit := query.Limit
+	if page <= 0 {
+		page = defaultListPage
+	}
+	if limit <= 0 {
+		limit = defaultListLimit
+	}
+	if limit > maxListLimit {
+		return ListFuelLogsResponse{}, ErrInvalidInput
+	}
+
+	vehicleID := query.VehicleID
+	if vehicleID < 0 {
+		return ListFuelLogsResponse{}, ErrInvalidInput
+	}
+
+	dateFromStr := strings.TrimSpace(query.DateFrom)
+	dateToStr := strings.TrimSpace(query.DateTo)
+
+	var fromTime, toTime time.Time
+	var err error
+	if dateFromStr != "" {
+		fromTime, err = parseDate(dateFromStr)
+		if err != nil {
+			return ListFuelLogsResponse{}, ErrInvalidInput
+		}
+	}
+	if dateToStr != "" {
+		toTime, err = parseDate(dateToStr)
+		if err != nil {
+			return ListFuelLogsResponse{}, ErrInvalidInput
+		}
+	}
+	if dateFromStr != "" && dateToStr != "" && toTime.Before(fromTime) {
+		return ListFuelLogsResponse{}, ErrInvalidInput
+	}
+
+	rows, total, err := s.repo.ListFuelLogs(ctx, ListFuelLogsQuery{
+		VehicleID: vehicleID,
+		DateFrom:  dateFromStr,
+		DateTo:    dateToStr,
+		Page:       page,
+		Limit:      limit,
+	})
+	if err != nil {
+		return ListFuelLogsResponse{}, err
+	}
+
+	return ListFuelLogsResponse{
+		Data:  rows,
+		Page:  page,
+		Limit: limit,
+		Total: total,
+	}, nil
+}
+

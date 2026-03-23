@@ -10,5 +10,6 @@ type Repository interface {
 		input CreateFuelRepositoryInput,
 		alert *CreateFuelAlertInput,
 	) (int64, error)
+	ListFuelLogs(ctx context.Context, query ListFuelLogsQuery) ([]FuelLog, int64, error)
 }
 

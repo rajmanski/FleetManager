@@ -44,3 +44,28 @@ FROM (
   WHERE vehicle_id = ?
 ) AS x;
 
+-- name: ListFuelLogs :many
+SELECT
+  id,
+  vehicle_id,
+  date,
+  liters,
+  price_per_liter,
+  total_cost,
+  mileage,
+  location,
+  created_at
+FROM fuel_logs
+WHERE (? = 0 OR vehicle_id = ?)
+  AND (? = '' OR date >= ?)
+  AND (? = '' OR date <= ?)
+ORDER BY id DESC
+LIMIT ? OFFSET ?;
+
+-- name: CountFuelLogs :one
+SELECT COUNT(*)
+FROM fuel_logs
+WHERE (? = 0 OR vehicle_id = ?)
+  AND (? = '' OR date >= ?)
+  AND (? = '' OR date <= ?);
+

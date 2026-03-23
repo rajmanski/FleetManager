@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
+	"time"
 
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/fuel"
@@ -137,5 +139,104 @@ func (r *FuelRepository) CreateFuelLogAndUpdate(
 		return 0, err
 	}
 	return fuelLogID, nil
+}
+
+func (r *FuelRepository) ListFuelLogs(ctx context.Context, query fuel.ListFuelLogsQuery) ([]fuel.FuelLog, int64, error) {
+	offset := (query.Page - 1) * query.Limit
+
+	vehicleFilter := interface{}(0)
+	vehicleID := int32(0)
+	if query.VehicleID > 0 {
+		vehicleFilter = 1
+		vehicleID = int32(query.VehicleID)
+	}
+
+	dateFromStr := strings.TrimSpace(query.DateFrom)
+	dateToStr := strings.TrimSpace(query.DateTo)
+
+	var dateFrom time.Time
+	var dateTo time.Time
+	dateFromColumn := interface{}("")
+	dateToColumn := interface{}("")
+
+	if dateFromStr != "" {
+		t, err := time.Parse("2006-01-02", dateFromStr)
+		if err != nil {
+			return nil, 0, fuel.ErrInvalidInput
+		}
+		dateFrom = t
+		dateFromColumn = dateFromStr
+	}
+	if dateToStr != "" {
+		t, err := time.Parse("2006-01-02", dateToStr)
+		if err != nil {
+			return nil, 0, fuel.ErrInvalidInput
+		}
+		dateTo = t
+		dateToColumn = dateToStr
+	}
+
+	rows, err := r.queries.ListFuelLogs(ctx, sqlc.ListFuelLogsParams{
+		Column1: vehicleFilter,
+		VehicleID: vehicleID,
+		Column3: dateFromColumn,
+		Date:    dateFrom,
+		Column5: dateToColumn,
+		Date_2:  dateTo,
+		Limit:   query.Limit,
+		Offset:  offset,
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	total, err := r.queries.CountFuelLogs(ctx, sqlc.CountFuelLogsParams{
+		Column1: vehicleFilter,
+		VehicleID: vehicleID,
+		Column3: dateFromColumn,
+		Date:    dateFrom,
+		Column5: dateToColumn,
+		Date_2:  dateTo,
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	out := make([]fuel.FuelLog, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, mapFuelLogRow(row))
+	}
+	return out, total, nil
+}
+
+func mapFuelLogRow(row sqlc.FuelLog) fuel.FuelLog {
+	var liters float64
+	_, _ = fmt.Sscanf(row.Liters, "%f", &liters)
+
+	var pricePerLiter float64
+	_, _ = fmt.Sscanf(row.PricePerLiter, "%f", &pricePerLiter)
+
+	var totalCost float64
+	if row.TotalCost != "" {
+		_, _ = fmt.Sscanf(row.TotalCost, "%f", &totalCost)
+	}
+
+	var createdAt *time.Time
+	if row.CreatedAt.Valid {
+		t := row.CreatedAt.Time
+		createdAt = &t
+	}
+
+	return fuel.FuelLog{
+		ID:             int64(row.ID),
+		VehicleID:     int64(row.VehicleID),
+		Date:          row.Date,
+		Liters:        liters,
+		PricePerLiter: pricePerLiter,
+		TotalCost:     totalCost,
+		Mileage:       int64(row.Mileage),
+		Location:      row.Location,
+		CreatedAt:     createdAt,
+	}
 }
 

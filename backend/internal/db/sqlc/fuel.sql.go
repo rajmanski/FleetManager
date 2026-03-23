@@ -11,6 +11,37 @@ import (
 	"time"
 )
 
+const countFuelLogs = `-- name: CountFuelLogs :one
+SELECT COUNT(*)
+FROM fuel_logs
+WHERE (? = 0 OR vehicle_id = ?)
+  AND (? = '' OR date >= ?)
+  AND (? = '' OR date <= ?)
+`
+
+type CountFuelLogsParams struct {
+	Column1   interface{} `json:"column_1"`
+	VehicleID int32       `json:"vehicle_id"`
+	Column3   interface{} `json:"column_3"`
+	Date      time.Time   `json:"date"`
+	Column5   interface{} `json:"column_5"`
+	Date_2    time.Time   `json:"date_2"`
+}
+
+func (q *Queries) CountFuelLogs(ctx context.Context, arg CountFuelLogsParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countFuelLogs,
+		arg.Column1,
+		arg.VehicleID,
+		arg.Column3,
+		arg.Date,
+		arg.Column5,
+		arg.Date_2,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createFuelLog = `-- name: CreateFuelLog :execlastid
 INSERT INTO fuel_logs (
   vehicle_id,
@@ -90,6 +121,78 @@ func (q *Queries) GetVehicleCurrentMileage(ctx context.Context, vehicleID int32)
 	var current_mileage_km sql.NullInt32
 	err := row.Scan(&current_mileage_km)
 	return current_mileage_km, err
+}
+
+const listFuelLogs = `-- name: ListFuelLogs :many
+SELECT
+  id,
+  vehicle_id,
+  date,
+  liters,
+  price_per_liter,
+  total_cost,
+  mileage,
+  location,
+  created_at
+FROM fuel_logs
+WHERE (? = 0 OR vehicle_id = ?)
+  AND (? = '' OR date >= ?)
+  AND (? = '' OR date <= ?)
+ORDER BY id DESC
+LIMIT ? OFFSET ?
+`
+
+type ListFuelLogsParams struct {
+	Column1   interface{} `json:"column_1"`
+	VehicleID int32       `json:"vehicle_id"`
+	Column3   interface{} `json:"column_3"`
+	Date      time.Time   `json:"date"`
+	Column5   interface{} `json:"column_5"`
+	Date_2    time.Time   `json:"date_2"`
+	Limit     int32       `json:"limit"`
+	Offset    int32       `json:"offset"`
+}
+
+func (q *Queries) ListFuelLogs(ctx context.Context, arg ListFuelLogsParams) ([]FuelLog, error) {
+	rows, err := q.db.QueryContext(ctx, listFuelLogs,
+		arg.Column1,
+		arg.VehicleID,
+		arg.Column3,
+		arg.Date,
+		arg.Column5,
+		arg.Date_2,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FuelLog
+	for rows.Next() {
+		var i FuelLog
+		if err := rows.Scan(
+			&i.ID,
+			&i.VehicleID,
+			&i.Date,
+			&i.Liters,
+			&i.PricePerLiter,
+			&i.TotalCost,
+			&i.Mileage,
+			&i.Location,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const updateVehicleMileage = `-- name: UpdateVehicleMileage :execrows

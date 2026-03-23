@@ -6,6 +6,7 @@ package sqlc
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Querier interface {
@@ -26,6 +27,7 @@ type Querier interface {
 	CreateCargo(ctx context.Context, arg CreateCargoParams) (int64, error)
 	CreateClient(ctx context.Context, arg CreateClientParams) (int64, error)
 	CreateDriver(ctx context.Context, arg CreateDriverParams) (int64, error)
+	CreateFuelLog(ctx context.Context, arg CreateFuelLogParams) (int64, error)
 	CreateInsurancePolicy(ctx context.Context, arg CreateInsurancePolicyParams) (int64, error)
 	CreateMaintenance(ctx context.Context, arg CreateMaintenanceParams) (int64, error)
 	CreateOrder(ctx context.Context, arg CreateOrderParams) (int64, error)
@@ -41,6 +43,9 @@ type Querier interface {
 	GetActiveAssignmentVehicleID(ctx context.Context, driverID int32) (int32, error)
 	GetAdminUserByID(ctx context.Context, userID int32) (GetAdminUserByIDRow, error)
 	GetAssignmentByID(ctx context.Context, assignmentID int32) (GetAssignmentByIDRow, error)
+	// Avg current consumption across entire fuel history (norm).
+	// Uses LAG to get previous mileage per log; excludes first log (prev is NULL) and non-positive deltas.
+	GetAvgFuelConsumptionPer100Km(ctx context.Context, vehicleID int32) (interface{}, error)
 	GetCargoByID(ctx context.Context, cargoID int32) (GetCargoByIDRow, error)
 	GetClientByID(ctx context.Context, clientID int32) (Client, error)
 	GetDeletedClientNIPByID(ctx context.Context, clientID int32) (string, error)
@@ -60,6 +65,7 @@ type Querier interface {
 	GetTripStatusByID(ctx context.Context, tripID int32) (NullTripsStatus, error)
 	GetUserByLogin(ctx context.Context, username string) (GetUserByLoginRow, error)
 	GetVehicleByID(ctx context.Context, vehicleID int32) (GetVehicleByIDRow, error)
+	GetVehicleCurrentMileage(ctx context.Context, vehicleID int32) (sql.NullInt32, error)
 	GetVehicleTripInRange(ctx context.Context, arg GetVehicleTripInRangeParams) (GetVehicleTripInRangeRow, error)
 	GetWaypointByID(ctx context.Context, waypointID int32) (Routewaypoint, error)
 	GetWaypointRouteID(ctx context.Context, waypointID int32) (int32, error)
@@ -116,6 +122,7 @@ type Querier interface {
 	UpdateTripStatusStart(ctx context.Context, tripID int32) (int64, error)
 	UpdateUserLoginState(ctx context.Context, arg UpdateUserLoginStateParams) error
 	UpdateVehicle(ctx context.Context, arg UpdateVehicleParams) (int64, error)
+	UpdateVehicleMileage(ctx context.Context, arg UpdateVehicleMileageParams) (int64, error)
 	UpdateVehicleStatus(ctx context.Context, arg UpdateVehicleStatusParams) (int64, error)
 	UpdateVehicleStatusByID(ctx context.Context, arg UpdateVehicleStatusByIDParams) (int64, error)
 	UpdateWaypoint(ctx context.Context, arg UpdateWaypointParams) (int64, error)

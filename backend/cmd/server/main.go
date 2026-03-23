@@ -11,6 +11,7 @@ import (
 	"fleet-management/internal/config"
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/drivers"
+	"fleet-management/internal/fuel"
 	"fleet-management/internal/insurance"
 	"fleet-management/internal/repository"
 	"fleet-management/internal/routes"
@@ -71,6 +72,9 @@ func main() {
 	insuranceRepository := repository.NewInsuranceRepository(queries)
 	insuranceService := insurance.NewService(insuranceRepository)
 	insuranceHandler := insurance.NewHandler(insuranceService)
+	fuelRepository := repository.NewFuelRepository(dbConn)
+	fuelService := fuel.NewService(fuelRepository)
+	fuelHandler := fuel.NewHandler(fuelService)
 	cargoService := cargo.NewService(cargoRepository)
 	cargoHandler := cargo.NewHandler(cargoService)
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
@@ -448,6 +452,12 @@ func main() {
 		"/insurance/:id",
 		auth.RBACMiddleware(auth.ResourceMaintenancePolicy, auth.PermissionWrite),
 		insuranceHandler.DeleteInsurancePolicy,
+	)
+
+	protected.POST(
+		"/fuel",
+		auth.RBACMiddleware(auth.ResourceCostsFuel, auth.PermissionWrite),
+		fuelHandler.CreateFuelLog,
 	)
 
 	protected.GET("/db-check", func(c *gin.Context) {

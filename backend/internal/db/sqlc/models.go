@@ -456,6 +456,18 @@ type Driver struct {
 	AdrExpiryDate     sql.NullTime      `json:"adr_expiry_date"`
 }
 
+type FuelLog struct {
+	ID            int32        `json:"id"`
+	VehicleID     int32        `json:"vehicle_id"`
+	Date          time.Time    `json:"date"`
+	Liters        string       `json:"liters"`
+	PricePerLiter string       `json:"price_per_liter"`
+	TotalCost     string       `json:"total_cost"`
+	Mileage       uint32       `json:"mileage"`
+	Location      string       `json:"location"`
+	CreatedAt     sql.NullTime `json:"created_at"`
+}
+
 type InsurancePolicy struct {
 	ID           int32                 `json:"id"`
 	VehicleID    int32                 `json:"vehicle_id"`

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/services/api'
 
 export type InsurancePolicy = {
@@ -27,7 +27,19 @@ export type UseInsuranceListParams = {
   vehicleId: string
 }
 
+export type CreateInsurancePayload = {
+  vehicleId: number
+  type: 'OC' | 'AC'
+  policyNumber: string
+  insurer: string
+  startDate: string
+  endDate: string
+  cost: number
+}
+
 export function useInsuranceList({ page, limit, vehicleId }: UseInsuranceListParams) {
+  const queryClient = useQueryClient()
+
   const insuranceQuery = useQuery({
     queryKey: ['insurance', { page, limit, vehicleId }],
     queryFn: async () => {
@@ -42,5 +54,15 @@ export function useInsuranceList({ page, limit, vehicleId }: UseInsuranceListPar
     },
   })
 
-  return { insuranceQuery }
+  const createInsuranceMutation = useMutation({
+    mutationFn: async (payload: CreateInsurancePayload) => {
+      const res = await api.post<InsurancePolicy>('/api/v1/insurance', payload)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['insurance'] })
+    },
+  })
+
+  return { insuranceQuery, createInsuranceMutation }
 }

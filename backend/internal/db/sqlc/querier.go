@@ -89,7 +89,7 @@ type Querier interface {
 	ListDrivers(ctx context.Context, arg ListDriversParams) ([]ListDriversRow, error)
 	ListDriversForPESELSearch(ctx context.Context, arg ListDriversForPESELSearchParams) ([]ListDriversForPESELSearchRow, error)
 	ListDriversWithExpiringCertificates(ctx context.Context) ([]ListDriversWithExpiringCertificatesRow, error)
-	ListFuelLogs(ctx context.Context, arg ListFuelLogsParams) ([]FuelLog, error)
+	ListFuelLogs(ctx context.Context, arg ListFuelLogsParams) ([]ListFuelLogsRow, error)
 	ListInsurancePolicies(ctx context.Context, arg ListInsurancePoliciesParams) ([]InsurancePolicy, error)
 	ListMaintenance(ctx context.Context, arg ListMaintenanceParams) ([]Maintenance, error)
 	ListOrders(ctx context.Context, arg ListOrdersParams) ([]ListOrdersRow, error)

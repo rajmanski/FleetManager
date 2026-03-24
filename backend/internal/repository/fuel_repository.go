@@ -126,10 +126,11 @@ func (r *FuelRepository) CreateFuelLogAndUpdate(
 	}
 
 	if alert != nil {
+		alertMessage := fmt.Sprintf("%s (fuel_log_id=%d)", alert.Message, fuelLogID)
 		if _, err := qtx.CreateAlert(ctx, sqlc.CreateAlertParams{
 			VehicleID:  sql.NullInt32{Int32: int32(input.VehicleID), Valid: true},
 			AlertType:  alert.AlertType,
-			Message:    sql.NullString{String: alert.Message, Valid: true},
+			Message:    sql.NullString{String: alertMessage, Valid: true},
 		}); err != nil {
 			return 0, err
 		}
@@ -209,7 +210,7 @@ func (r *FuelRepository) ListFuelLogs(ctx context.Context, query fuel.ListFuelLo
 	return out, total, nil
 }
 
-func mapFuelLogRow(row sqlc.FuelLog) fuel.FuelLog {
+func mapFuelLogRow(row sqlc.ListFuelLogsRow) fuel.FuelLog {
 	var liters float64
 	_, _ = fmt.Sscanf(row.Liters, "%f", &liters)
 
@@ -237,6 +238,7 @@ func mapFuelLogRow(row sqlc.FuelLog) fuel.FuelLog {
 		Mileage:       int64(row.Mileage),
 		Location:      row.Location,
 		CreatedAt:     createdAt,
+		HasAlert:      row.HasAlert,
 	}
 }
 

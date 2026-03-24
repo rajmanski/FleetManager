@@ -21,6 +21,7 @@ type FuelLog struct {
 	Mileage       int64      `json:"mileage"`
 	Location      string     `json:"location"`
 	CreatedAt     *time.Time `json:"created_at,omitempty"`
+	HasAlert      bool       `json:"has_alert"`
 }
 
 type ListFuelLogsQuery struct {

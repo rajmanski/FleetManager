@@ -133,11 +133,18 @@ SELECT
   total_cost,
   mileage,
   location,
-  created_at
+  created_at,
+  EXISTS(
+    SELECT 1
+    FROM Alerts a
+    WHERE a.vehicle_id = fuel_logs.vehicle_id
+      AND a.alert_type = 'high_consumption'
+      AND a.message LIKE CONCAT('%(fuel_log_id=', fuel_logs.id, ')%')
+  ) AS has_alert
 FROM fuel_logs
-WHERE (? = 0 OR vehicle_id = ?)
-  AND (? = '' OR date >= ?)
-  AND (? = '' OR date <= ?)
+WHERE (? = 0 OR fuel_logs.vehicle_id = ?)
+  AND (? = '' OR fuel_logs.date >= ?)
+  AND (? = '' OR fuel_logs.date <= ?)
 ORDER BY id DESC
 LIMIT ? OFFSET ?
 `
@@ -153,7 +160,20 @@ type ListFuelLogsParams struct {
 	Offset    int32       `json:"offset"`
 }
 
-func (q *Queries) ListFuelLogs(ctx context.Context, arg ListFuelLogsParams) ([]FuelLog, error) {
+type ListFuelLogsRow struct {
+	ID            int32        `json:"id"`
+	VehicleID     int32        `json:"vehicle_id"`
+	Date          time.Time    `json:"date"`
+	Liters        string       `json:"liters"`
+	PricePerLiter string       `json:"price_per_liter"`
+	TotalCost     string       `json:"total_cost"`
+	Mileage       uint32       `json:"mileage"`
+	Location      string       `json:"location"`
+	CreatedAt     sql.NullTime `json:"created_at"`
+	HasAlert      bool         `json:"has_alert"`
+}
+
+func (q *Queries) ListFuelLogs(ctx context.Context, arg ListFuelLogsParams) ([]ListFuelLogsRow, error) {
 	rows, err := q.db.QueryContext(ctx, listFuelLogs,
 		arg.Column1,
 		arg.VehicleID,
@@ -168,9 +188,9 @@ func (q *Queries) ListFuelLogs(ctx context.Context, arg ListFuelLogsParams) ([]F
 		return nil, err
 	}
 	defer rows.Close()
-	var items []FuelLog
+	var items []ListFuelLogsRow
 	for rows.Next() {
-		var i FuelLog
+		var i ListFuelLogsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.VehicleID,
@@ -181,6 +201,7 @@ func (q *Queries) ListFuelLogs(ctx context.Context, arg ListFuelLogsParams) ([]F
 			&i.Mileage,
 			&i.Location,
 			&i.CreatedAt,
+			&i.HasAlert,
 		); err != nil {
 			return nil, err
 		}

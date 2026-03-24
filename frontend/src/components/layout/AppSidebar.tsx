@@ -2,6 +2,7 @@ import {
   BarChart3,
   Building2,
   ClipboardList,
+  Fuel,
   MapPin,
   Shield,
   Truck,
@@ -98,6 +99,13 @@ export function AppSidebar() {
         >
           <Shield className="size-5" />
           <span>Insurance</span>
+        </Link>
+        <Link
+          to="/fuel"
+          className={navItemClass(location.pathname.startsWith('/fuel'))}
+        >
+          <Fuel className="size-5" />
+          <span>Fuel logs</span>
         </Link>
         {role === 'Administrator' && (
           <Link

@@ -54,11 +54,18 @@ SELECT
   total_cost,
   mileage,
   location,
-  created_at
+  created_at,
+  EXISTS(
+    SELECT 1
+    FROM Alerts a
+    WHERE a.vehicle_id = fuel_logs.vehicle_id
+      AND a.alert_type = 'high_consumption'
+      AND a.message LIKE CONCAT('%(fuel_log_id=', fuel_logs.id, ')%')
+  ) AS has_alert
 FROM fuel_logs
-WHERE (? = 0 OR vehicle_id = ?)
-  AND (? = '' OR date >= ?)
-  AND (? = '' OR date <= ?)
+WHERE (? = 0 OR fuel_logs.vehicle_id = ?)
+  AND (? = '' OR fuel_logs.date >= ?)
+  AND (? = '' OR fuel_logs.date <= ?)
 ORDER BY id DESC
 LIMIT ? OFFSET ?;
 

@@ -1,22 +1,30 @@
 import { useCallback, useMemo, useState } from 'react'
+import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
 import { FuelFiltersBar } from '@/components/fuel/FuelFiltersBar'
+import { FuelFormModal } from '@/components/fuel/FuelFormModal'
 import { FuelTable } from '@/components/fuel/FuelTable'
 import { useFuelLogs } from '@/hooks/fuel/useFuel'
+import { useAuth } from '@/hooks/useAuth'
 import { useVehicles } from '@/hooks/vehicles/useVehicles'
 import { usePagination } from '@/hooks/usePagination'
+import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
+import { extractApiError } from '@/utils/api'
+import type { FuelFormValues } from '@/schemas/fuel'
 
 function FuelPage() {
+  const { canManageFuelLogs } = useAuth()
   const [vehicleFilter, setVehicleFilter] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE)
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
 
-  const { fuelLogsQuery } = useFuelLogs({
+  const { fuelLogsQuery, createFuelLogMutation } = useFuelLogs({
     page,
     limit,
     vehicleId: vehicleFilter,
@@ -41,6 +49,7 @@ function FuelPage() {
     return vehicles.map((v) => ({
       value: String(v.id),
       label: `${v.vin}${v.plate_number ? ` (${v.plate_number})` : ''}`,
+      currentMileageKm: v.current_mileage_km ?? 0,
     }))
   }, [vehiclesQuery.data])
 
@@ -79,11 +88,40 @@ function FuelPage() {
     [pagination],
   )
 
+  const createCallbacks = useMutationCallbacks({
+    successMessage: 'Fuel log created',
+    errorFallback: 'Failed to create fuel log',
+    onSuccess: () => setIsCreateOpen(false),
+  })
+
+  const handleCreate = (values: FuelFormValues) => {
+    createFuelLogMutation.mutate(
+      {
+        vehicle_id: Number(values.vehicleId),
+        date: values.date,
+        liters: values.liters,
+        price_per_liter: values.pricePerLiter,
+        mileage: values.mileage,
+        location: values.location.trim(),
+      },
+      createCallbacks,
+    )
+  }
+
+  const createError = extractApiError(createFuelLogMutation.error)
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Fuel logs"
         description="Fuel refuels with mileage and anomaly warning marker"
+        action={
+          canManageFuelLogs ? (
+            <Button type="button" onClick={() => setIsCreateOpen(true)}>
+              Add fuel log
+            </Button>
+          ) : undefined
+        }
       />
 
       <FuelFiltersBar
@@ -108,6 +146,18 @@ function FuelPage() {
           total={total}
           pagination={pagination}
           vehicleLabelsById={vehicleLabelsById}
+        />
+      )}
+
+      {isCreateOpen && (
+        <FuelFormModal
+          title="Add fuel log"
+          submitLabel="Create"
+          vehicleOptions={vehicleOptions}
+          onClose={() => setIsCreateOpen(false)}
+          onSubmit={handleCreate}
+          isSubmitting={createFuelLogMutation.isPending}
+          errorMessage={createError}
         />
       )}
     </div>

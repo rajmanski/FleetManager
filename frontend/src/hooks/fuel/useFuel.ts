@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/services/api'
 
 export type FuelLog = {
@@ -29,7 +29,18 @@ export type UseFuelLogsParams = {
   dateTo: string
 }
 
+export type CreateFuelPayload = {
+  vehicle_id: number
+  date: string
+  liters: number
+  price_per_liter: number
+  mileage: number
+  location: string
+}
+
 export function useFuelLogs({ page, limit, vehicleId, dateFrom, dateTo }: UseFuelLogsParams) {
+  const queryClient = useQueryClient()
+
   const fuelLogsQuery = useQuery({
     queryKey: ['fuel-logs', { page, limit, vehicleId, dateFrom, dateTo }],
     queryFn: async () => {
@@ -46,6 +57,17 @@ export function useFuelLogs({ page, limit, vehicleId, dateFrom, dateTo }: UseFue
     },
   })
 
-  return { fuelLogsQuery }
+  const createFuelLogMutation = useMutation({
+    mutationFn: async (payload: CreateFuelPayload) => {
+      const res = await api.post('/api/v1/fuel', payload)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fuel-logs'] })
+      queryClient.invalidateQueries({ queryKey: ['vehicles'] })
+    },
+  })
+
+  return { fuelLogsQuery, createFuelLogMutation }
 }
 

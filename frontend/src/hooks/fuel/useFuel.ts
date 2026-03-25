@@ -12,6 +12,10 @@ export type FuelLog = {
   location: string
   created_at?: string
   has_alert: boolean
+  is_anomaly: boolean
+  consumption_per_100km: number
+  avg_consumption_per_100km: number
+  deviation_percent: number
 }
 
 export type ListFuelLogsResponse = {

@@ -14,6 +14,7 @@ import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { extractApiError } from '@/utils/api'
 import type { FuelFormValues } from '@/schemas/fuel'
+import { FilterCheckbox } from '@/components/ui/FilterCheckbox'
 
 function FuelPage() {
   const { canManageFuelLogs } = useAuth()
@@ -23,6 +24,7 @@ function FuelPage() {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [onlyAnomalies, setOnlyAnomalies] = useState(false)
 
   const { fuelLogsQuery, createFuelLogMutation } = useFuelLogs({
     page,
@@ -43,6 +45,14 @@ function FuelPage() {
   const total = fuelLogsQuery.data?.total ?? 0
   const pagination = usePagination({ page, setPage, limit, setLimit, total })
   const rows = useMemo(() => fuelLogsQuery.data?.data ?? [], [fuelLogsQuery.data])
+  const anomaliesCount = useMemo(
+    () => rows.filter((r) => r.is_anomaly).length,
+    [rows],
+  )
+  const visibleRows = useMemo(
+    () => (onlyAnomalies ? rows.filter((r) => r.is_anomaly) : rows),
+    [onlyAnomalies, rows],
+  )
 
   const vehicleOptions = useMemo(() => {
     const vehicles = vehiclesQuery.data?.data ?? []
@@ -116,11 +126,24 @@ function FuelPage() {
         title="Fuel logs"
         description="Fuel refuels with mileage and anomaly warning marker"
         action={
-          canManageFuelLogs ? (
-            <Button type="button" onClick={() => setIsCreateOpen(true)}>
-              Add fuel log
-            </Button>
-          ) : undefined
+          <div className="flex flex-wrap items-center gap-3">
+            {canManageFuelLogs ? (
+              <Button type="button" onClick={() => setIsCreateOpen(true)}>
+                Add fuel log
+              </Button>
+            ) : undefined}
+
+            <div className="flex items-center gap-3">
+              <FilterCheckbox
+                checked={onlyAnomalies}
+                onChange={setOnlyAnomalies}
+                label="Pokaż tylko anomalie"
+              />
+              <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                Anomalie: {anomaliesCount}
+              </span>
+            </div>
+          </div>
         }
       />
 
@@ -141,7 +164,7 @@ function FuelPage() {
 
       {fuelLogsQuery.isSuccess && (
         <FuelTable
-          rows={rows}
+          rows={visibleRows}
           page={page}
           total={total}
           pagination={pagination}

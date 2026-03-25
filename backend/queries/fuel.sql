@@ -45,6 +45,37 @@ FROM (
 ) AS x;
 
 -- name: ListFuelLogs :many
+WITH annotated AS (
+  SELECT
+    fuel_logs.*,
+    LAG(fuel_logs.mileage) OVER (
+      PARTITION BY fuel_logs.vehicle_id
+      ORDER BY fuel_logs.date, fuel_logs.id
+    ) AS prev_mileage,
+    EXISTS(
+      SELECT 1
+      FROM Alerts a
+      WHERE a.fuel_log_id = fuel_logs.id
+        AND a.alert_type = 'fuel_anomaly'
+    ) AS has_alert
+  FROM fuel_logs
+  WHERE (? = 0 OR fuel_logs.vehicle_id = ?)
+),
+computed AS (
+  SELECT
+    annotated.*,
+    CASE
+      WHEN annotated.prev_mileage IS NULL OR (annotated.mileage - annotated.prev_mileage) <= 0 THEN NULL
+      ELSE (CAST(annotated.liters AS DOUBLE) / (annotated.mileage - annotated.prev_mileage)) * 100
+    END AS consumption_per_100km_raw,
+    AVG(
+      CASE
+        WHEN annotated.prev_mileage IS NULL OR (annotated.mileage - annotated.prev_mileage) <= 0 THEN NULL
+        ELSE (CAST(annotated.liters AS DOUBLE) / (annotated.mileage - annotated.prev_mileage)) * 100
+      END
+    ) OVER (PARTITION BY annotated.vehicle_id) AS avg_consumption_per_100km_raw
+  FROM annotated
+)
 SELECT
   id,
   vehicle_id,
@@ -55,17 +86,23 @@ SELECT
   mileage,
   location,
   created_at,
-  EXISTS(
-    SELECT 1
-    FROM Alerts a
-    WHERE a.vehicle_id = fuel_logs.vehicle_id
-      AND a.fuel_log_id = fuel_logs.id
-      AND a.alert_type = 'fuel_anomaly'
-  ) AS has_alert
-FROM fuel_logs
-WHERE (? = 0 OR fuel_logs.vehicle_id = ?)
-  AND (? = '' OR fuel_logs.date >= ?)
-  AND (? = '' OR fuel_logs.date <= ?)
+  has_alert,
+  has_alert AS is_anomaly,
+  ROUND(COALESCE(consumption_per_100km_raw, 0), 1) AS consumption_per_100km,
+  ROUND(COALESCE(avg_consumption_per_100km_raw, 0), 1) AS avg_consumption_per_100km,
+  ROUND(
+    CASE
+      WHEN consumption_per_100km_raw IS NULL
+        OR avg_consumption_per_100km_raw IS NULL
+        OR avg_consumption_per_100km_raw <= 0
+      THEN 0
+      ELSE ABS(consumption_per_100km_raw - avg_consumption_per_100km_raw) / avg_consumption_per_100km_raw * 100
+    END,
+    1
+  ) AS deviation_percent
+FROM computed
+WHERE (? = '' OR date >= ?)
+  AND (? = '' OR date <= ?)
 ORDER BY id DESC
 LIMIT ? OFFSET ?;
 

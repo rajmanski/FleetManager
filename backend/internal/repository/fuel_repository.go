@@ -230,6 +230,10 @@ func mapFuelLogRow(row sqlc.ListFuelLogsRow) fuel.FuelLog {
 		Location:      row.Location,
 		CreatedAt:     createdAt,
 		HasAlert:      row.HasAlert,
+		IsAnomaly:      row.IsAnomaly,
+		ConsumptionPer100km:    row.ConsumptionPer100km,
+		AvgConsumptionPer100km: row.AvgConsumptionPer100km,
+		DeviationPercent:       row.DeviationPercent,
 	}
 }
 

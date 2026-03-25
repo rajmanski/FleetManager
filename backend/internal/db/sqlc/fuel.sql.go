@@ -124,6 +124,37 @@ func (q *Queries) GetVehicleCurrentMileage(ctx context.Context, vehicleID int32)
 }
 
 const listFuelLogs = `-- name: ListFuelLogs :many
+WITH annotated AS (
+  SELECT
+    fuel_logs.id, fuel_logs.vehicle_id, fuel_logs.date, fuel_logs.liters, fuel_logs.price_per_liter, fuel_logs.total_cost, fuel_logs.mileage, fuel_logs.location, fuel_logs.created_at,
+    LAG(fuel_logs.mileage) OVER (
+      PARTITION BY fuel_logs.vehicle_id
+      ORDER BY fuel_logs.date, fuel_logs.id
+    ) AS prev_mileage,
+    EXISTS(
+      SELECT 1
+      FROM Alerts a
+      WHERE a.fuel_log_id = fuel_logs.id
+        AND a.alert_type = 'fuel_anomaly'
+    ) AS has_alert
+  FROM fuel_logs
+  WHERE (? = 0 OR fuel_logs.vehicle_id = ?)
+),
+computed AS (
+  SELECT
+    annotated.id, annotated.vehicle_id, annotated.date, annotated.liters, annotated.price_per_liter, annotated.total_cost, annotated.mileage, annotated.location, annotated.created_at, annotated.prev_mileage, annotated.has_alert,
+    CASE
+      WHEN annotated.prev_mileage IS NULL OR (annotated.mileage - annotated.prev_mileage) <= 0 THEN NULL
+      ELSE (CAST(annotated.liters AS DOUBLE) / (annotated.mileage - annotated.prev_mileage)) * 100
+    END AS consumption_per_100km_raw,
+    AVG(
+      CASE
+        WHEN annotated.prev_mileage IS NULL OR (annotated.mileage - annotated.prev_mileage) <= 0 THEN NULL
+        ELSE (CAST(annotated.liters AS DOUBLE) / (annotated.mileage - annotated.prev_mileage)) * 100
+      END
+    ) OVER (PARTITION BY annotated.vehicle_id) AS avg_consumption_per_100km_raw
+  FROM annotated
+)
 SELECT
   id,
   vehicle_id,
@@ -134,17 +165,23 @@ SELECT
   mileage,
   location,
   created_at,
-  EXISTS(
-    SELECT 1
-    FROM Alerts a
-    WHERE a.vehicle_id = fuel_logs.vehicle_id
-      AND a.fuel_log_id = fuel_logs.id
-      AND a.alert_type = 'fuel_anomaly'
-  ) AS has_alert
-FROM fuel_logs
-WHERE (? = 0 OR fuel_logs.vehicle_id = ?)
-  AND (? = '' OR fuel_logs.date >= ?)
-  AND (? = '' OR fuel_logs.date <= ?)
+  has_alert,
+  has_alert AS is_anomaly,
+  ROUND(COALESCE(consumption_per_100km_raw, 0), 1) AS consumption_per_100km,
+  ROUND(COALESCE(avg_consumption_per_100km_raw, 0), 1) AS avg_consumption_per_100km,
+  ROUND(
+    CASE
+      WHEN consumption_per_100km_raw IS NULL
+        OR avg_consumption_per_100km_raw IS NULL
+        OR avg_consumption_per_100km_raw <= 0
+      THEN 0
+      ELSE ABS(consumption_per_100km_raw - avg_consumption_per_100km_raw) / avg_consumption_per_100km_raw * 100
+    END,
+    1
+  ) AS deviation_percent
+FROM computed
+WHERE (? = '' OR date >= ?)
+  AND (? = '' OR date <= ?)
 ORDER BY id DESC
 LIMIT ? OFFSET ?
 `
@@ -161,16 +198,20 @@ type ListFuelLogsParams struct {
 }
 
 type ListFuelLogsRow struct {
-	ID            int32        `json:"id"`
-	VehicleID     int32        `json:"vehicle_id"`
-	Date          time.Time    `json:"date"`
-	Liters        string       `json:"liters"`
-	PricePerLiter string       `json:"price_per_liter"`
-	TotalCost     string       `json:"total_cost"`
-	Mileage       uint32       `json:"mileage"`
-	Location      string       `json:"location"`
-	CreatedAt     sql.NullTime `json:"created_at"`
-	HasAlert      bool         `json:"has_alert"`
+	ID                     int32        `json:"id"`
+	VehicleID              int32        `json:"vehicle_id"`
+	Date                   time.Time    `json:"date"`
+	Liters                 string       `json:"liters"`
+	PricePerLiter          string       `json:"price_per_liter"`
+	TotalCost              string       `json:"total_cost"`
+	Mileage                uint32       `json:"mileage"`
+	Location               string       `json:"location"`
+	CreatedAt              sql.NullTime `json:"created_at"`
+	HasAlert               bool         `json:"has_alert"`
+	IsAnomaly              bool         `json:"is_anomaly"`
+	ConsumptionPer100km    float64      `json:"consumption_per_100km"`
+	AvgConsumptionPer100km float64      `json:"avg_consumption_per_100km"`
+	DeviationPercent       float64      `json:"deviation_percent"`
 }
 
 func (q *Queries) ListFuelLogs(ctx context.Context, arg ListFuelLogsParams) ([]ListFuelLogsRow, error) {
@@ -202,6 +243,10 @@ func (q *Queries) ListFuelLogs(ctx context.Context, arg ListFuelLogsParams) ([]L
 			&i.Location,
 			&i.CreatedAt,
 			&i.HasAlert,
+			&i.IsAnomaly,
+			&i.ConsumptionPer100km,
+			&i.AvgConsumptionPer100km,
+			&i.DeviationPercent,
 		); err != nil {
 			return nil, err
 		}

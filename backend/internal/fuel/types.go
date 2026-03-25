@@ -22,6 +22,10 @@ type FuelLog struct {
 	Location      string     `json:"location"`
 	CreatedAt     *time.Time `json:"created_at,omitempty"`
 	HasAlert      bool       `json:"has_alert"`
+	IsAnomaly      bool       `json:"is_anomaly"`
+	ConsumptionPer100km    float64 `json:"consumption_per_100km"`
+	AvgConsumptionPer100km float64 `json:"avg_consumption_per_100km"`
+	DeviationPercent       float64 `json:"deviation_percent"`
 }
 
 type ListFuelLogsQuery struct {

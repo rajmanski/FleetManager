@@ -2,6 +2,10 @@
 INSERT INTO Alerts (vehicle_id, alert_type, message, is_resolved)
 VALUES (?, ?, ?, 0);
 
+-- name: CreateFuelAnomalyAlert :execlastid
+INSERT INTO Alerts (vehicle_id, fuel_log_id, alert_type, message, is_resolved)
+VALUES (?, ?, 'fuel_anomaly', ?, 0);
+
 -- name: GetActiveAssignmentVehicleID :one
 SELECT vehicle_id
 FROM Assignments

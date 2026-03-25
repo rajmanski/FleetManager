@@ -59,8 +59,8 @@ SELECT
     SELECT 1
     FROM Alerts a
     WHERE a.vehicle_id = fuel_logs.vehicle_id
-      AND a.alert_type = 'high_consumption'
-      AND a.message LIKE CONCAT('%(fuel_log_id=', fuel_logs.id, ')%')
+      AND a.fuel_log_id = fuel_logs.id
+      AND a.alert_type = 'fuel_anomaly'
   ) AS has_alert
 FROM fuel_logs
 WHERE (? = 0 OR fuel_logs.vehicle_id = ?)

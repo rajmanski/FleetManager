@@ -408,6 +408,7 @@ type Alert struct {
 	Message    sql.NullString `json:"message"`
 	CreatedAt  sql.NullTime   `json:"created_at"`
 	IsResolved sql.NullBool   `json:"is_resolved"`
+	FuelLogID  sql.NullInt32  `json:"fuel_log_id"`
 }
 
 type Assignment struct {

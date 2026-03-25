@@ -29,6 +29,25 @@ func (q *Queries) CreateAlert(ctx context.Context, arg CreateAlertParams) (int64
 	return result.LastInsertId()
 }
 
+const createFuelAnomalyAlert = `-- name: CreateFuelAnomalyAlert :execlastid
+INSERT INTO Alerts (vehicle_id, fuel_log_id, alert_type, message, is_resolved)
+VALUES (?, ?, 'fuel_anomaly', ?, 0)
+`
+
+type CreateFuelAnomalyAlertParams struct {
+	VehicleID sql.NullInt32  `json:"vehicle_id"`
+	FuelLogID sql.NullInt32  `json:"fuel_log_id"`
+	Message   sql.NullString `json:"message"`
+}
+
+func (q *Queries) CreateFuelAnomalyAlert(ctx context.Context, arg CreateFuelAnomalyAlertParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, createFuelAnomalyAlert, arg.VehicleID, arg.FuelLogID, arg.Message)
+	if err != nil {
+		return 0, err
+	}
+	return result.LastInsertId()
+}
+
 const getActiveAssignmentVehicleID = `-- name: GetActiveAssignmentVehicleID :one
 SELECT vehicle_id
 FROM Assignments

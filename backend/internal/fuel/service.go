@@ -88,7 +88,7 @@ func (s *Service) CreateFuelLog(ctx context.Context, req CreateFuelRequest) (Cre
 		if alert == nil {
 			return nil
 		}
-		return &CreateFuelAlertInput{AlertType: alert.Type, Message: alert.Message}
+		return &CreateFuelAlertInput{FuelLogID: 0, Message: alert.Message}
 	}())
 	if err != nil {
 		return CreateFuelResponse{}, err

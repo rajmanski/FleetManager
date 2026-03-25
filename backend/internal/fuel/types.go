@@ -62,7 +62,7 @@ type CreateFuelRepositoryInput struct {
 }
 
 type CreateFuelAlertInput struct {
-	AlertType string
+	FuelLogID int64
 	Message   string
 }
 

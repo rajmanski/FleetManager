@@ -125,16 +125,7 @@ func (r *FuelRepository) CreateFuelLogAndUpdate(
 		return 0, fuel.ErrVehicleNotFound
 	}
 
-	if alert != nil {
-		alertMessage := fmt.Sprintf("%s (fuel_log_id=%d)", alert.Message, fuelLogID)
-		if _, err := qtx.CreateAlert(ctx, sqlc.CreateAlertParams{
-			VehicleID:  sql.NullInt32{Int32: int32(input.VehicleID), Valid: true},
-			AlertType:  alert.AlertType,
-			Message:    sql.NullString{String: alertMessage, Valid: true},
-		}); err != nil {
-			return 0, err
-		}
-	}
+	_ = alert
 
 	if err := tx.Commit(); err != nil {
 		return 0, err

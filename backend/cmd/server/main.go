@@ -9,6 +9,7 @@ import (
 	"fleet-management/internal/auth"
 	"fleet-management/internal/clients"
 	"fleet-management/internal/config"
+	"fleet-management/internal/costs"
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/drivers"
 	"fleet-management/internal/fuel"
@@ -75,6 +76,9 @@ func main() {
 	fuelRepository := repository.NewFuelRepository(dbConn)
 	fuelService := fuel.NewService(fuelRepository)
 	fuelHandler := fuel.NewHandler(fuelService)
+	costsRepository := repository.NewCostsRepository(queries)
+	costsService := costs.NewService(costsRepository)
+	costsHandler := costs.NewHandler(costsService)
 	cargoService := cargo.NewService(cargoRepository)
 	cargoHandler := cargo.NewHandler(cargoService)
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
@@ -464,6 +468,26 @@ func main() {
 		"/fuel",
 		auth.RBACMiddleware(auth.ResourceCostsFuel, auth.PermissionRead),
 		fuelHandler.ListFuelLogs,
+	)
+	protected.GET(
+		"/costs",
+		auth.RBACMiddleware(auth.ResourceCostsFuel, auth.PermissionRead),
+		costsHandler.ListCosts,
+	)
+	protected.POST(
+		"/costs",
+		auth.RBACMiddleware(auth.ResourceCostsFuel, auth.PermissionWrite),
+		costsHandler.CreateCost,
+	)
+	protected.PUT(
+		"/costs/:id",
+		auth.RBACMiddleware(auth.ResourceCostsFuel, auth.PermissionWrite),
+		costsHandler.UpdateCost,
+	)
+	protected.DELETE(
+		"/costs/:id",
+		auth.RBACMiddleware(auth.ResourceCostsFuel, auth.PermissionWrite),
+		costsHandler.DeleteCost,
 	)
 
 	protected.GET("/db-check", func(c *gin.Context) {

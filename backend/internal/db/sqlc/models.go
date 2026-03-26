@@ -54,6 +54,48 @@ func (ns NullCargoCargoType) Value() (driver.Value, error) {
 	return string(ns.CargoCargoType), nil
 }
 
+type CostsCategory string
+
+const (
+	CostsCategoryTolls CostsCategory = "Tolls"
+	CostsCategoryOther CostsCategory = "Other"
+)
+
+func (e *CostsCategory) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = CostsCategory(s)
+	case string:
+		*e = CostsCategory(s)
+	default:
+		return fmt.Errorf("unsupported scan type for CostsCategory: %T", src)
+	}
+	return nil
+}
+
+type NullCostsCategory struct {
+	CostsCategory CostsCategory `json:"costs_category"`
+	Valid         bool          `json:"valid"` // Valid is true if CostsCategory is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullCostsCategory) Scan(value interface{}) error {
+	if value == nil {
+		ns.CostsCategory, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.CostsCategory.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullCostsCategory) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.CostsCategory), nil
+}
+
 type DriversStatus string
 
 const (
@@ -437,6 +479,17 @@ type Client struct {
 	ContactEmail sql.NullString `json:"contact_email"`
 	DeletedAt    sql.NullTime   `json:"deleted_at"`
 	CreatedAt    sql.NullTime   `json:"created_at"`
+}
+
+type Cost struct {
+	ID            int32          `json:"id"`
+	VehicleID     int32          `json:"vehicle_id"`
+	Category      CostsCategory  `json:"category"`
+	Amount        string         `json:"amount"`
+	Date          time.Time      `json:"date"`
+	Description   sql.NullString `json:"description"`
+	InvoiceNumber sql.NullString `json:"invoice_number"`
+	CreatedAt     sql.NullTime   `json:"created_at"`
 }
 
 type Driver struct {

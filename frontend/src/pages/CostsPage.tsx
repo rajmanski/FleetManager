@@ -1,21 +1,29 @@
 import { useCallback, useMemo, useState } from 'react'
+import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
 import { CostsFiltersBar } from '@/components/costs/CostsFiltersBar'
+import { CostsFormModal } from '@/components/costs/CostsFormModal'
 import { CostsTable } from '@/components/costs/CostsTable'
 import { useCosts } from '@/hooks/costs/useCosts'
+import { useAuth } from '@/hooks/useAuth'
+import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { useVehicles } from '@/hooks/vehicles/useVehicles'
 import { usePagination } from '@/hooks/usePagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
+import { extractApiError } from '@/utils/api'
+import type { CostsFormValues } from '@/schemas/costs'
 
 function CostsPage() {
+  const { canManageFuelLogs } = useAuth()
   const [vehicleFilter, setVehicleFilter] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE)
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
 
-  const costsQuery = useCosts({
+  const { costsQuery, createCostMutation } = useCosts({
     page,
     limit,
     vehicleId: vehicleFilter,
@@ -69,9 +77,41 @@ function CostsPage() {
     [pagination],
   )
 
+  const createCallbacks = useMutationCallbacks({
+    successMessage: 'Cost created',
+    errorFallback: 'Failed to create cost',
+    onSuccess: () => setIsCreateOpen(false),
+  })
+
+  const handleCreate = (values: CostsFormValues) => {
+    createCostMutation.mutate(
+      {
+        vehicleId: Number(values.vehicleId),
+        category: values.category,
+        amount: values.amount,
+        date: values.date,
+        description: values.description?.trim() ? values.description.trim() : undefined,
+        invoiceNumber: values.invoiceNumber?.trim() ? values.invoiceNumber.trim() : undefined,
+      },
+      createCallbacks,
+    )
+  }
+
+  const createError = extractApiError(createCostMutation.error)
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Costs" description="Operational costs (tolls/other)" />
+      <PageHeader
+        title="Costs"
+        description="Operational costs (tolls/other)"
+        action={
+          canManageFuelLogs ? (
+            <Button type="button" onClick={() => setIsCreateOpen(true)}>
+              Add cost
+            </Button>
+          ) : undefined
+        }
+      />
 
       <CostsFiltersBar
         vehicleFilter={vehicleFilter}
@@ -93,6 +133,18 @@ function CostsPage() {
           total={total}
           pagination={pagination}
           vehicleLabelsById={vehicleLabelsById}
+        />
+      )}
+
+      {isCreateOpen && (
+        <CostsFormModal
+          title="Add cost"
+          submitLabel="Create"
+          vehicleOptions={vehicleOptions}
+          onClose={() => setIsCreateOpen(false)}
+          onSubmit={handleCreate}
+          isSubmitting={createCostMutation.isPending}
+          errorMessage={createError}
         />
       )}
     </div>

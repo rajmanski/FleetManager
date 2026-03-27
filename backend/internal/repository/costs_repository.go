@@ -30,9 +30,18 @@ func (r *CostsRepository) ListCosts(ctx context.Context, query costs.ListCostsQu
 		vehicleID = int32(query.VehicleID)
 	}
 
+	categoryColumnValue := interface{}("")
+	categoryEnum := sqlc.CostsCategory("Tolls")
+	if strings.TrimSpace(query.Category) != "" {
+		categoryEnum = sqlc.CostsCategory(strings.TrimSpace(query.Category))
+		categoryColumnValue = strings.TrimSpace(query.Category)
+	}
+
 	rows, err := r.queries.ListCosts(ctx, sqlc.ListCostsParams{
 		Column1:   vehicleFilter,
 		VehicleID: vehicleID,
+		Column3:   categoryColumnValue,
+		Category:  categoryEnum,
 		Limit:     query.Limit,
 		Offset:    offset,
 	})
@@ -43,6 +52,8 @@ func (r *CostsRepository) ListCosts(ctx context.Context, query costs.ListCostsQu
 	total, err := r.queries.CountCosts(ctx, sqlc.CountCostsParams{
 		Column1:   vehicleFilter,
 		VehicleID: vehicleID,
+		Column3:   categoryColumnValue,
+		Category:  categoryEnum,
 	})
 	if err != nil {
 		return nil, 0, err

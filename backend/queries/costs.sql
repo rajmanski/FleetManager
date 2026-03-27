@@ -10,13 +10,15 @@ SELECT
   created_at
 FROM costs
 WHERE (? = 0 OR vehicle_id = ?)
+  AND (? = '' OR category = ?)
 ORDER BY id DESC
 LIMIT ? OFFSET ?;
 
 -- name: CountCosts :one
 SELECT COUNT(*)
 FROM costs
-WHERE (? = 0 OR vehicle_id = ?);
+WHERE (? = 0 OR vehicle_id = ?)
+  AND (? = '' OR category = ?);
 
 -- name: GetCostByID :one
 SELECT

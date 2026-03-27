@@ -20,6 +20,7 @@ func (h *Handler) ListCosts(c *gin.Context) {
 	page, _ := strconv.ParseInt(c.DefaultQuery("page", "1"), 10, 32)
 	limit, _ := strconv.ParseInt(c.DefaultQuery("limit", "50"), 10, 32)
 	vehicleIDStr := c.Query("vehicle_id")
+	category := c.Query("category")
 
 	var vehicleID int64
 	if vehicleIDStr != "" {
@@ -33,11 +34,12 @@ func (h *Handler) ListCosts(c *gin.Context) {
 
 	resp, err := h.service.ListCosts(c.Request.Context(), ListCostsQuery{
 		VehicleID: vehicleID,
+		Category:  category,
 		Page:      int32(page),
 		Limit:     int32(limit),
 	})
 	if err != nil {
-		if errors.Is(err, ErrInvalidInput) {
+		if errors.Is(err, ErrInvalidInput) || errors.Is(err, ErrInvalidCategory) {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
 			return
 		}

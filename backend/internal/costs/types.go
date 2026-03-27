@@ -15,6 +15,7 @@ type Cost struct {
 
 type ListCostsQuery struct {
 	VehicleID int64
+	Category  string
 	Page      int32
 	Limit     int32
 }

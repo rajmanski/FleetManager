@@ -21,6 +21,7 @@ import AssignmentsPage from './pages/AssignmentsPage.tsx'
 import MaintenancePage from './pages/MaintenancePage.tsx'
 import InsurancePage from './pages/InsurancePage.tsx'
 import FuelPage from './pages/FuelPage.tsx'
+import CostsPage from './pages/CostsPage.tsx'
 import { RequireAdmin } from './routes/RequireAdmin.tsx'
 import RequireAuth from './routes/RequireAuth.tsx'
 import { RequireRoutesAccess } from './routes/RequireRoutesAccess.tsx'
@@ -107,6 +108,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="maintenance" element={<MaintenancePage />} />
             <Route path="insurance" element={<InsurancePage />} />
             <Route path="fuel" element={<FuelPage />} />
+            <Route path="costs" element={<CostsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

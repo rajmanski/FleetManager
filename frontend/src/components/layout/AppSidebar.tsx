@@ -2,6 +2,7 @@ import {
   BarChart3,
   Building2,
   ClipboardList,
+  FileText,
   Fuel,
   MapPin,
   Shield,
@@ -106,6 +107,10 @@ export function AppSidebar() {
         >
           <Fuel className="size-5" />
           <span>Fuel logs</span>
+        </Link>
+        <Link to="/costs" className={navItemClass(location.pathname.startsWith('/costs'))}>
+          <FileText className="size-5" />
+          <span>Costs</span>
         </Link>
         {role === 'Administrator' && (
           <Link

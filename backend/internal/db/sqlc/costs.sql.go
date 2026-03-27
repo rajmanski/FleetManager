@@ -15,15 +15,23 @@ const countCosts = `-- name: CountCosts :one
 SELECT COUNT(*)
 FROM costs
 WHERE (? = 0 OR vehicle_id = ?)
+  AND (? = '' OR category = ?)
 `
 
 type CountCostsParams struct {
-	Column1   interface{} `json:"column_1"`
-	VehicleID int32       `json:"vehicle_id"`
+	Column1   interface{}   `json:"column_1"`
+	VehicleID int32         `json:"vehicle_id"`
+	Column3   interface{}   `json:"column_3"`
+	Category  CostsCategory `json:"category"`
 }
 
 func (q *Queries) CountCosts(ctx context.Context, arg CountCostsParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countCosts, arg.Column1, arg.VehicleID)
+	row := q.db.QueryRowContext(ctx, countCosts,
+		arg.Column1,
+		arg.VehicleID,
+		arg.Column3,
+		arg.Category,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
@@ -121,21 +129,26 @@ SELECT
   created_at
 FROM costs
 WHERE (? = 0 OR vehicle_id = ?)
+  AND (? = '' OR category = ?)
 ORDER BY id DESC
 LIMIT ? OFFSET ?
 `
 
 type ListCostsParams struct {
-	Column1   interface{} `json:"column_1"`
-	VehicleID int32       `json:"vehicle_id"`
-	Limit     int32       `json:"limit"`
-	Offset    int32       `json:"offset"`
+	Column1   interface{}   `json:"column_1"`
+	VehicleID int32         `json:"vehicle_id"`
+	Column3   interface{}   `json:"column_3"`
+	Category  CostsCategory `json:"category"`
+	Limit     int32         `json:"limit"`
+	Offset    int32         `json:"offset"`
 }
 
 func (q *Queries) ListCosts(ctx context.Context, arg ListCostsParams) ([]Cost, error) {
 	rows, err := q.db.QueryContext(ctx, listCosts,
 		arg.Column1,
 		arg.VehicleID,
+		arg.Column3,
+		arg.Category,
 		arg.Limit,
 		arg.Offset,
 	)

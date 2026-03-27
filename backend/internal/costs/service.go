@@ -23,6 +23,7 @@ func NewService(repo Repository) *Service {
 func (s *Service) ListCosts(ctx context.Context, query ListCostsQuery) (ListCostsResponse, error) {
 	page := query.Page
 	limit := query.Limit
+	category := strings.TrimSpace(query.Category)
 	if page <= 0 {
 		page = defaultListPage
 	}
@@ -32,9 +33,13 @@ func (s *Service) ListCosts(ctx context.Context, query ListCostsQuery) (ListCost
 	if limit > maxListLimit || query.VehicleID < 0 {
 		return ListCostsResponse{}, ErrInvalidInput
 	}
+	if category != "" && !isValidCategory(category) {
+		return ListCostsResponse{}, ErrInvalidCategory
+	}
 
 	rows, total, err := s.repo.ListCosts(ctx, ListCostsQuery{
 		VehicleID: query.VehicleID,
+		Category:  category,
 		Page:      page,
 		Limit:     limit,
 	})

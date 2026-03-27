@@ -16,6 +16,7 @@ import (
 	"fleet-management/internal/insurance"
 	"fleet-management/internal/repository"
 	"fleet-management/internal/routes"
+	"fleet-management/internal/reports"
 	"fleet-management/internal/users"
 	"fleet-management/internal/orders"
 	"fleet-management/internal/maintenance"
@@ -79,6 +80,9 @@ func main() {
 	costsRepository := repository.NewCostsRepository(queries)
 	costsService := costs.NewService(costsRepository)
 	costsHandler := costs.NewHandler(costsService)
+	reportsRepository := repository.NewReportsRepository(queries)
+	reportsService := reports.NewService(reportsRepository)
+	reportsHandler := reports.NewHandler(reportsService)
 	cargoService := cargo.NewService(cargoRepository)
 	cargoHandler := cargo.NewHandler(cargoService)
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
@@ -488,6 +492,11 @@ func main() {
 		"/costs/:id",
 		auth.RBACMiddleware(auth.ResourceCostsFuel, auth.PermissionWrite),
 		costsHandler.DeleteCost,
+	)
+	protected.GET(
+		"/reports/vehicle-profitability",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
+		reportsHandler.GetVehicleProfitability,
 	)
 
 	protected.GET("/db-check", func(c *gin.Context) {

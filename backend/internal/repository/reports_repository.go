@@ -1,0 +1,140 @@
+package repository
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+	"strconv"
+	"strings"
+	"time"
+
+	sqlc "fleet-management/internal/db/sqlc"
+	"fleet-management/internal/reports"
+)
+
+type ReportsRepository struct {
+	queries sqlc.Querier
+}
+
+func NewReportsRepository(queries sqlc.Querier) *ReportsRepository {
+	return &ReportsRepository{queries: queries}
+}
+
+func (r *ReportsRepository) GetVehicleRevenueForMonth(
+	ctx context.Context,
+	vehicleID int64,
+	month string,
+) (float64, error) {
+	monthTime, err := time.Parse("2006-01", strings.TrimSpace(month))
+	if err != nil {
+		return 0, reports.ErrInvalidInput
+	}
+
+	value, err := r.queries.GetVehicleRevenueForMonth(ctx, sqlc.GetVehicleRevenueForMonthParams{
+		VehicleID:    int32(vehicleID),
+		CreationDate: sql.NullTime{Time: monthTime, Valid: true},
+	})
+	if err != nil {
+		return 0, err
+	}
+	return parseDecimalAny(value)
+}
+
+func (r *ReportsRepository) GetVehicleFuelCostsForMonth(
+	ctx context.Context,
+	vehicleID int64,
+	month string,
+) (float64, error) {
+	monthTime, err := time.Parse("2006-01", strings.TrimSpace(month))
+	if err != nil {
+		return 0, reports.ErrInvalidInput
+	}
+
+	value, err := r.queries.GetVehicleFuelCostsForMonth(ctx, sqlc.GetVehicleFuelCostsForMonthParams{
+		VehicleID: int32(vehicleID),
+		Date:      monthTime,
+	})
+	if err != nil {
+		return 0, err
+	}
+	return parseDecimalAny(value)
+}
+
+func (r *ReportsRepository) GetVehicleMaintenanceCostsForMonth(
+	ctx context.Context,
+	vehicleID int64,
+	month string,
+) (float64, error) {
+	monthTime, err := time.Parse("2006-01", strings.TrimSpace(month))
+	if err != nil {
+		return 0, reports.ErrInvalidInput
+	}
+
+	value, err := r.queries.GetVehicleMaintenanceCostsForMonth(ctx, sqlc.GetVehicleMaintenanceCostsForMonthParams{
+		VehicleID: int32(vehicleID),
+		StartDate: sql.NullTime{Time: monthTime, Valid: true},
+	})
+	if err != nil {
+		return 0, err
+	}
+	return parseDecimalAny(value)
+}
+
+func (r *ReportsRepository) GetVehicleInsuranceMonthlyCost(
+	ctx context.Context,
+	vehicleID int64,
+	monthStart time.Time,
+	monthEnd time.Time,
+) (float64, error) {
+	value, err := r.queries.GetVehicleInsuranceMonthlyCost(ctx, sqlc.GetVehicleInsuranceMonthlyCostParams{
+		VehicleID: int32(vehicleID),
+		StartDate: monthEnd,
+		EndDate:   monthStart,
+	})
+	if err != nil {
+		return 0, err
+	}
+	return parseDecimalAny(value)
+}
+
+func (r *ReportsRepository) GetVehicleTollsForMonth(
+	ctx context.Context,
+	vehicleID int64,
+	month string,
+) (float64, error) {
+	monthTime, err := time.Parse("2006-01", strings.TrimSpace(month))
+	if err != nil {
+		return 0, reports.ErrInvalidInput
+	}
+
+	value, err := r.queries.GetVehicleTollsForMonth(ctx, sqlc.GetVehicleTollsForMonthParams{
+		VehicleID: int32(vehicleID),
+		Date:      monthTime,
+	})
+	if err != nil {
+		return 0, err
+	}
+	return parseDecimalAny(value)
+}
+
+var _ reports.Repository = (*ReportsRepository)(nil)
+
+func parseDecimalAny(value interface{}) (float64, error) {
+	switch v := value.(type) {
+	case float64:
+		return v, nil
+	case int64:
+		return float64(v), nil
+	case []byte:
+		return strconv.ParseFloat(string(v), 64)
+	case string:
+		return strconv.ParseFloat(v, 64)
+	default:
+		var parsed float64
+		_, err := fmt.Sscanf(fmt.Sprint(v), "%f", &parsed)
+		if err != nil {
+			return 0, err
+		}
+		return parsed, nil
+	}
+}

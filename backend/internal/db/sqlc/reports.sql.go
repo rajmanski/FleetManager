@@ -54,6 +54,116 @@ func (q *Queries) GetDriverMileageReport(ctx context.Context, arg GetDriverMilea
 	return i, err
 }
 
+const getGlobalFuelCostsInRange = `-- name: GetGlobalFuelCostsInRange :one
+SELECT COALESCE(SUM(fl.total_cost), 0) AS total
+FROM fuel_logs fl
+WHERE fl.date >= ?
+  AND fl.date <= ?
+`
+
+type GetGlobalFuelCostsInRangeParams struct {
+	Date   time.Time `json:"date"`
+	Date_2 time.Time `json:"date_2"`
+}
+
+func (q *Queries) GetGlobalFuelCostsInRange(ctx context.Context, arg GetGlobalFuelCostsInRangeParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getGlobalFuelCostsInRange, arg.Date, arg.Date_2)
+	var total interface{}
+	err := row.Scan(&total)
+	return total, err
+}
+
+const getGlobalInsuranceCostsInRange = `-- name: GetGlobalInsuranceCostsInRange :one
+SELECT COALESCE(SUM(
+  ip.cost * (
+    DATEDIFF(
+      LEAST(ip.end_date, ?),
+      GREATEST(ip.start_date, ?)
+    ) + 1
+  ) / NULLIF(DATEDIFF(ip.end_date, ip.start_date) + 1, 0)
+), 0) AS total
+FROM insurance_policies ip
+WHERE LEAST(ip.end_date, ?) >= GREATEST(ip.start_date, ?)
+`
+
+type GetGlobalInsuranceCostsInRangeParams struct {
+	PeriodEnd   interface{} `json:"period_end"`
+	PeriodStart interface{} `json:"period_start"`
+}
+
+// Insurance: prorate policy cost by overlap days with the report period.
+func (q *Queries) GetGlobalInsuranceCostsInRange(ctx context.Context, arg GetGlobalInsuranceCostsInRangeParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getGlobalInsuranceCostsInRange,
+		arg.PeriodEnd,
+		arg.PeriodStart,
+		arg.PeriodEnd,
+		arg.PeriodStart,
+	)
+	var total interface{}
+	err := row.Scan(&total)
+	return total, err
+}
+
+const getGlobalMaintenanceCostsInRange = `-- name: GetGlobalMaintenanceCostsInRange :one
+SELECT COALESCE(SUM(m.total_cost_pln), 0) AS total
+FROM Maintenance m
+WHERE m.start_date IS NOT NULL
+  AND DATE(m.start_date) >= ?
+  AND DATE(m.start_date) <= ?
+`
+
+type GetGlobalMaintenanceCostsInRangeParams struct {
+	StartDate   sql.NullTime `json:"start_date"`
+	StartDate_2 sql.NullTime `json:"start_date_2"`
+}
+
+func (q *Queries) GetGlobalMaintenanceCostsInRange(ctx context.Context, arg GetGlobalMaintenanceCostsInRangeParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getGlobalMaintenanceCostsInRange, arg.StartDate, arg.StartDate_2)
+	var total interface{}
+	err := row.Scan(&total)
+	return total, err
+}
+
+const getGlobalOtherCostsInRange = `-- name: GetGlobalOtherCostsInRange :one
+SELECT COALESCE(SUM(c.amount), 0) AS total
+FROM costs c
+WHERE c.category = 'Other'
+  AND c.date >= ?
+  AND c.date <= ?
+`
+
+type GetGlobalOtherCostsInRangeParams struct {
+	Date   time.Time `json:"date"`
+	Date_2 time.Time `json:"date_2"`
+}
+
+func (q *Queries) GetGlobalOtherCostsInRange(ctx context.Context, arg GetGlobalOtherCostsInRangeParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getGlobalOtherCostsInRange, arg.Date, arg.Date_2)
+	var total interface{}
+	err := row.Scan(&total)
+	return total, err
+}
+
+const getGlobalTollsCostsInRange = `-- name: GetGlobalTollsCostsInRange :one
+SELECT COALESCE(SUM(c.amount), 0) AS total
+FROM costs c
+WHERE c.category = 'Tolls'
+  AND c.date >= ?
+  AND c.date <= ?
+`
+
+type GetGlobalTollsCostsInRangeParams struct {
+	Date   time.Time `json:"date"`
+	Date_2 time.Time `json:"date_2"`
+}
+
+func (q *Queries) GetGlobalTollsCostsInRange(ctx context.Context, arg GetGlobalTollsCostsInRangeParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getGlobalTollsCostsInRange, arg.Date, arg.Date_2)
+	var total interface{}
+	err := row.Scan(&total)
+	return total, err
+}
+
 const getVehicleFuelCostsForMonth = `-- name: GetVehicleFuelCostsForMonth :one
 SELECT COALESCE(SUM(fl.total_cost), 0) AS fuel_cost
 FROM fuel_logs fl

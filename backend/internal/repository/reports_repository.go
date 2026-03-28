@@ -138,6 +138,79 @@ func (r *ReportsRepository) GetDriverMileageReport(
 	return totalKm, row.OrdersCount, nil
 }
 
+func (r *ReportsRepository) GetGlobalCostsInRange(
+	ctx context.Context,
+	from, to time.Time,
+) (reports.GlobalCostsByCategory, error) {
+	fuelRaw, err := r.queries.GetGlobalFuelCostsInRange(ctx, sqlc.GetGlobalFuelCostsInRangeParams{
+		Date:   from,
+		Date_2: to,
+	})
+	if err != nil {
+		return reports.GlobalCostsByCategory{}, err
+	}
+	fuel, err := parseDecimalAny(fuelRaw)
+	if err != nil {
+		return reports.GlobalCostsByCategory{}, err
+	}
+
+	maintRaw, err := r.queries.GetGlobalMaintenanceCostsInRange(ctx, sqlc.GetGlobalMaintenanceCostsInRangeParams{
+		StartDate:   sql.NullTime{Time: from, Valid: true},
+		StartDate_2: sql.NullTime{Time: to, Valid: true},
+	})
+	if err != nil {
+		return reports.GlobalCostsByCategory{}, err
+	}
+	maintenance, err := parseDecimalAny(maintRaw)
+	if err != nil {
+		return reports.GlobalCostsByCategory{}, err
+	}
+
+	insRaw, err := r.queries.GetGlobalInsuranceCostsInRange(ctx, sqlc.GetGlobalInsuranceCostsInRangeParams{
+		PeriodEnd:   to,
+		PeriodStart: from,
+	})
+	if err != nil {
+		return reports.GlobalCostsByCategory{}, err
+	}
+	insurance, err := parseDecimalAny(insRaw)
+	if err != nil {
+		return reports.GlobalCostsByCategory{}, err
+	}
+
+	tollsRaw, err := r.queries.GetGlobalTollsCostsInRange(ctx, sqlc.GetGlobalTollsCostsInRangeParams{
+		Date:   from,
+		Date_2: to,
+	})
+	if err != nil {
+		return reports.GlobalCostsByCategory{}, err
+	}
+	tolls, err := parseDecimalAny(tollsRaw)
+	if err != nil {
+		return reports.GlobalCostsByCategory{}, err
+	}
+
+	otherRaw, err := r.queries.GetGlobalOtherCostsInRange(ctx, sqlc.GetGlobalOtherCostsInRangeParams{
+		Date:   from,
+		Date_2: to,
+	})
+	if err != nil {
+		return reports.GlobalCostsByCategory{}, err
+	}
+	other, err := parseDecimalAny(otherRaw)
+	if err != nil {
+		return reports.GlobalCostsByCategory{}, err
+	}
+
+	return reports.GlobalCostsByCategory{
+		Fuel:        fuel,
+		Maintenance: maintenance,
+		Insurance:   insurance,
+		Tolls:       tolls,
+		Other:       other,
+	}, nil
+}
+
 var _ reports.Repository = (*ReportsRepository)(nil)
 
 func parseDecimalAny(value interface{}) (float64, error) {

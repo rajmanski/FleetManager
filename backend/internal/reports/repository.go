@@ -22,4 +22,5 @@ type Repository interface {
 		dateFrom time.Time,
 		dateTo time.Time,
 	) (totalKm float64, ordersCount int64, err error)
+	GetGlobalCostsInRange(ctx context.Context, from, to time.Time) (GlobalCostsByCategory, error)
 }

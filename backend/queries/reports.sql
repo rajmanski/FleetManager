@@ -58,3 +58,43 @@ WHERE t.driver_id = ?
       AND a.assigned_from <= COALESCE(t.end_time, t.start_time)
       AND (a.assigned_to IS NULL OR a.assigned_to >= COALESCE(t.start_time, t.end_time))
   );
+
+-- name: GetGlobalFuelCostsInRange :one
+SELECT COALESCE(SUM(fl.total_cost), 0) AS total
+FROM fuel_logs fl
+WHERE fl.date >= ?
+  AND fl.date <= ?;
+
+-- name: GetGlobalMaintenanceCostsInRange :one
+SELECT COALESCE(SUM(m.total_cost_pln), 0) AS total
+FROM Maintenance m
+WHERE m.start_date IS NOT NULL
+  AND DATE(m.start_date) >= ?
+  AND DATE(m.start_date) <= ?;
+
+-- Insurance: prorate policy cost by overlap days with the report period.
+-- name: GetGlobalInsuranceCostsInRange :one
+SELECT COALESCE(SUM(
+  ip.cost * (
+    DATEDIFF(
+      LEAST(ip.end_date, sqlc.arg(period_end)),
+      GREATEST(ip.start_date, sqlc.arg(period_start))
+    ) + 1
+  ) / NULLIF(DATEDIFF(ip.end_date, ip.start_date) + 1, 0)
+), 0) AS total
+FROM insurance_policies ip
+WHERE LEAST(ip.end_date, sqlc.arg(period_end)) >= GREATEST(ip.start_date, sqlc.arg(period_start));
+
+-- name: GetGlobalTollsCostsInRange :one
+SELECT COALESCE(SUM(c.amount), 0) AS total
+FROM costs c
+WHERE c.category = 'Tolls'
+  AND c.date >= ?
+  AND c.date <= ?;
+
+-- name: GetGlobalOtherCostsInRange :one
+SELECT COALESCE(SUM(c.amount), 0) AS total
+FROM costs c
+WHERE c.category = 'Other'
+  AND c.date >= ?
+  AND c.date <= ?;

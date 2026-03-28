@@ -33,3 +33,22 @@ type DriverMileageResponse struct {
 	TotalKm     int64  `json:"total_km"`
 	OrdersCount int64  `json:"orders_count"`
 }
+
+type GlobalCostsQuery struct {
+	DateFrom string
+	DateTo   string
+}
+
+type GlobalCostsByCategory struct {
+	Fuel        float64 `json:"fuel"`
+	Maintenance float64 `json:"maintenance"`
+	Insurance   float64 `json:"insurance"`
+	Tolls       float64 `json:"tolls"`
+	Other       float64 `json:"other"`
+}
+
+type GlobalCostsResponse struct {
+	Period            string                `json:"period"`
+	CostsByCategory   GlobalCostsByCategory `json:"costs_by_category"`
+	Total             float64               `json:"total"`
+}

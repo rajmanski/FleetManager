@@ -96,6 +96,33 @@ func (s *Service) GetDriverMileage(ctx context.Context, query DriverMileageQuery
 	}, nil
 }
 
+func (s *Service) GetGlobalCosts(ctx context.Context, query GlobalCostsQuery) (GlobalCostsResponse, error) {
+	from, err := time.Parse("2006-01-02", strings.TrimSpace(query.DateFrom))
+	if err != nil {
+		return GlobalCostsResponse{}, ErrInvalidInput
+	}
+	to, err := time.Parse("2006-01-02", strings.TrimSpace(query.DateTo))
+	if err != nil {
+		return GlobalCostsResponse{}, ErrInvalidInput
+	}
+	if from.After(to) {
+		return GlobalCostsResponse{}, ErrInvalidInput
+	}
+
+	cats, err := s.repo.GetGlobalCostsInRange(ctx, from, to)
+	if err != nil {
+		return GlobalCostsResponse{}, err
+	}
+
+	total := cats.Fuel + cats.Maintenance + cats.Insurance + cats.Tolls + cats.Other
+	period := fmt.Sprintf("%s to %s", from.Format("2006-01-02"), to.Format("2006-01-02"))
+	return GlobalCostsResponse{
+		Period:          period,
+		CostsByCategory: cats,
+		Total:           total,
+	}, nil
+}
+
 func parseMonthBounds(month string) (time.Time, time.Time, error) {
 	start, err := time.Parse("2006-01", month)
 	if err != nil {

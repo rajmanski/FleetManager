@@ -60,6 +60,12 @@ type Querier interface {
 	GetDriverByID(ctx context.Context, driverID int32) (GetDriverByIDRow, error)
 	GetDriverMileageReport(ctx context.Context, arg GetDriverMileageReportParams) (GetDriverMileageReportRow, error)
 	GetDriverTripOnDate(ctx context.Context, arg GetDriverTripOnDateParams) (string, error)
+	GetGlobalFuelCostsInRange(ctx context.Context, arg GetGlobalFuelCostsInRangeParams) (interface{}, error)
+	// Insurance: prorate policy cost by overlap days with the report period.
+	GetGlobalInsuranceCostsInRange(ctx context.Context, arg GetGlobalInsuranceCostsInRangeParams) (interface{}, error)
+	GetGlobalMaintenanceCostsInRange(ctx context.Context, arg GetGlobalMaintenanceCostsInRangeParams) (interface{}, error)
+	GetGlobalOtherCostsInRange(ctx context.Context, arg GetGlobalOtherCostsInRangeParams) (interface{}, error)
+	GetGlobalTollsCostsInRange(ctx context.Context, arg GetGlobalTollsCostsInRangeParams) (interface{}, error)
 	GetInsurancePolicyByID(ctx context.Context, id int32) (InsurancePolicy, error)
 	GetMaintenanceByID(ctx context.Context, maintenanceID int32) (Maintenance, error)
 	GetMaxSequenceOrder(ctx context.Context, routeID int32) (interface{}, error)

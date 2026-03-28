@@ -65,3 +65,22 @@ func (h *Handler) GetDriverMileage(c *gin.Context) {
 
 	c.JSON(http.StatusOK, resp)
 }
+
+func (h *Handler) GetGlobalCosts(c *gin.Context) {
+	dateFrom := c.Query("date_from")
+	dateTo := c.Query("date_to")
+	resp, err := h.service.GetGlobalCosts(c.Request.Context(), GlobalCostsQuery{
+		DateFrom: dateFrom,
+		DateTo:   dateTo,
+	})
+	if err != nil {
+		if errors.Is(err, ErrInvalidInput) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, resp)
+}

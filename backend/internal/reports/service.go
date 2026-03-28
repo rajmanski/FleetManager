@@ -2,6 +2,9 @@ package reports
 
 import (
 	"context"
+	"fmt"
+	"math"
+	"strings"
 	"time"
 )
 
@@ -62,6 +65,34 @@ func (s *Service) GetVehicleProfitability(
 			Total:       totalCosts,
 		},
 		Profit: profit,
+	}, nil
+}
+
+func (s *Service) GetDriverMileage(ctx context.Context, query DriverMileageQuery) (DriverMileageResponse, error) {
+	if query.DriverID <= 0 {
+		return DriverMileageResponse{}, ErrInvalidInput
+	}
+	from, err := time.Parse("2006-01-02", strings.TrimSpace(query.DateFrom))
+	if err != nil {
+		return DriverMileageResponse{}, ErrInvalidInput
+	}
+	to, err := time.Parse("2006-01-02", strings.TrimSpace(query.DateTo))
+	if err != nil {
+		return DriverMileageResponse{}, ErrInvalidInput
+	}
+	if from.After(to) {
+		return DriverMileageResponse{}, ErrInvalidInput
+	}
+	totalKm, ordersCount, err := s.repo.GetDriverMileageReport(ctx, query.DriverID, from, to)
+	if err != nil {
+		return DriverMileageResponse{}, err
+	}
+	period := fmt.Sprintf("%s to %s", from.Format("2006-01-02"), to.Format("2006-01-02"))
+	return DriverMileageResponse{
+		DriverID:    query.DriverID,
+		Period:      period,
+		TotalKm:     int64(math.Round(totalKm)),
+		OrdersCount: ordersCount,
 	}, nil
 }
 

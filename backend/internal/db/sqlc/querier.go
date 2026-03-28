@@ -58,6 +58,7 @@ type Querier interface {
 	GetDeletedDriverPESELByID(ctx context.Context, driverID int32) (string, error)
 	GetDeletedVehicleVINByID(ctx context.Context, vehicleID int32) (string, error)
 	GetDriverByID(ctx context.Context, driverID int32) (GetDriverByIDRow, error)
+	GetDriverMileageReport(ctx context.Context, arg GetDriverMileageReportParams) (GetDriverMileageReportRow, error)
 	GetDriverTripOnDate(ctx context.Context, arg GetDriverTripOnDateParams) (string, error)
 	GetInsurancePolicyByID(ctx context.Context, id int32) (InsurancePolicy, error)
 	GetMaintenanceByID(ctx context.Context, maintenanceID int32) (Maintenance, error)

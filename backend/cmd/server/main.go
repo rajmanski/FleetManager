@@ -498,6 +498,11 @@ func main() {
 		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
 		reportsHandler.GetVehicleProfitability,
 	)
+	protected.GET(
+		"/reports/driver-mileage",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
+		reportsHandler.GetDriverMileage,
+	)
 
 	protected.GET("/db-check", func(c *gin.Context) {
 		var one int

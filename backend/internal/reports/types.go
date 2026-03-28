@@ -20,3 +20,16 @@ type VehicleProfitabilityResponse struct {
 	Costs     VehicleProfitabilityCosts `json:"costs"`
 	Profit    float64                   `json:"profit"`
 }
+
+type DriverMileageQuery struct {
+	DriverID int64
+	DateFrom string
+	DateTo   string
+}
+
+type DriverMileageResponse struct {
+	DriverID    int64  `json:"driver_id"`
+	Period      string `json:"period"`
+	TotalKm     int64  `json:"total_km"`
+	OrdersCount int64  `json:"orders_count"`
+}

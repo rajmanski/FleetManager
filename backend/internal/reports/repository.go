@@ -16,4 +16,10 @@ type Repository interface {
 		monthEnd time.Time,
 	) (float64, error)
 	GetVehicleTollsForMonth(ctx context.Context, vehicleID int64, month string) (float64, error)
+	GetDriverMileageReport(
+		ctx context.Context,
+		driverID int64,
+		dateFrom time.Time,
+		dateTo time.Time,
+	) (totalKm float64, ordersCount int64, err error)
 }

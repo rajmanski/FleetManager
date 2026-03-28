@@ -117,6 +117,27 @@ func (r *ReportsRepository) GetVehicleTollsForMonth(
 	return parseDecimalAny(value)
 }
 
+func (r *ReportsRepository) GetDriverMileageReport(
+	ctx context.Context,
+	driverID int64,
+	dateFrom time.Time,
+	dateTo time.Time,
+) (float64, int64, error) {
+	row, err := r.queries.GetDriverMileageReport(ctx, sqlc.GetDriverMileageReportParams{
+		DriverID:  int32(driverID),
+		EndTime:   sql.NullTime{Time: dateFrom, Valid: true},
+		EndTime_2: sql.NullTime{Time: dateTo, Valid: true},
+	})
+	if err != nil {
+		return 0, 0, err
+	}
+	totalKm, err := parseDecimalAny(row.TotalKm)
+	if err != nil {
+		return 0, 0, err
+	}
+	return totalKm, row.OrdersCount, nil
+}
+
 var _ reports.Repository = (*ReportsRepository)(nil)
 
 func parseDecimalAny(value interface{}) (float64, error) {

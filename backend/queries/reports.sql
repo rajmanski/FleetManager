@@ -34,3 +34,27 @@ FROM costs c
 WHERE c.vehicle_id = ?
   AND c.category = 'Tolls'
   AND DATE_FORMAT(c.date, '%Y-%m') = ?;
+
+-- name: GetDriverMileageReport :one
+SELECT
+  COALESCE(SUM(COALESCE(t.actual_distance_km, CAST(r.planned_distance_km AS DECIMAL(10, 2)))), 0) AS total_km,
+  COUNT(DISTINCT t.order_id) AS orders_count
+FROM Trips t
+LEFT JOIN (
+  SELECT order_id, MAX(planned_distance_km) AS planned_distance_km
+  FROM Routes
+  GROUP BY order_id
+) r ON r.order_id = t.order_id
+WHERE t.driver_id = ?
+  AND t.status = 'Finished'
+  AND t.end_time IS NOT NULL
+  AND DATE(t.end_time) >= ?
+  AND DATE(t.end_time) <= ?
+  AND EXISTS (
+    SELECT 1
+    FROM Assignments a
+    WHERE a.driver_id = t.driver_id
+      AND a.vehicle_id = t.vehicle_id
+      AND a.assigned_from <= COALESCE(t.end_time, t.start_time)
+      AND (a.assigned_to IS NULL OR a.assigned_to >= COALESCE(t.start_time, t.end_time))
+  );

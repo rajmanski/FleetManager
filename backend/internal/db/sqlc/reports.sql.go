@@ -11,6 +11,49 @@ import (
 	"time"
 )
 
+const getDriverMileageReport = `-- name: GetDriverMileageReport :one
+SELECT
+  COALESCE(SUM(COALESCE(t.actual_distance_km, CAST(r.planned_distance_km AS DECIMAL(10, 2)))), 0) AS total_km,
+  COUNT(DISTINCT t.order_id) AS orders_count
+FROM Trips t
+LEFT JOIN (
+  SELECT order_id, MAX(planned_distance_km) AS planned_distance_km
+  FROM Routes
+  GROUP BY order_id
+) r ON r.order_id = t.order_id
+WHERE t.driver_id = ?
+  AND t.status = 'Finished'
+  AND t.end_time IS NOT NULL
+  AND DATE(t.end_time) >= ?
+  AND DATE(t.end_time) <= ?
+  AND EXISTS (
+    SELECT 1
+    FROM Assignments a
+    WHERE a.driver_id = t.driver_id
+      AND a.vehicle_id = t.vehicle_id
+      AND a.assigned_from <= COALESCE(t.end_time, t.start_time)
+      AND (a.assigned_to IS NULL OR a.assigned_to >= COALESCE(t.start_time, t.end_time))
+  )
+`
+
+type GetDriverMileageReportParams struct {
+	DriverID  int32        `json:"driver_id"`
+	EndTime   sql.NullTime `json:"end_time"`
+	EndTime_2 sql.NullTime `json:"end_time_2"`
+}
+
+type GetDriverMileageReportRow struct {
+	TotalKm     interface{} `json:"total_km"`
+	OrdersCount int64       `json:"orders_count"`
+}
+
+func (q *Queries) GetDriverMileageReport(ctx context.Context, arg GetDriverMileageReportParams) (GetDriverMileageReportRow, error) {
+	row := q.db.QueryRowContext(ctx, getDriverMileageReport, arg.DriverID, arg.EndTime, arg.EndTime_2)
+	var i GetDriverMileageReportRow
+	err := row.Scan(&i.TotalKm, &i.OrdersCount)
+	return i, err
+}
+
 const getVehicleFuelCostsForMonth = `-- name: GetVehicleFuelCostsForMonth :one
 SELECT COALESCE(SUM(fl.total_cost), 0) AS fuel_cost
 FROM fuel_logs fl

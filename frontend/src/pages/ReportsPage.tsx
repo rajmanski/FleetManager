@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { ReportsQueryForm } from '@/components/reports/ReportsQueryForm'
+import { ReportResultsPanel } from '@/components/reports/ReportResultsPanel'
 import { useVehicles } from '@/hooks/vehicles/useVehicles'
 import { useDrivers } from '@/hooks/drivers/useDrivers'
 import {
@@ -77,6 +78,8 @@ function ReportsPage() {
         driversLoading={driversQuery.isLoading}
         onApply={handleApply}
       />
+
+      <ReportResultsPanel searchParams={searchParams} />
     </div>
   )
 }

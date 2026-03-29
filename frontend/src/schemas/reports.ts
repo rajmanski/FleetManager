@@ -158,6 +158,11 @@ export function parseReportsSearchParams(search: URLSearchParams): ReportsFormVa
   }
 }
 
+export function isReportQueryReady(search: URLSearchParams): boolean {
+  const values = parseReportsSearchParams(search)
+  return reportsFormSchema.safeParse(values).success
+}
+
 export function buildReportsSearchParams(values: ReportsFormValues): URLSearchParams {
   const p = new URLSearchParams()
   p.set('report', values.reportType)

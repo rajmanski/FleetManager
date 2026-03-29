@@ -494,6 +494,11 @@ func main() {
 		costsHandler.DeleteCost,
 	)
 	protected.GET(
+		"/reports/vehicle-profitability/export",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
+		reportsHandler.ExportVehicleProfitability,
+	)
+	protected.GET(
 		"/reports/vehicle-profitability",
 		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
 		reportsHandler.GetVehicleProfitability,

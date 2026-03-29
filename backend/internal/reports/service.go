@@ -68,6 +68,22 @@ func (s *Service) GetVehicleProfitability(
 	}, nil
 }
 
+func (s *Service) ExportVehicleProfitabilityXLSX(
+	ctx context.Context,
+	query VehicleProfitabilityQuery,
+) ([]byte, string, error) {
+	resp, err := s.GetVehicleProfitability(ctx, query)
+	if err != nil {
+		return nil, "", err
+	}
+	data, err := buildVehicleProfitabilityExcel(resp)
+	if err != nil {
+		return nil, "", err
+	}
+	filename := fmt.Sprintf("vehicle-profitability-%d-%s.xlsx", resp.VehicleID, resp.Month)
+	return data, filename, nil
+}
+
 func (s *Service) GetDriverMileage(ctx context.Context, query DriverMileageQuery) (DriverMileageResponse, error) {
 	if query.DriverID <= 0 {
 		return DriverMileageResponse{}, ErrInvalidInput

@@ -2,11 +2,14 @@ package reports
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+const xlsxContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 type Handler struct {
 	service *Service
@@ -38,6 +41,31 @@ func (h *Handler) GetVehicleProfitability(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+func (h *Handler) ExportVehicleProfitability(c *gin.Context) {
+	vehicleID, err := strconv.ParseInt(c.Query("vehicle_id"), 10, 64)
+	if err != nil || vehicleID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle_id"})
+		return
+	}
+
+	month := c.Query("month")
+	data, filename, err := h.service.ExportVehicleProfitabilityXLSX(c.Request.Context(), VehicleProfitabilityQuery{
+		VehicleID: vehicleID,
+		Month:     month,
+	})
+	if err != nil {
+		if errors.Is(err, ErrInvalidInput) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+	c.Data(http.StatusOK, xlsxContentType, data)
 }
 
 func (h *Handler) GetDriverMileage(c *gin.Context) {

@@ -2,6 +2,7 @@ import {
   BarChart3,
   Building2,
   ClipboardList,
+  FileSpreadsheet,
   FileText,
   Fuel,
   MapPin,
@@ -84,6 +85,13 @@ export function AppSidebar() {
             >
               <MapPin className="size-5" />
               <span>Routes</span>
+            </Link>
+            <Link
+              to="/reports"
+              className={navItemClass(location.pathname.startsWith('/reports'))}
+            >
+              <FileSpreadsheet className="size-5" />
+              <span>Reports</span>
             </Link>
           </>
         )}

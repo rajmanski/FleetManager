@@ -22,6 +22,7 @@ import MaintenancePage from './pages/MaintenancePage.tsx'
 import InsurancePage from './pages/InsurancePage.tsx'
 import FuelPage from './pages/FuelPage.tsx'
 import CostsPage from './pages/CostsPage.tsx'
+import ReportsPage from './pages/ReportsPage.tsx'
 import { RequireAdmin } from './routes/RequireAdmin.tsx'
 import RequireAuth from './routes/RequireAuth.tsx'
 import { RequireRoutesAccess } from './routes/RequireRoutesAccess.tsx'
@@ -102,6 +103,14 @@ createRoot(document.getElementById('root')!).render(
               element={
                 <RequireRoutesAccess>
                   <RoutePlanningPage />
+                </RequireRoutesAccess>
+              }
+            />
+            <Route
+              path="reports"
+              element={
+                <RequireRoutesAccess>
+                  <ReportsPage />
                 </RequireRoutesAccess>
               }
             />

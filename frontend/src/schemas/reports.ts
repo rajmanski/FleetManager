@@ -25,6 +25,36 @@ function parseYmd(s: string): Date | null {
   return Number.isNaN(d.getTime()) ? null : d
 }
 
+function addDateRangeValidationIssues(
+  dateFrom: string,
+  dateTo: string,
+  ctx: z.RefinementCtx,
+): void {
+  const from = parseYmd(dateFrom.trim())
+  const to = parseYmd(dateTo.trim())
+  if (!from) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Enter a valid start date',
+      path: ['dateFrom'],
+    })
+  }
+  if (!to) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Enter a valid end date',
+      path: ['dateTo'],
+    })
+  }
+  if (from && to && from > to) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Start date must be before end date',
+      path: ['dateTo'],
+    })
+  }
+}
+
 export const reportsFormSchema = z
   .object({
     reportType: z.enum(REPORT_TYPES),
@@ -61,56 +91,11 @@ export const reportsFormSchema = z
           path: ['driverId'],
         })
       }
-      const from = parseYmd(data.dateFrom.trim())
-      const to = parseYmd(data.dateTo.trim())
-      if (!from) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Enter a valid start date',
-          path: ['dateFrom'],
-        })
-      }
-      if (!to) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Enter a valid end date',
-          path: ['dateTo'],
-        })
-      }
-      if (from && to && from > to) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Start date must be before end date',
-          path: ['dateTo'],
-        })
-      }
+      addDateRangeValidationIssues(data.dateFrom, data.dateTo, ctx)
       return
     }
 
-    // global-costs
-    const from = parseYmd(data.dateFrom.trim())
-    const to = parseYmd(data.dateTo.trim())
-    if (!from) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Enter a valid start date',
-        path: ['dateFrom'],
-      })
-    }
-    if (!to) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Enter a valid end date',
-        path: ['dateTo'],
-      })
-    }
-    if (from && to && from > to) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Start date must be before end date',
-        path: ['dateTo'],
-      })
-    }
+    addDateRangeValidationIssues(data.dateFrom, data.dateTo, ctx)
   })
 
 export function defaultMonthString(): string {

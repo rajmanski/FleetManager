@@ -88,22 +88,15 @@ func (s *Service) GetDriverMileage(ctx context.Context, query DriverMileageQuery
 	if query.DriverID <= 0 {
 		return DriverMileageResponse{}, ErrInvalidInput
 	}
-	from, err := time.Parse("2006-01-02", strings.TrimSpace(query.DateFrom))
+	from, to, err := parseDateRange(query.DateFrom, query.DateTo)
 	if err != nil {
-		return DriverMileageResponse{}, ErrInvalidInput
-	}
-	to, err := time.Parse("2006-01-02", strings.TrimSpace(query.DateTo))
-	if err != nil {
-		return DriverMileageResponse{}, ErrInvalidInput
-	}
-	if from.After(to) {
 		return DriverMileageResponse{}, ErrInvalidInput
 	}
 	totalKm, ordersCount, err := s.repo.GetDriverMileageReport(ctx, query.DriverID, from, to)
 	if err != nil {
 		return DriverMileageResponse{}, err
 	}
-	period := fmt.Sprintf("%s to %s", from.Format("2006-01-02"), to.Format("2006-01-02"))
+	period := formatDatePeriod(from, to)
 	return DriverMileageResponse{
 		DriverID:    query.DriverID,
 		Period:      period,
@@ -113,15 +106,8 @@ func (s *Service) GetDriverMileage(ctx context.Context, query DriverMileageQuery
 }
 
 func (s *Service) GetGlobalCosts(ctx context.Context, query GlobalCostsQuery) (GlobalCostsResponse, error) {
-	from, err := time.Parse("2006-01-02", strings.TrimSpace(query.DateFrom))
+	from, to, err := parseDateRange(query.DateFrom, query.DateTo)
 	if err != nil {
-		return GlobalCostsResponse{}, ErrInvalidInput
-	}
-	to, err := time.Parse("2006-01-02", strings.TrimSpace(query.DateTo))
-	if err != nil {
-		return GlobalCostsResponse{}, ErrInvalidInput
-	}
-	if from.After(to) {
 		return GlobalCostsResponse{}, ErrInvalidInput
 	}
 
@@ -131,12 +117,31 @@ func (s *Service) GetGlobalCosts(ctx context.Context, query GlobalCostsQuery) (G
 	}
 
 	total := cats.Fuel + cats.Maintenance + cats.Insurance + cats.Tolls + cats.Other
-	period := fmt.Sprintf("%s to %s", from.Format("2006-01-02"), to.Format("2006-01-02"))
+	period := formatDatePeriod(from, to)
 	return GlobalCostsResponse{
 		Period:          period,
 		CostsByCategory: cats,
 		Total:           total,
 	}, nil
+}
+
+func parseDateRange(dateFrom, dateTo string) (time.Time, time.Time, error) {
+	from, err := time.Parse("2006-01-02", strings.TrimSpace(dateFrom))
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+	to, err := time.Parse("2006-01-02", strings.TrimSpace(dateTo))
+	if err != nil {
+		return time.Time{}, time.Time{}, err
+	}
+	if from.After(to) {
+		return time.Time{}, time.Time{}, ErrInvalidInput
+	}
+	return from, to, nil
+}
+
+func formatDatePeriod(from, to time.Time) string {
+	return fmt.Sprintf("%s to %s", from.Format("2006-01-02"), to.Format("2006-01-02"))
 }
 
 func parseMonthBounds(month string) (time.Time, time.Time, error) {

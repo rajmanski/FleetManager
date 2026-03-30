@@ -20,8 +20,8 @@ func NewHandler(service *Service) *Handler {
 }
 
 func (h *Handler) GetVehicleProfitability(c *gin.Context) {
-	vehicleID, err := strconv.ParseInt(c.Query("vehicle_id"), 10, 64)
-	if err != nil || vehicleID <= 0 {
+	vehicleID, ok := parsePositiveInt64Query(c, "vehicle_id")
+	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle_id"})
 		return
 	}
@@ -31,12 +31,7 @@ func (h *Handler) GetVehicleProfitability(c *gin.Context) {
 		VehicleID: vehicleID,
 		Month:     month,
 	})
-	if err != nil {
-		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+	if !handleServiceError(c, err) {
 		return
 	}
 
@@ -44,8 +39,8 @@ func (h *Handler) GetVehicleProfitability(c *gin.Context) {
 }
 
 func (h *Handler) ExportVehicleProfitability(c *gin.Context) {
-	vehicleID, err := strconv.ParseInt(c.Query("vehicle_id"), 10, 64)
-	if err != nil || vehicleID <= 0 {
+	vehicleID, ok := parsePositiveInt64Query(c, "vehicle_id")
+	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle_id"})
 		return
 	}
@@ -55,12 +50,7 @@ func (h *Handler) ExportVehicleProfitability(c *gin.Context) {
 		VehicleID: vehicleID,
 		Month:     month,
 	})
-	if err != nil {
-		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+	if !handleServiceError(c, err) {
 		return
 	}
 
@@ -69,8 +59,8 @@ func (h *Handler) ExportVehicleProfitability(c *gin.Context) {
 }
 
 func (h *Handler) GetDriverMileage(c *gin.Context) {
-	driverID, err := strconv.ParseInt(c.Query("driver_id"), 10, 64)
-	if err != nil || driverID <= 0 {
+	driverID, ok := parsePositiveInt64Query(c, "driver_id")
+	if !ok {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid driver_id"})
 		return
 	}
@@ -82,12 +72,7 @@ func (h *Handler) GetDriverMileage(c *gin.Context) {
 		DateFrom: dateFrom,
 		DateTo:   dateTo,
 	})
-	if err != nil {
-		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+	if !handleServiceError(c, err) {
 		return
 	}
 
@@ -101,14 +86,29 @@ func (h *Handler) GetGlobalCosts(c *gin.Context) {
 		DateFrom: dateFrom,
 		DateTo:   dateTo,
 	})
-	if err != nil {
-		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
-			return
-		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+	if !handleServiceError(c, err) {
 		return
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+func parsePositiveInt64Query(c *gin.Context, key string) (int64, bool) {
+	value, err := strconv.ParseInt(c.Query(key), 10, 64)
+	if err != nil || value <= 0 {
+		return 0, false
+	}
+	return value, true
+}
+
+func handleServiceError(c *gin.Context, err error) bool {
+	if err == nil {
+		return true
+	}
+	if errors.Is(err, ErrInvalidInput) {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
+		return false
+	}
+	c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+	return false
 }

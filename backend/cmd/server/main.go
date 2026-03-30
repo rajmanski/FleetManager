@@ -10,6 +10,7 @@ import (
 	"fleet-management/internal/clients"
 	"fleet-management/internal/config"
 	"fleet-management/internal/costs"
+	"fleet-management/internal/dashboard"
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/drivers"
 	"fleet-management/internal/fuel"
@@ -83,6 +84,9 @@ func main() {
 	reportsRepository := repository.NewReportsRepository(queries)
 	reportsService := reports.NewService(reportsRepository)
 	reportsHandler := reports.NewHandler(reportsService)
+	dashboardRepository := repository.NewDashboardRepository(queries)
+	dashboardService := dashboard.NewService(dashboardRepository)
+	dashboardHandler := dashboard.NewHandler(dashboardService)
 	cargoService := cargo.NewService(cargoRepository)
 	cargoHandler := cargo.NewHandler(cargoService)
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
@@ -513,6 +517,7 @@ func main() {
 		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
 		reportsHandler.GetGlobalCosts,
 	)
+	protected.GET("/dashboard/kpi", dashboardHandler.GetKPI)
 
 	protected.GET("/db-check", func(c *gin.Context) {
 		var one int

@@ -267,6 +267,50 @@ func (ns NullMaintenanceType) Value() (driver.Value, error) {
 	return string(ns.MaintenanceType), nil
 }
 
+type NotificationsType string
+
+const (
+	NotificationsTypeInsuranceExpiry   NotificationsType = "Insurance_Expiry"
+	NotificationsTypeInspectionDue     NotificationsType = "Inspection_Due"
+	NotificationsTypeCertificateExpiry NotificationsType = "Certificate_Expiry"
+	NotificationsTypeFuelAnomaly       NotificationsType = "Fuel_Anomaly"
+)
+
+func (e *NotificationsType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = NotificationsType(s)
+	case string:
+		*e = NotificationsType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for NotificationsType: %T", src)
+	}
+	return nil
+}
+
+type NullNotificationsType struct {
+	NotificationsType NotificationsType `json:"notifications_type"`
+	Valid             bool              `json:"valid"` // Valid is true if NotificationsType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullNotificationsType) Scan(value interface{}) error {
+	if value == nil {
+		ns.NotificationsType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.NotificationsType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullNotificationsType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.NotificationsType), nil
+}
+
 type OrdersStatus string
 
 const (
@@ -548,6 +592,15 @@ type Maintenance struct {
 	TotalCostPln  sql.NullString    `json:"total_cost_pln"`
 	CreatedAt     sql.NullTime      `json:"created_at"`
 	UpdatedAt     sql.NullTime      `json:"updated_at"`
+}
+
+type Notification struct {
+	ID        int32             `json:"id"`
+	UserID    int32             `json:"user_id"`
+	Type      NotificationsType `json:"type"`
+	Message   sql.NullString    `json:"message"`
+	IsRead    sql.NullBool      `json:"is_read"`
+	CreatedAt sql.NullTime      `json:"created_at"`
 }
 
 type Order struct {

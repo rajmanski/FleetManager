@@ -36,6 +36,7 @@ type Querier interface {
 	CreateFuelLog(ctx context.Context, arg CreateFuelLogParams) (int64, error)
 	CreateInsurancePolicy(ctx context.Context, arg CreateInsurancePolicyParams) (int64, error)
 	CreateMaintenance(ctx context.Context, arg CreateMaintenanceParams) (int64, error)
+	CreateNotification(ctx context.Context, arg CreateNotificationParams) (int64, error)
 	CreateOrder(ctx context.Context, arg CreateOrderParams) (int64, error)
 	CreateTrip(ctx context.Context, arg CreateTripParams) (int64, error)
 	CreateVehicle(ctx context.Context, arg CreateVehicleParams) (int64, error)

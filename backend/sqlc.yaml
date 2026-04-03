@@ -18,6 +18,7 @@ sql:
       - "migrations/000014_create_fuel_logs.up.sql"
       - "migrations/000015_fuel_anomaly_detection.up.sql"
       - "migrations/000017_create_costs.up.sql"
+      - "migrations/000018_create_notifications.up.sql"
     gen:
       go:
         package: "sqlc"

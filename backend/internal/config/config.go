@@ -4,6 +4,8 @@ import (
 	"encoding/base64"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 )
 
 const aes256KeyLen = 32
@@ -19,6 +21,10 @@ type Config struct {
 	AppEnv           string
 	EncryptionKey    []byte
 	GoogleMapsAPIKey string
+	// NotificationSchedulerEnabled turns on the daily cron that creates in-app notifications for users with the Mechanic role (see internal/notifications).
+	NotificationSchedulerEnabled bool
+	NotificationLookaheadDays    int
+	NotificationSchedulerCron    string
 }
 
 func Load() (*Config, error) {
@@ -32,6 +38,9 @@ func Load() (*Config, error) {
 		JWTSecret:        getEnv("JWT_SECRET", "change-me-jwt-secret"),
 		AppEnv:           getEnv("APP_ENV", "development"),
 		GoogleMapsAPIKey: getEnv("GOOGLE_MAPS_API_KEY", ""),
+		NotificationSchedulerEnabled: parseBoolEnv("NOTIFICATION_SCHEDULER_ENABLED", false),
+		NotificationLookaheadDays:    getIntEnv("NOTIFICATION_LOOKAHEAD_DAYS", 30),
+		NotificationSchedulerCron:    getEnv("NOTIFICATION_SCHEDULER_CRON", "0 6 * * *"),
 	}
 
 	key, err := loadEncryptionKey()
@@ -81,4 +90,31 @@ func getEnv(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+func parseBoolEnv(key string, fallback bool) bool {
+	raw := strings.TrimSpace(strings.ToLower(os.Getenv(key)))
+	if raw == "" {
+		return fallback
+	}
+	switch raw {
+	case "1", "true", "yes", "on":
+		return true
+	case "0", "false", "no", "off":
+		return false
+	default:
+		return fallback
+	}
+}
+
+func getIntEnv(key string, fallback int) int {
+	raw := strings.TrimSpace(os.Getenv(key))
+	if raw == "" {
+		return fallback
+	}
+	n, err := strconv.Atoi(raw)
+	if err != nil {
+		return fallback
+	}
+	return n
 }

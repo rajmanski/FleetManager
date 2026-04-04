@@ -21,6 +21,7 @@ import (
 	"fleet-management/internal/users"
 	"fleet-management/internal/orders"
 	"fleet-management/internal/maintenance"
+	"fleet-management/internal/notifications"
 	"fleet-management/internal/trips"
 	"fleet-management/internal/vehicles"
 	"fleet-management/internal/waypoints"
@@ -51,6 +52,13 @@ func main() {
 	defer dbConn.Close()
 
 	queries := sqlc.New(dbConn)
+	if cfg.NotificationSchedulerEnabled {
+		notifications.StartTermScheduler(
+			notifications.NewService(queries),
+			cfg.NotificationSchedulerCron,
+			cfg.NotificationLookaheadDays,
+		)
+	}
 	authRepository := repository.NewAuthRepository(queries)
 	authService := auth.NewService(authRepository, cfg.JWTSecret)
 	authHandler := auth.NewHandler(authService, cfg.IsProduction())

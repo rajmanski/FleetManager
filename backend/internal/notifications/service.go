@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	ErrInvalidUserID             = errors.New("invalid user id")
-	ErrInvalidNotificationType  = errors.New("invalid notification type")
+	ErrInvalidUserID            = errors.New("invalid user id")
+	ErrInvalidNotificationType = errors.New("invalid notification type")
 )
 
 type Service struct {

@@ -29,6 +29,14 @@ FROM Roles
 WHERE role_name = ?
 LIMIT 1;
 
+-- name: ListMechanicUserIDs :many
+SELECT u.user_id
+FROM Users u
+JOIN Roles r ON r.role_id = u.role_id
+WHERE r.role_name = 'Mechanik'
+  AND u.is_active = 1
+ORDER BY u.user_id ASC;
+
 -- name: CreateAdminUser :execlastid
 INSERT INTO Users (
   role_id,

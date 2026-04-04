@@ -146,6 +146,38 @@ func (q *Queries) ListAdminUsers(ctx context.Context) ([]ListAdminUsersRow, erro
 	return items, nil
 }
 
+const listMechanicUserIDs = `-- name: ListMechanicUserIDs :many
+SELECT u.user_id
+FROM Users u
+JOIN Roles r ON r.role_id = u.role_id
+WHERE r.role_name = 'Mechanik'
+  AND u.is_active = 1
+ORDER BY u.user_id ASC
+`
+
+func (q *Queries) ListMechanicUserIDs(ctx context.Context) ([]int32, error) {
+	rows, err := q.db.QueryContext(ctx, listMechanicUserIDs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int32
+	for rows.Next() {
+		var user_id int32
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const softDeleteAdminUser = `-- name: SoftDeleteAdminUser :execrows
 UPDATE Users
 SET is_active = 0

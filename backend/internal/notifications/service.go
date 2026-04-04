@@ -9,8 +9,10 @@ import (
 	sqlc "fleet-management/internal/db/sqlc"
 )
 
+const maxNotificationsListLimit int32 = 100
+
 var (
-	ErrInvalidUserID            = errors.New("invalid user id")
+	ErrInvalidUserID           = errors.New("invalid user id")
 	ErrInvalidNotificationType = errors.New("invalid notification type")
 )
 
@@ -58,5 +60,32 @@ func (s *Service) createNotification(ctx context.Context, userID int32, notifTyp
 
 func (s *Service) CreateNotification(ctx context.Context, userID int32, notifType string, message string) (int64, error) {
 	return s.createNotification(ctx, userID, notifType, message)
+}
+
+func (s *Service) ListForUser(ctx context.Context, userID int32) ([]sqlc.Notification, error) {
+	if userID <= 0 {
+		return nil, ErrInvalidUserID
+	}
+	return s.queries.ListNotificationsForUser(ctx, sqlc.ListNotificationsForUserParams{
+		UserID: userID,
+		Limit:  maxNotificationsListLimit,
+	})
+}
+
+func (s *Service) MarkAsReadForUser(ctx context.Context, userID int32, notificationID int32) error {
+	if userID <= 0 || notificationID <= 0 {
+		return ErrInvalidUserID
+	}
+	n, err := s.queries.MarkNotificationReadForUser(ctx, sqlc.MarkNotificationReadForUserParams{
+		ID:     notificationID,
+		UserID: userID,
+	})
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return ErrNotificationNotFound
+	}
+	return nil
 }
 

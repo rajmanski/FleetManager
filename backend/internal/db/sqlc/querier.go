@@ -118,6 +118,7 @@ type Querier interface {
 	ListInsurancePolicies(ctx context.Context, arg ListInsurancePoliciesParams) ([]InsurancePolicy, error)
 	ListMaintenance(ctx context.Context, arg ListMaintenanceParams) ([]Maintenance, error)
 	ListMechanicUserIDs(ctx context.Context) ([]int32, error)
+	ListNotificationsForUser(ctx context.Context, arg ListNotificationsForUserParams) ([]Notification, error)
 	ListOrders(ctx context.Context, arg ListOrdersParams) ([]ListOrdersRow, error)
 	ListSchedulerDriverAdrExpiryNotifications(ctx context.Context, dollar_1 int64) ([]string, error)
 	ListSchedulerDriverLicenseExpiryNotifications(ctx context.Context, dollar_1 int64) ([]string, error)
@@ -129,6 +130,7 @@ type Querier interface {
 	ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]ListVehiclesRow, error)
 	ListWaypointIDsByRouteID(ctx context.Context, routeID int32) ([]ListWaypointIDsByRouteIDRow, error)
 	ListWaypointsByRouteID(ctx context.Context, routeID int32) ([]Routewaypoint, error)
+	MarkNotificationReadForUser(ctx context.Context, arg MarkNotificationReadForUserParams) (int64, error)
 	OrderHasHazardousCargo(ctx context.Context, orderID int32) (bool, error)
 	RenumberWaypointsAfterDelete(ctx context.Context, arg RenumberWaypointsAfterDeleteParams) error
 	RestoreClientByID(ctx context.Context, clientID int32) (int64, error)

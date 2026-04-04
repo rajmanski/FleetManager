@@ -28,3 +28,72 @@ func (q *Queries) CreateNotification(ctx context.Context, arg CreateNotification
 	}
 	return result.LastInsertId()
 }
+
+const listNotificationsForUser = `-- name: ListNotificationsForUser :many
+SELECT
+  id,
+  user_id,
+  ` + "`" + `type` + "`" + `,
+  message,
+  is_read,
+  created_at
+FROM notifications
+WHERE user_id = ?
+ORDER BY created_at DESC
+LIMIT ?
+`
+
+type ListNotificationsForUserParams struct {
+	UserID int32 `json:"user_id"`
+	Limit  int32 `json:"limit"`
+}
+
+func (q *Queries) ListNotificationsForUser(ctx context.Context, arg ListNotificationsForUserParams) ([]Notification, error) {
+	rows, err := q.db.QueryContext(ctx, listNotificationsForUser, arg.UserID, arg.Limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Notification
+	for rows.Next() {
+		var i Notification
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Type,
+			&i.Message,
+			&i.IsRead,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const markNotificationReadForUser = `-- name: MarkNotificationReadForUser :execrows
+UPDATE notifications
+SET is_read = 1
+WHERE id = ?
+  AND user_id = ?
+`
+
+type MarkNotificationReadForUserParams struct {
+	ID     int32 `json:"id"`
+	UserID int32 `json:"user_id"`
+}
+
+func (q *Queries) MarkNotificationReadForUser(ctx context.Context, arg MarkNotificationReadForUserParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, markNotificationReadForUser, arg.ID, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}

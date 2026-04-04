@@ -52,13 +52,15 @@ func main() {
 	defer dbConn.Close()
 
 	queries := sqlc.New(dbConn)
+	notificationService := notifications.NewService(queries)
 	if cfg.NotificationSchedulerEnabled {
 		notifications.StartTermScheduler(
-			notifications.NewService(queries),
+			notificationService,
 			cfg.NotificationSchedulerCron,
 			cfg.NotificationLookaheadDays,
 		)
 	}
+	notificationHandler := notifications.NewHandler(notificationService)
 	authRepository := repository.NewAuthRepository(queries)
 	authService := auth.NewService(authRepository, cfg.JWTSecret)
 	authHandler := auth.NewHandler(authService, cfg.IsProduction())
@@ -526,6 +528,9 @@ func main() {
 		reportsHandler.GetGlobalCosts,
 	)
 	protected.GET("/dashboard/kpi", dashboardHandler.GetKPI)
+
+	protected.GET("/notifications", notificationHandler.ListNotifications)
+	protected.PATCH("/notifications/:id/read", notificationHandler.MarkNotificationRead)
 
 	protected.GET("/db-check", func(c *gin.Context) {
 		var one int

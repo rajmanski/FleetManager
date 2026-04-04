@@ -1,4 +1,5 @@
 import { LogOut, Truck } from 'lucide-react'
+import { NotificationBellMenu } from '@/components/notifications/NotificationBellMenu'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/hooks/useAuth'
 import { formatRole } from '@/utils/role'
@@ -24,6 +25,7 @@ export function AppHeader({ onLogout }: AppHeaderProps) {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <NotificationBellMenu />
             <div className="text-right">
               <p className="text-sm">Current user</p>
               <p className="text-xs text-gray-600">{formatRole(role)}</p>

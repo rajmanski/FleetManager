@@ -23,6 +23,7 @@ import InsurancePage from './pages/InsurancePage.tsx'
 import FuelPage from './pages/FuelPage.tsx'
 import CostsPage from './pages/CostsPage.tsx'
 import ReportsPage from './pages/ReportsPage.tsx'
+import NotificationsPage from './pages/NotificationsPage.tsx'
 import { RequireAdmin } from './routes/RequireAdmin.tsx'
 import RequireAuth from './routes/RequireAuth.tsx'
 import { RequireRoutesAccess } from './routes/RequireRoutesAccess.tsx'
@@ -46,6 +47,7 @@ createRoot(document.getElementById('root')!).render(
             }
           >
             <Route index element={<DashboardPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
             <Route
               path="admin/users"
               element={

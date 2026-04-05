@@ -3,23 +3,10 @@ import { Bell } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
-import { isNotificationUnread, useNotifications } from '@/hooks/notifications/useNotifications'
+import { useNotifications } from '@/hooks/notifications/useNotifications'
+import { isNotificationUnread } from '@/utils/notifications'
 import { formatDateTime } from '@/utils/date'
-
-function notificationTypeLabel(type: string): string {
-  switch (type) {
-    case 'Insurance_Expiry':
-      return 'Insurance expiry'
-    case 'Inspection_Due':
-      return 'Inspection due'
-    case 'Certificate_Expiry':
-      return 'Certificate expiry'
-    case 'Fuel_Anomaly':
-      return 'Fuel anomaly'
-    default:
-      return type.replaceAll('_', ' ')
-  }
-}
+import { formatNotificationTypeLabel } from '@/utils/notifications'
 
 export function NotificationBellMenu() {
   const [open, setOpen] = useState(false)
@@ -112,7 +99,7 @@ export function NotificationBellMenu() {
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs uppercase tracking-wide text-slate-600">
-                          {notificationTypeLabel(n.type)}
+                          {formatNotificationTypeLabel(n.type)}
                         </span>
                         {unread ? (
                           <span

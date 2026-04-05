@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  Bell,
   Building2,
   ClipboardList,
   FileSpreadsheet,
@@ -30,6 +31,13 @@ export function AppSidebar() {
         <Link to="/" className={navItemClass(location.pathname === '/')}>
           <BarChart3 className="size-5" />
           <span>Dashboard</span>
+        </Link>
+        <Link
+          to="/notifications"
+          className={navItemClass(location.pathname.startsWith('/notifications'))}
+        >
+          <Bell className="size-5" />
+          <span>Notifications</span>
         </Link>
         <Link
           to="/vehicles"

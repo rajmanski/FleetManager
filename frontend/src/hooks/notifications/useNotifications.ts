@@ -1,17 +1,22 @@
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { fetchNotifications } from '@/services/notifications'
-import type { Notification } from '@/types/notifications'
-
-export function isNotificationUnread(n: Notification): boolean {
-  return n.is_read !== true
-}
+import { fetchNotifications, markNotificationRead } from '@/services/notifications'
+import { isNotificationUnread } from '@/utils/notifications'
 
 export function useNotifications() {
+  const queryClient = useQueryClient()
+
   const listQuery = useQuery({
     queryKey: ['notifications'],
     queryFn: fetchNotifications,
     refetchInterval: 60_000,
+  })
+
+  const markReadMutation = useMutation({
+    mutationFn: markNotificationRead,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['notifications'] })
+    },
   })
 
   const unreadCount = useMemo(() => {
@@ -22,5 +27,6 @@ export function useNotifications() {
   return {
     listQuery,
     unreadCount,
+    markReadMutation,
   }
 }

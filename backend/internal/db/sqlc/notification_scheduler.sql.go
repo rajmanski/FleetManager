@@ -145,3 +145,46 @@ func (q *Queries) ListSchedulerInsuranceNotifications(ctx context.Context, dolla
 	}
 	return items, nil
 }
+
+const listSchedulerMaintenanceDueNotifications = `-- name: ListSchedulerMaintenanceDueNotifications :many
+SELECT
+  CONCAT(
+    'Scheduled ',
+    m.type,
+    ' maintenance for VIN ',
+    v.vin,
+    ' on ',
+    DATE_FORMAT(m.start_date, '%Y-%m-%d')
+  ) AS message
+FROM Maintenance m
+JOIN Vehicles v ON v.vehicle_id = m.vehicle_id
+WHERE m.status = 'Scheduled'
+  AND v.deleted_at IS NULL
+  AND m.start_date IS NOT NULL
+  AND DATE(m.start_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL CAST(? AS SIGNED) DAY)
+ORDER BY m.start_date ASC
+LIMIT 50
+`
+
+func (q *Queries) ListSchedulerMaintenanceDueNotifications(ctx context.Context, dollar_1 int64) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, listSchedulerMaintenanceDueNotifications, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var message string
+		if err := rows.Scan(&message); err != nil {
+			return nil, err
+		}
+		items = append(items, message)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

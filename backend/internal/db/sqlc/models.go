@@ -274,6 +274,7 @@ const (
 	NotificationsTypeInspectionDue     NotificationsType = "Inspection_Due"
 	NotificationsTypeCertificateExpiry NotificationsType = "Certificate_Expiry"
 	NotificationsTypeFuelAnomaly       NotificationsType = "Fuel_Anomaly"
+	NotificationsTypeMaintenanceDue    NotificationsType = "Maintenance_Due"
 )
 
 func (e *NotificationsType) Scan(src interface{}) error {
@@ -597,10 +598,10 @@ type Maintenance struct {
 type Notification struct {
 	ID        int32             `json:"id"`
 	UserID    int32             `json:"user_id"`
-	Type      NotificationsType `json:"type"`
 	Message   sql.NullString    `json:"message"`
 	IsRead    sql.NullBool      `json:"is_read"`
 	CreatedAt sql.NullTime      `json:"created_at"`
+	Type      NotificationsType `json:"type"`
 }
 
 type Order struct {

@@ -48,15 +48,24 @@ type ListNotificationsForUserParams struct {
 	Limit  int32 `json:"limit"`
 }
 
-func (q *Queries) ListNotificationsForUser(ctx context.Context, arg ListNotificationsForUserParams) ([]Notification, error) {
+type ListNotificationsForUserRow struct {
+	ID        int32             `json:"id"`
+	UserID    int32             `json:"user_id"`
+	Type      NotificationsType `json:"type"`
+	Message   sql.NullString    `json:"message"`
+	IsRead    sql.NullBool      `json:"is_read"`
+	CreatedAt sql.NullTime      `json:"created_at"`
+}
+
+func (q *Queries) ListNotificationsForUser(ctx context.Context, arg ListNotificationsForUserParams) ([]ListNotificationsForUserRow, error) {
 	rows, err := q.db.QueryContext(ctx, listNotificationsForUser, arg.UserID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Notification
+	var items []ListNotificationsForUserRow
 	for rows.Next() {
-		var i Notification
+		var i ListNotificationsForUserRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,

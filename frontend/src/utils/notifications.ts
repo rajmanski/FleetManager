@@ -14,6 +14,8 @@ export function formatNotificationTypeLabel(type: string): string {
       return 'Certificate expiry'
     case 'Fuel_Anomaly':
       return 'Fuel anomaly'
+    case 'Maintenance_Due':
+      return 'Maintenance due'
     default:
       return type.replaceAll('_', ' ')
   }

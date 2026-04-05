@@ -5,6 +5,7 @@ export const NOTIFICATION_TYPE_VALUES = [
   'Inspection_Due',
   'Certificate_Expiry',
   'Fuel_Anomaly',
+  'Maintenance_Due',
 ] as const
 
 export const NOTIFICATION_TYPE_FILTER_OPTIONS = NOTIFICATION_TYPE_VALUES.map((value) => ({

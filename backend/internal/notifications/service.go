@@ -44,6 +44,8 @@ func (s *Service) createNotification(ctx context.Context, userID int32, notifTyp
 		dbType = sqlc.NotificationsTypeCertificateExpiry
 	case string(sqlc.NotificationsTypeFuelAnomaly):
 		dbType = sqlc.NotificationsTypeFuelAnomaly
+	case string(sqlc.NotificationsTypeMaintenanceDue):
+		dbType = sqlc.NotificationsTypeMaintenanceDue
 	default:
 		return 0, ErrInvalidNotificationType
 	}
@@ -66,10 +68,25 @@ func (s *Service) ListForUser(ctx context.Context, userID int32) ([]sqlc.Notific
 	if userID <= 0 {
 		return nil, ErrInvalidUserID
 	}
-	return s.queries.ListNotificationsForUser(ctx, sqlc.ListNotificationsForUserParams{
+	rows, err := s.queries.ListNotificationsForUser(ctx, sqlc.ListNotificationsForUserParams{
 		UserID: userID,
 		Limit:  maxNotificationsListLimit,
 	})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]sqlc.Notification, 0, len(rows))
+	for _, r := range rows {
+		out = append(out, sqlc.Notification{
+			ID:        r.ID,
+			UserID:    r.UserID,
+			Type:      r.Type,
+			Message:   r.Message,
+			IsRead:    r.IsRead,
+			CreatedAt: r.CreatedAt,
+		})
+	}
+	return out, nil
 }
 
 func (s *Service) MarkAsReadForUser(ctx context.Context, userID int32, notificationID int32) error {

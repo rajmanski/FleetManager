@@ -38,3 +38,22 @@ WHERE d.deleted_at IS NULL
   AND d.adr_expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL CAST(? AS SIGNED) DAY)
 ORDER BY d.adr_expiry_date ASC
 LIMIT 50;
+
+-- name: ListSchedulerMaintenanceDueNotifications :many
+SELECT
+  CONCAT(
+    'Scheduled ',
+    m.type,
+    ' maintenance for VIN ',
+    v.vin,
+    ' on ',
+    DATE_FORMAT(m.start_date, '%Y-%m-%d')
+  ) AS message
+FROM Maintenance m
+JOIN Vehicles v ON v.vehicle_id = m.vehicle_id
+WHERE m.status = 'Scheduled'
+  AND v.deleted_at IS NULL
+  AND m.start_date IS NOT NULL
+  AND DATE(m.start_date) BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL CAST(? AS SIGNED) DAY)
+ORDER BY m.start_date ASC
+LIMIT 50;

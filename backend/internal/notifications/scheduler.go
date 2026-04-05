@@ -3,37 +3,9 @@ package notifications
 import (
 	"context"
 	"log"
-	"time"
-
-	"github.com/robfig/cron/v3"
 
 	sqlc "fleet-management/internal/db/sqlc"
 )
-
-func StartTermScheduler(svc *Service, cronExpr string, lookaheadDays int) {
-	if svc == nil {
-		return
-	}
-	la := int64(lookaheadDays)
-	if la <= 0 {
-		la = 30
-	}
-
-	c := cron.New()
-	_, err := c.AddFunc(cronExpr, func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
-		defer cancel()
-		if err := svc.RunDueTermNotifications(ctx, la); err != nil {
-			log.Printf("notification scheduler: run failed: %v", err)
-		}
-	})
-	if err != nil {
-		log.Printf("notification scheduler: invalid cron %q: %v", cronExpr, err)
-		return
-	}
-	c.Start()
-	log.Printf("notification scheduler: started (cron=%q lookahead_days=%d)", cronExpr, la)
-}
 
 func (s *Service) RunDueTermNotifications(ctx context.Context, lookaheadDays int64) error {
 	if lookaheadDays <= 0 {

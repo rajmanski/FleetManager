@@ -1,8 +1,14 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"fleet-management/internal/cargo"
 	"fleet-management/internal/assignments"
@@ -22,6 +28,7 @@ import (
 	"fleet-management/internal/orders"
 	"fleet-management/internal/maintenance"
 	"fleet-management/internal/notifications"
+	"fleet-management/internal/scheduler"
 	"fleet-management/internal/trips"
 	"fleet-management/internal/vehicles"
 	"fleet-management/internal/waypoints"
@@ -53,13 +60,6 @@ func main() {
 
 	queries := sqlc.New(dbConn)
 	notificationService := notifications.NewService(queries)
-	if cfg.NotificationSchedulerEnabled {
-		notifications.StartTermScheduler(
-			notificationService,
-			cfg.NotificationSchedulerCron,
-			cfg.NotificationLookaheadDays,
-		)
-	}
 	notificationHandler := notifications.NewHandler(notificationService)
 	authRepository := repository.NewAuthRepository(queries)
 	authService := auth.NewService(authRepository, cfg.JWTSecret)
@@ -547,5 +547,54 @@ func main() {
 		})
 	})
 
-	log.Fatal(r.Run(":" + cfg.ServerPort))
+	srv := &http.Server{
+		Addr:    ":" + cfg.ServerPort,
+		Handler: r,
+	}
+
+	var cronSched *scheduler.Scheduler
+	var cronStarted bool
+	if cfg.NotificationSchedulerEnabled {
+		cronSched = scheduler.New()
+		if err := scheduler.RegisterDueTermNotifications(
+			cronSched,
+			notificationService,
+			cfg.NotificationSchedulerCron,
+			cfg.NotificationLookaheadDays,
+		); err != nil {
+			log.Printf("notification scheduler: invalid cron %q: %v", cfg.NotificationSchedulerCron, err)
+		} else {
+			cronSched.Start()
+			cronStarted = true
+			log.Printf(
+				"notification scheduler: started (cron=%q lookahead_days=%d)",
+				cfg.NotificationSchedulerCron,
+				cfg.NotificationLookaheadDays,
+			)
+		}
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("server listen: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("server: shutdown signal received")
+
+	if cronStarted && cronSched != nil {
+		log.Println("scheduler: stopping")
+		<-cronSched.Stop().Done()
+		log.Println("scheduler: stopped")
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("server: shutdown error: %v", err)
+	}
+	log.Println("server: stopped")
 }

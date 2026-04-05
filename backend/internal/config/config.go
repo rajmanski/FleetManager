@@ -21,7 +21,7 @@ type Config struct {
 	AppEnv           string
 	EncryptionKey    []byte
 	GoogleMapsAPIKey string
-	// NotificationSchedulerEnabled turns on the daily cron that creates in-app notifications for users with the Mechanic role (see internal/notifications).
+	
 	NotificationSchedulerEnabled bool
 	NotificationLookaheadDays    int
 	NotificationSchedulerCron    string
@@ -38,7 +38,7 @@ func Load() (*Config, error) {
 		JWTSecret:        getEnv("JWT_SECRET", "change-me-jwt-secret"),
 		AppEnv:           getEnv("APP_ENV", "development"),
 		GoogleMapsAPIKey: getEnv("GOOGLE_MAPS_API_KEY", ""),
-		NotificationSchedulerEnabled: parseBoolEnv("NOTIFICATION_SCHEDULER_ENABLED", false),
+		NotificationSchedulerEnabled: parseSchedulerEnabled(),
 		NotificationLookaheadDays:    getIntEnv("NOTIFICATION_LOOKAHEAD_DAYS", 30),
 		NotificationSchedulerCron:    getEnv("NOTIFICATION_SCHEDULER_CRON", "0 6 * * *"),
 	}
@@ -90,6 +90,13 @@ func getEnv(key, fallback string) string {
 		return v
 	}
 	return fallback
+}
+
+func parseSchedulerEnabled() bool {
+	if strings.TrimSpace(os.Getenv("SCHEDULER_ENABLED")) != "" {
+		return parseBoolEnv("SCHEDULER_ENABLED", false)
+	}
+	return parseBoolEnv("NOTIFICATION_SCHEDULER_ENABLED", false)
 }
 
 func parseBoolEnv(key string, fallback bool) bool {

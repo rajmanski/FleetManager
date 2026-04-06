@@ -1,3 +1,4 @@
+import { NotificationStatusBadge } from '@/components/notifications/NotificationStatusBadge'
 import { Button } from '@/components/ui/Button'
 import type { Notification } from '@/types/notifications'
 import { formatDateTime } from '@/utils/date'
@@ -41,11 +42,7 @@ export function NotificationsTable({ rows, markingId, onMarkRead }: Notification
                     {formatDateTime(row.created_at ?? undefined)}
                   </td>
                   <td className="px-4 py-3">
-                    {unread ? (
-                      <span className="text-xs font-medium text-blue-700">Unread</span>
-                    ) : (
-                      <span className="text-xs text-gray-500">Read</span>
-                    )}
+                    <NotificationStatusBadge unread={unread} variant="table" />
                   </td>
                   <td className="px-4 py-3">
                     {unread ? (

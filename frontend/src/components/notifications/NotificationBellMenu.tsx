@@ -1,38 +1,21 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { Bell } from 'lucide-react'
+import { NotificationStatusBadge } from '@/components/notifications/NotificationStatusBadge'
 import { Button } from '@/components/ui/Button'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
+import { useDismissOnOutsideClickAndEscape } from '@/hooks/useDismissOnOutsideClickAndEscape'
 import { useNotifications } from '@/hooks/notifications/useNotifications'
-import { isNotificationUnread } from '@/utils/notifications'
 import { formatDateTime } from '@/utils/date'
-import { formatNotificationTypeLabel } from '@/utils/notifications'
+import { formatNotificationTypeLabel, isNotificationUnread } from '@/utils/notifications'
 
 export function NotificationBellMenu() {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const { listQuery, unreadCount } = useNotifications()
 
-  useEffect(() => {
-    if (!open) return
-
-    const onDocMouseDown = (e: MouseEvent) => {
-      const el = rootRef.current
-      if (!el || el.contains(e.target as Node)) return
-      setOpen(false)
-    }
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-
-    document.addEventListener('mousedown', onDocMouseDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', onDocMouseDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [open])
+  const handleDismiss = useCallback(() => setOpen(false), [])
+  useDismissOnOutsideClickAndEscape(open, rootRef, handleDismiss)
 
   const handleToggle = () => {
     setOpen((v) => !v)
@@ -101,15 +84,7 @@ export function NotificationBellMenu() {
                         <span className="text-xs uppercase tracking-wide text-slate-600">
                           {formatNotificationTypeLabel(n.type)}
                         </span>
-                        {unread ? (
-                          <span
-                            className="size-2 shrink-0 rounded-full bg-blue-600"
-                            title="Unread"
-                            aria-label="Unread"
-                          />
-                        ) : (
-                          <span className="text-[10px] text-gray-400">Read</span>
-                        )}
+                        <NotificationStatusBadge unread={unread} variant="bell" />
                       </div>
                       {n.message ? (
                         <p className="mt-0.5 line-clamp-3 text-sm">{n.message}</p>

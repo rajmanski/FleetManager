@@ -663,17 +663,16 @@ type User struct {
 }
 
 type Vehicle struct {
-	VehicleID          int32              `json:"vehicle_id"`
-	Vin                string             `json:"vin"`
-	PlateNumber        sql.NullString     `json:"plate_number"`
-	Brand              sql.NullString     `json:"brand"`
-	Model              sql.NullString     `json:"model"`
-	ProductionYear     sql.NullInt16      `json:"production_year"`
-	CapacityKg         sql.NullInt32      `json:"capacity_kg"`
-	CurrentMileageKm   sql.NullInt32      `json:"current_mileage_km"`
-	Status             NullVehiclesStatus `json:"status"`
-	DeletedAt          sql.NullTime       `json:"deleted_at"`
-	CreatedAt          sql.NullTime       `json:"created_at"`
-	UpdatedAt          sql.NullTime       `json:"updated_at"`
-	NextInspectionDate sql.NullTime       `json:"next_inspection_date"`
+	VehicleID        int32              `json:"vehicle_id"`
+	Vin              string             `json:"vin"`
+	PlateNumber      sql.NullString     `json:"plate_number"`
+	Brand            sql.NullString     `json:"brand"`
+	Model            sql.NullString     `json:"model"`
+	ProductionYear   sql.NullInt16      `json:"production_year"`
+	CapacityKg       sql.NullInt32      `json:"capacity_kg"`
+	CurrentMileageKm sql.NullInt32      `json:"current_mileage_km"`
+	Status           NullVehiclesStatus `json:"status"`
+	DeletedAt        sql.NullTime       `json:"deleted_at"`
+	CreatedAt        sql.NullTime       `json:"created_at"`
+	UpdatedAt        sql.NullTime       `json:"updated_at"`
 }

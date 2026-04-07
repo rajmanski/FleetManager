@@ -10,7 +10,7 @@ WHERE status = 'Service'
   AND deleted_at IS NULL;
 
 -- name: GetCurrentMonthCosts :one
-SELECT (
+SELECT CAST((
   COALESCE((
     SELECT SUM(fl.total_cost)
     FROM fuel_logs fl
@@ -27,7 +27,7 @@ SELECT (
     FROM costs c
     WHERE DATE_FORMAT(c.date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
   ), 0)
-) AS total_costs;
+) AS SIGNED) AS total_costs;
 
 -- name: GetCurrentMonthRevenue :one
 SELECT COALESCE(SUM(o.total_price_pln), 0) AS total_revenue

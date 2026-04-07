@@ -374,7 +374,7 @@ func mapVehicleRow(row sqlc.Vehicle) vehicles.Vehicle {
 	return vehicle
 }
 
-func mapListVehicleRow(row sqlc.ListVehiclesRow) vehicles.Vehicle {
+func mapListVehicleRow(row sqlc.Vehicle) vehicles.Vehicle {
 	vehicle := vehicles.Vehicle{
 		ID:     int64(row.VehicleID),
 		VIN:    row.Vin,

@@ -14,7 +14,6 @@ func clampLookaheadDays(d int64) int64 {
 	return d
 }
 
-// listMechanicsForJob returns mechanic user IDs, or skip=true when there is nobody to notify.
 func (s *Service) listMechanicsForJob(ctx context.Context, job string) (mechanics []int32, skip bool, err error) {
 	mechanics, err = s.queries.ListMechanicUserIDs(ctx)
 	if err != nil {

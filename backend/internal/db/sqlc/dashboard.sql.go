@@ -37,7 +37,7 @@ func (q *Queries) CountVehiclesInService(ctx context.Context) (int64, error) {
 }
 
 const getCurrentMonthCosts = `-- name: GetCurrentMonthCosts :one
-SELECT (
+SELECT CAST((
   COALESCE((
     SELECT SUM(fl.total_cost)
     FROM fuel_logs fl
@@ -54,12 +54,12 @@ SELECT (
     FROM costs c
     WHERE DATE_FORMAT(c.date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
   ), 0)
-) AS total_costs
+) AS SIGNED) AS total_costs
 `
 
-func (q *Queries) GetCurrentMonthCosts(ctx context.Context) (int32, error) {
+func (q *Queries) GetCurrentMonthCosts(ctx context.Context) (int64, error) {
 	row := q.db.QueryRowContext(ctx, getCurrentMonthCosts)
-	var total_costs int32
+	var total_costs int64
 	err := row.Scan(&total_costs)
 	return total_costs, err
 }

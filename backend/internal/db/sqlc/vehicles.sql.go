@@ -353,22 +353,7 @@ type ListVehiclesParams struct {
 	Offset  int32              `json:"offset"`
 }
 
-type ListVehiclesRow struct {
-	VehicleID        int32              `json:"vehicle_id"`
-	Vin              string             `json:"vin"`
-	PlateNumber      sql.NullString     `json:"plate_number"`
-	Brand            sql.NullString     `json:"brand"`
-	Model            sql.NullString     `json:"model"`
-	ProductionYear   sql.NullInt16      `json:"production_year"`
-	CapacityKg       sql.NullInt32      `json:"capacity_kg"`
-	CurrentMileageKm sql.NullInt32      `json:"current_mileage_km"`
-	Status           NullVehiclesStatus `json:"status"`
-	DeletedAt        sql.NullTime       `json:"deleted_at"`
-	CreatedAt        sql.NullTime       `json:"created_at"`
-	UpdatedAt        sql.NullTime       `json:"updated_at"`
-}
-
-func (q *Queries) ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]ListVehiclesRow, error) {
+func (q *Queries) ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]Vehicle, error) {
 	rows, err := q.db.QueryContext(ctx, listVehicles,
 		arg.Column1,
 		arg.Column2,
@@ -383,9 +368,9 @@ func (q *Queries) ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]L
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListVehiclesRow
+	var items []Vehicle
 	for rows.Next() {
-		var i ListVehiclesRow
+		var i Vehicle
 		if err := rows.Scan(
 			&i.VehicleID,
 			&i.Vin,

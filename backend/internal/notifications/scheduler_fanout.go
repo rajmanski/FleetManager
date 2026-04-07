@@ -4,7 +4,6 @@ import (
 	"context"
 )
 
-// fanOutBatch is one notification type plus message rows from a scheduler query.
 type fanOutBatch struct {
 	notifType string
 	messages  []string

@@ -137,6 +137,15 @@ export function AppSidebar() {
             <span>Users</span>
           </Link>
         )}
+        {role === 'Administrator' && (
+          <Link
+            to="/admin/changelog"
+            className={navItemClass(location.pathname.startsWith('/admin/changelog'))}
+          >
+            <FileText className="size-5" />
+            <span>Changelog</span>
+          </Link>
+        )}
       </nav>
     </aside>
   )

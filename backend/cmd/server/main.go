@@ -132,6 +132,7 @@ func main() {
 
 	protected := api.Group("/")
 	protected.Use(auth.JWTMiddleware(cfg.JWTSecret))
+	protected.Use(auth.AuditUserContextMiddleware(dbConn))
 	protected.GET(
 		"/admin/users",
 		auth.RBACMiddleware(auth.ResourceUsers, auth.PermissionRead),

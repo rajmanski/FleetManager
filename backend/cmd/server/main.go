@@ -13,6 +13,7 @@ import (
 	"fleet-management/internal/cargo"
 	"fleet-management/internal/assignments"
 	"fleet-management/internal/auth"
+	"fleet-management/internal/changelog"
 	"fleet-management/internal/clients"
 	"fleet-management/internal/config"
 	"fleet-management/internal/costs"
@@ -97,6 +98,9 @@ func main() {
 	dashboardRepository := repository.NewDashboardRepository(queries)
 	dashboardService := dashboard.NewService(dashboardRepository)
 	dashboardHandler := dashboard.NewHandler(dashboardService)
+	changelogRepository := repository.NewChangelogRepository(queries)
+	changelogService := changelog.NewService(changelogRepository)
+	changelogHandler := changelog.NewHandler(changelogService)
 	cargoService := cargo.NewService(cargoRepository)
 	cargoHandler := cargo.NewHandler(cargoService)
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
@@ -162,6 +166,11 @@ func main() {
 		"/users/:id/unlock",
 		auth.RBACMiddleware(auth.ResourceUsers, auth.PermissionWrite),
 		usersHandler.UnlockUser,
+	)
+	protected.GET(
+		"/admin/changelog",
+		auth.RBACMiddleware(auth.ResourceAuditLog, auth.PermissionRead),
+		changelogHandler.ListAdminChangelog,
 	)
 	protected.GET(
 		"/vehicles",

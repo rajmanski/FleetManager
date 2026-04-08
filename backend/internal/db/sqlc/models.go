@@ -7,6 +7,7 @@ package sqlc
 import (
 	"database/sql"
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -52,6 +53,49 @@ func (ns NullCargoCargoType) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.CargoCargoType), nil
+}
+
+type ChangelogOperation string
+
+const (
+	ChangelogOperationINSERT ChangelogOperation = "INSERT"
+	ChangelogOperationUPDATE ChangelogOperation = "UPDATE"
+	ChangelogOperationDELETE ChangelogOperation = "DELETE"
+)
+
+func (e *ChangelogOperation) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ChangelogOperation(s)
+	case string:
+		*e = ChangelogOperation(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ChangelogOperation: %T", src)
+	}
+	return nil
+}
+
+type NullChangelogOperation struct {
+	ChangelogOperation ChangelogOperation `json:"changelog_operation"`
+	Valid              bool               `json:"valid"` // Valid is true if ChangelogOperation is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullChangelogOperation) Scan(value interface{}) error {
+	if value == nil {
+		ns.ChangelogOperation, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ChangelogOperation.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullChangelogOperation) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ChangelogOperation), nil
 }
 
 type CostsCategory string
@@ -514,6 +558,17 @@ type Cargo struct {
 	VolumeM3              sql.NullString     `json:"volume_m3"`
 	CargoType             NullCargoCargoType `json:"cargo_type"`
 	DestinationWaypointID sql.NullInt32      `json:"destination_waypoint_id"`
+}
+
+type Changelog struct {
+	ID        int32              `json:"id"`
+	UserID    sql.NullInt32      `json:"user_id"`
+	TableName string             `json:"table_name"`
+	RecordID  int32              `json:"record_id"`
+	Operation ChangelogOperation `json:"operation"`
+	OldData   json.RawMessage    `json:"old_data"`
+	NewData   json.RawMessage    `json:"new_data"`
+	Timestamp sql.NullTime       `json:"timestamp"`
 }
 
 type Client struct {

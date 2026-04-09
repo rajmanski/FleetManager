@@ -8,7 +8,9 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { MileageHistorySection } from '@/components/vehicles/MileageHistorySection'
 import { MaintenanceHistorySection } from '@/components/vehicles/MaintenanceHistorySection'
 import { VehicleFormModal } from '@/components/vehicles/VehicleFormModal'
+import { RecordChangelogModal } from '@/components/changelog/RecordChangelogModal'
 import { useVehicle } from '@/hooks/vehicles/useVehicle'
+import { useAuth } from '@/hooks/useAuth'
 import type { VehicleMutationPayload } from '@/hooks/vehicles/useVehicles'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { vehicleToFormInitialData } from '@/utils/vehicle'
@@ -18,6 +20,8 @@ import { formatDateTime } from '@/utils/date'
 function VehicleDetailsPage() {
   const { id } = useParams()
   const [editOpen, setEditOpen] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const { isAdmin } = useAuth()
 
   const deleteCallbacks = useMutationCallbacks({
     successMessage: 'Vehicle deleted',
@@ -91,6 +95,11 @@ function VehicleDetailsPage() {
       <MaintenanceHistorySection vehicleId={vehicle.id} />
 
       <div className="flex flex-wrap items-center gap-2">
+        {isAdmin && (
+          <Button variant="secondary" onClick={() => setHistoryOpen(true)}>
+            Historia
+          </Button>
+        )}
         {canManage && !isDeleted && (
           <>
             <Button variant="secondary" onClick={() => setEditOpen(true)}>
@@ -130,6 +139,14 @@ function VehicleDetailsPage() {
           errorMessage={extractApiError(updateMutation.error)}
         />
       )}
+
+      <RecordChangelogModal
+        open={historyOpen}
+        title={`History of the vehicle: #${vehicle.id}`}
+        tableName="vehicles"
+        recordId={vehicle.id}
+        onClose={() => setHistoryOpen(false)}
+      />
     </div>
   )
 }

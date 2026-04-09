@@ -174,6 +174,11 @@ func main() {
 		changelogHandler.ListAdminChangelog,
 	)
 	protected.GET(
+		"/changelog",
+		auth.RBACMiddleware(auth.ResourceAuditLog, auth.PermissionRead),
+		changelogHandler.ListAdminChangelog,
+	)
+	protected.GET(
 		"/vehicles",
 		auth.RBACMiddleware(auth.ResourceVehicles, auth.PermissionRead),
 		vehiclesHandler.ListVehicles,

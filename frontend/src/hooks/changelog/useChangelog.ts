@@ -4,6 +4,7 @@ import api from '@/services/api'
 export type ChangelogEntry = {
   id: number
   userId?: number
+  username?: string
   tableName: string
   recordId: number
   operation: string
@@ -20,9 +21,12 @@ export type ChangelogListResponse = {
 }
 
 type UseChangelogParams = {
+  endpoint?: '/api/v1/admin/changelog' | '/api/v1/changelog'
+  enabled?: boolean
   page: number
   limit: number
   userId: string
+  recordId?: number
   tableName: string
   operation: string
   dateFrom: string
@@ -30,26 +34,31 @@ type UseChangelogParams = {
 }
 
 export function useChangelog({
+  endpoint = '/api/v1/admin/changelog',
+  enabled = true,
   page,
   limit,
   userId,
+  recordId,
   tableName,
   operation,
   dateFrom,
   dateTo,
 }: UseChangelogParams) {
   const changelogQuery = useQuery({
+    enabled,
     queryKey: [
       'admin',
       'changelog',
-      { page, limit, userId, tableName, operation, dateFrom, dateTo },
+      { endpoint, page, limit, userId, recordId, tableName, operation, dateFrom, dateTo },
     ],
     queryFn: async () => {
-      const res = await api.get<ChangelogListResponse>('/api/v1/admin/changelog', {
+      const res = await api.get<ChangelogListResponse>(endpoint, {
         params: {
           page,
           limit,
           user_id: userId || undefined,
+          record_id: recordId || undefined,
           table_name: tableName || undefined,
           operation: operation || undefined,
           date_from: dateFrom || undefined,

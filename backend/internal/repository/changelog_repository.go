@@ -27,6 +27,13 @@ func (r *ChangelogRepository) List(ctx context.Context, query changelog.ListChan
 		userID = sql.NullInt32{Int32: int32(query.UserID), Valid: true}
 	}
 
+	recordFlag := interface{}(0)
+	recordID := int32(0)
+	if query.RecordID > 0 {
+		recordFlag = 1
+		recordID = int32(query.RecordID)
+	}
+
 	tableName := strings.TrimSpace(query.TableName)
 	tableFlag := interface{}("")
 	if tableName != "" {
@@ -61,13 +68,15 @@ func (r *ChangelogRepository) List(ctx context.Context, query changelog.ListChan
 	arg := sqlc.ListChangelogParams{
 		Column1:     userFlag,
 		UserID:      userID,
-		Column3:     tableFlag,
+		Column3:     recordFlag,
+		RecordID:    recordID,
+		Column5:     tableFlag,
 		TableName:   tableName,
-		Column5:     opFlag,
+		Column7:     opFlag,
 		Operation:   opEnum,
-		Column7:     dateFromFlag,
+		Column9:     dateFromFlag,
 		Timestamp:   dateFrom,
-		Column9:     dateToFlag,
+		Column11:    dateToFlag,
 		Timestamp_2: dateTo,
 		Limit:       query.Limit,
 		Offset:      offset,
@@ -81,13 +90,15 @@ func (r *ChangelogRepository) List(ctx context.Context, query changelog.ListChan
 	countArg := sqlc.CountChangelogParams{
 		Column1:     userFlag,
 		UserID:      userID,
-		Column3:     tableFlag,
+		Column3:     recordFlag,
+		RecordID:    recordID,
+		Column5:     tableFlag,
 		TableName:   tableName,
-		Column5:     opFlag,
+		Column7:     opFlag,
 		Operation:   opEnum,
-		Column7:     dateFromFlag,
+		Column9:     dateFromFlag,
 		Timestamp:   dateFrom,
-		Column9:     dateToFlag,
+		Column11:    dateToFlag,
 		Timestamp_2: dateTo,
 	}
 	total, err := r.queries.CountChangelog(ctx, countArg)
@@ -102,7 +113,7 @@ func (r *ChangelogRepository) List(ctx context.Context, query changelog.ListChan
 	return out, total, nil
 }
 
-func mapChangelogRow(row sqlc.Changelog) changelog.Entry {
+func mapChangelogRow(row sqlc.ListChangelogRow) changelog.Entry {
 	e := changelog.Entry{
 		ID:        row.ID,
 		TableName: row.TableName,
@@ -112,6 +123,10 @@ func mapChangelogRow(row sqlc.Changelog) changelog.Entry {
 	if row.UserID.Valid {
 		v := row.UserID.Int32
 		e.UserID = &v
+	}
+	if row.Username.Valid {
+		v := row.Username.String
+		e.Username = &v
 	}
 	if len(row.OldData) > 0 {
 		e.OldData = row.OldData

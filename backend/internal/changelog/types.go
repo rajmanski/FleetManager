@@ -8,6 +8,7 @@ import (
 type Entry struct {
 	ID        int32           `json:"id"`
 	UserID    *int32          `json:"userId,omitempty"`
+	Username  *string         `json:"username,omitempty"`
 	TableName string          `json:"tableName"`
 	RecordID  int32           `json:"recordId"`
 	Operation string          `json:"operation"`
@@ -18,6 +19,7 @@ type Entry struct {
 
 type ListChangelogQuery struct {
 	UserID     int64
+	RecordID   int64
 	TableName  string
 	Operation  string
 	DateFrom   *time.Time

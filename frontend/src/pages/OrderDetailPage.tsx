@@ -27,6 +27,8 @@ import { Select } from '@/components/ui/Select'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { useState, useMemo } from 'react'
 import { CreateTripModal } from '@/components/trips/CreateTripModal'
+import { RecordChangelogModal } from '@/components/changelog/RecordChangelogModal'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -48,6 +50,8 @@ export default function OrderDetailPage() {
   const cargo = cargoQuery.data?.data ?? []
 
   const [isCreateTripOpen, setIsCreateTripOpen] = useState(false)
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false)
+  const { isAdmin } = useAuth()
 
   const totalCargoWeightKg = useMemo(
     () => cargo.reduce((sum, item) => sum + (item.weightKg ?? 0), 0),
@@ -95,6 +99,11 @@ export default function OrderDetailPage() {
             >
               Create trip
             </Button>
+            {isAdmin && (
+              <Button variant="secondary" onClick={() => setIsHistoryOpen(true)}>
+                Historia
+              </Button>
+            )}
             <Link to="/orders">
               <Button
                 variant="secondary"
@@ -245,6 +254,15 @@ export default function OrderDetailPage() {
           onClose={() => setIsCreateTripOpen(false)}
           totalCargoWeightKg={totalCargoWeightKg}
           hasHazardousCargo={hasHazardousCargo}
+        />
+      )}
+      {orderId != null && orderId > 0 && (
+        <RecordChangelogModal
+          open={isHistoryOpen}
+          title={`Hisotry of order #${orderId}`}
+          tableName="orders"
+          recordId={orderId}
+          onClose={() => setIsHistoryOpen(false)}
         />
       )}
     </div>

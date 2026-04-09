@@ -14,6 +14,7 @@ const countChangelog = `-- name: CountChangelog :one
 SELECT COUNT(*)
 FROM Changelog
 WHERE (? = 0 OR user_id = ?)
+  AND (? = 0 OR record_id = ?)
   AND (? = '' OR table_name = ?)
   AND (? = '' OR operation = ?)
   AND (? = 0 OR ` + "`" + `timestamp` + "`" + ` >= ?)
@@ -24,12 +25,14 @@ type CountChangelogParams struct {
 	Column1     interface{}        `json:"column_1"`
 	UserID      sql.NullInt32      `json:"user_id"`
 	Column3     interface{}        `json:"column_3"`
-	TableName   string             `json:"table_name"`
+	RecordID    int32              `json:"record_id"`
 	Column5     interface{}        `json:"column_5"`
-	Operation   ChangelogOperation `json:"operation"`
+	TableName   string             `json:"table_name"`
 	Column7     interface{}        `json:"column_7"`
-	Timestamp   sql.NullTime       `json:"timestamp"`
+	Operation   ChangelogOperation `json:"operation"`
 	Column9     interface{}        `json:"column_9"`
+	Timestamp   sql.NullTime       `json:"timestamp"`
+	Column11    interface{}        `json:"column_11"`
 	Timestamp_2 sql.NullTime       `json:"timestamp_2"`
 }
 
@@ -38,12 +41,14 @@ func (q *Queries) CountChangelog(ctx context.Context, arg CountChangelogParams) 
 		arg.Column1,
 		arg.UserID,
 		arg.Column3,
-		arg.TableName,
+		arg.RecordID,
 		arg.Column5,
-		arg.Operation,
+		arg.TableName,
 		arg.Column7,
-		arg.Timestamp,
+		arg.Operation,
 		arg.Column9,
+		arg.Timestamp,
+		arg.Column11,
 		arg.Timestamp_2,
 	)
 	var count int64
@@ -53,21 +58,24 @@ func (q *Queries) CountChangelog(ctx context.Context, arg CountChangelogParams) 
 
 const listChangelog = `-- name: ListChangelog :many
 SELECT
-  id,
-  user_id,
-  table_name,
-  record_id,
-  operation,
-  old_data,
-  new_data,
-  ` + "`" + `timestamp` + "`" + `
-FROM Changelog
-WHERE (? = 0 OR user_id = ?)
-  AND (? = '' OR table_name = ?)
-  AND (? = '' OR operation = ?)
-  AND (? = 0 OR ` + "`" + `timestamp` + "`" + ` >= ?)
-  AND (? = 0 OR ` + "`" + `timestamp` + "`" + ` <= ?)
-ORDER BY ` + "`" + `timestamp` + "`" + ` DESC
+  c.id,
+  c.user_id,
+  u.username,
+  c.table_name,
+  c.record_id,
+  c.operation,
+  c.old_data,
+  c.new_data,
+  c.` + "`" + `timestamp` + "`" + `
+FROM Changelog c
+LEFT JOIN Users u ON c.user_id = u.user_id
+WHERE (? = 0 OR c.user_id = ?)
+  AND (? = 0 OR c.record_id = ?)
+  AND (? = '' OR c.table_name = ?)
+  AND (? = '' OR c.operation = ?)
+  AND (? = 0 OR c.` + "`" + `timestamp` + "`" + ` >= ?)
+  AND (? = 0 OR c.` + "`" + `timestamp` + "`" + ` <= ?)
+ORDER BY c.` + "`" + `timestamp` + "`" + ` DESC
 LIMIT ? OFFSET ?
 `
 
@@ -75,28 +83,44 @@ type ListChangelogParams struct {
 	Column1     interface{}        `json:"column_1"`
 	UserID      sql.NullInt32      `json:"user_id"`
 	Column3     interface{}        `json:"column_3"`
-	TableName   string             `json:"table_name"`
+	RecordID    int32              `json:"record_id"`
 	Column5     interface{}        `json:"column_5"`
-	Operation   ChangelogOperation `json:"operation"`
+	TableName   string             `json:"table_name"`
 	Column7     interface{}        `json:"column_7"`
-	Timestamp   sql.NullTime       `json:"timestamp"`
+	Operation   ChangelogOperation `json:"operation"`
 	Column9     interface{}        `json:"column_9"`
+	Timestamp   sql.NullTime       `json:"timestamp"`
+	Column11    interface{}        `json:"column_11"`
 	Timestamp_2 sql.NullTime       `json:"timestamp_2"`
 	Limit       int32              `json:"limit"`
 	Offset      int32              `json:"offset"`
 }
 
-func (q *Queries) ListChangelog(ctx context.Context, arg ListChangelogParams) ([]Changelog, error) {
+type ListChangelogRow struct {
+	ID        int32              `json:"id"`
+	UserID    sql.NullInt32      `json:"user_id"`
+	Username  sql.NullString     `json:"username"`
+	TableName string             `json:"table_name"`
+	RecordID  int32              `json:"record_id"`
+	Operation ChangelogOperation `json:"operation"`
+	OldData   []byte             `json:"old_data"`
+	NewData   []byte             `json:"new_data"`
+	Timestamp sql.NullTime       `json:"timestamp"`
+}
+
+func (q *Queries) ListChangelog(ctx context.Context, arg ListChangelogParams) ([]ListChangelogRow, error) {
 	rows, err := q.db.QueryContext(ctx, listChangelog,
 		arg.Column1,
 		arg.UserID,
 		arg.Column3,
-		arg.TableName,
+		arg.RecordID,
 		arg.Column5,
-		arg.Operation,
+		arg.TableName,
 		arg.Column7,
-		arg.Timestamp,
+		arg.Operation,
 		arg.Column9,
+		arg.Timestamp,
+		arg.Column11,
 		arg.Timestamp_2,
 		arg.Limit,
 		arg.Offset,
@@ -105,12 +129,13 @@ func (q *Queries) ListChangelog(ctx context.Context, arg ListChangelogParams) ([
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Changelog
+	var items []ListChangelogRow
 	for rows.Next() {
-		var i Changelog
+		var i ListChangelogRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
+			&i.Username,
 			&i.TableName,
 			&i.RecordID,
 			&i.Operation,

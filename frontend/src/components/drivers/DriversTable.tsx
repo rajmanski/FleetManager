@@ -35,6 +35,7 @@ type DriversTableProps = {
   isAdmin: boolean
   onEdit: (driver: Driver) => void
   onRestore: (driverId: number) => void
+  onHistory: (driver: Driver) => void
   isRestoring: boolean
 }
 
@@ -47,6 +48,7 @@ export function DriversTable({
   isAdmin,
   onEdit,
   onRestore,
+  onHistory,
   isRestoring,
 }: DriversTableProps) {
   return (
@@ -88,14 +90,25 @@ export function DriversTable({
                       <CertificateStatusTooltip driver={driver} isDeleted={isDeleted} />
                     </td>
                     <td className="px-4 py-3">
-                      <TableActionsCell
-                        isDeleted={isDeleted}
-                        isAdmin={isAdmin}
-                        canManage={canManageDrivers}
-                        onRestore={() => onRestore(driver.id)}
-                        onEdit={() => onEdit(driver)}
-                        isRestoring={isRestoring}
-                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            className="text-xs font-medium text-slate-700 underline"
+                            onClick={() => onHistory(driver)}
+                          >
+                            Historia
+                          </button>
+                        )}
+                        <TableActionsCell
+                          isDeleted={isDeleted}
+                          isAdmin={isAdmin}
+                          canManage={canManageDrivers}
+                          onRestore={() => onRestore(driver.id)}
+                          onEdit={() => onEdit(driver)}
+                          isRestoring={isRestoring}
+                        />
+                      </div>
                     </td>
                   </tr>
                 )

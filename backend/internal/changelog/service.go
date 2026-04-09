@@ -31,9 +31,13 @@ func (s *Service) List(ctx context.Context, query ListChangelogQuery) (ListChang
 	if query.UserID < 0 {
 		return ListChangelogResponse{}, ErrInvalidInput
 	}
+	if query.RecordID < 0 {
+		return ListChangelogResponse{}, ErrInvalidInput
+	}
 
 	rows, total, err := s.repo.List(ctx, ListChangelogQuery{
 		UserID:    query.UserID,
+		RecordID:  query.RecordID,
 		TableName: query.TableName,
 		Operation: query.Operation,
 		DateFrom:  query.DateFrom,

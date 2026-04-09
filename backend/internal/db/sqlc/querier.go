@@ -108,7 +108,7 @@ type Querier interface {
 	ListAssignmentsByDriverID(ctx context.Context, driverID int32) ([]ListAssignmentsByDriverIDRow, error)
 	ListAssignmentsByVehicleID(ctx context.Context, vehicleID int32) ([]ListAssignmentsByVehicleIDRow, error)
 	ListCargoByOrderID(ctx context.Context, orderID int32) ([]ListCargoByOrderIDRow, error)
-	ListChangelog(ctx context.Context, arg ListChangelogParams) ([]Changelog, error)
+	ListChangelog(ctx context.Context, arg ListChangelogParams) ([]ListChangelogRow, error)
 	ListClients(ctx context.Context, arg ListClientsParams) ([]Client, error)
 	ListCosts(ctx context.Context, arg ListCostsParams) ([]Cost, error)
 	ListDrivers(ctx context.Context, arg ListDriversParams) ([]ListDriversRow, error)

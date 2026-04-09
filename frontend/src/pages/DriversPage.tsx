@@ -4,6 +4,7 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { DriverFormModal } from '@/components/drivers/DriverFormModal'
+import { RecordChangelogModal } from '@/components/changelog/RecordChangelogModal'
 import { DriversFiltersBar } from '@/components/drivers/DriversFiltersBar'
 import { DriversTable } from '@/components/drivers/DriversTable'
 import { useDrivers, type Driver } from '@/hooks/drivers/useDrivers'
@@ -24,6 +25,7 @@ function DriversPage() {
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [editDriver, setEditDriver] = useState<Driver | null>(null)
+  const [historyDriver, setHistoryDriver] = useState<Driver | null>(null)
 
   const restoreCallbacks = useMutationCallbacks({
     successMessage: 'Driver restored',
@@ -116,6 +118,7 @@ function DriversPage() {
           onRestore={(id) =>
             restoreMutation.mutate(id, restoreCallbacks)
           }
+          onHistory={setHistoryDriver}
           isRestoring={restoreMutation.isPending}
         />
       )}
@@ -144,6 +147,16 @@ function DriversPage() {
           }
           isSubmitting={updateMutation.isPending}
           errorMessage={extractApiError(updateMutation.error)}
+        />
+      )}
+
+      {historyDriver && (
+        <RecordChangelogModal
+          open
+          title={`History of driver #${historyDriver.id}`}
+          tableName="drivers"
+          recordId={historyDriver.id}
+          onClose={() => setHistoryDriver(null)}
         />
       )}
     </div>

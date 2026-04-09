@@ -37,6 +37,14 @@ func (h *Handler) ListAdminChangelog(c *gin.Context) {
 		}
 		q.UserID = uid
 	}
+	if ridStr := strings.TrimSpace(c.Query("record_id")); ridStr != "" {
+		rid, err := strconv.ParseInt(ridStr, 10, 64)
+		if err != nil || rid <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid record_id"})
+			return
+		}
+		q.RecordID = rid
+	}
 
 	if df := strings.TrimSpace(c.Query("date_from")); df != "" {
 		t, err := parseChangelogDateParam(df, false)

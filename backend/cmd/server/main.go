@@ -124,6 +124,7 @@ func main() {
 	})
 
 	api := r.Group("/api/v1")
+	api.Use(auth.AuditSystemContextMiddleware(dbConn))
 	api.POST("/auth/login", authHandler.Login)
 	api.POST("/auth/refresh", authHandler.Refresh)
 	api.POST("/auth/logout", authHandler.Logout)

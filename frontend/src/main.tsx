@@ -25,6 +25,7 @@ import CostsPage from './pages/CostsPage.tsx'
 import ReportsPage from './pages/ReportsPage.tsx'
 import NotificationsPage from './pages/NotificationsPage.tsx'
 import ChangelogPage from './pages/ChangelogPage.tsx'
+import DictionariesPage from './pages/DictionariesPage.tsx'
 import { RequireAdmin } from './routes/RequireAdmin.tsx'
 import RequireAuth from './routes/RequireAuth.tsx'
 import { RequireRoutesAccess } from './routes/RequireRoutesAccess.tsx'
@@ -62,6 +63,14 @@ createRoot(document.getElementById('root')!).render(
               element={
                 <RequireAdmin>
                   <ChangelogPage />
+                </RequireAdmin>
+              }
+            />
+            <Route
+              path="admin/dictionaries"
+              element={
+                <RequireAdmin>
+                  <DictionariesPage />
                 </RequireAdmin>
               }
             />

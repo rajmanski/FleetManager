@@ -1,6 +1,7 @@
 import {
   BarChart3,
   Bell,
+  BookOpen,
   Building2,
   ClipboardList,
   FileSpreadsheet,
@@ -144,6 +145,15 @@ export function AppSidebar() {
           >
             <FileText className="size-5" />
             <span>Changelog</span>
+          </Link>
+        )}
+        {role === 'Administrator' && (
+          <Link
+            to="/admin/dictionaries"
+            className={navItemClass(location.pathname.startsWith('/admin/dictionaries'))}
+          >
+            <BookOpen className="size-5" />
+            <span>Dictionaries</span>
           </Link>
         )}
       </nav>

@@ -97,7 +97,7 @@ function VehicleDetailsPage() {
       <div className="flex flex-wrap items-center gap-2">
         {isAdmin && (
           <Button variant="secondary" onClick={() => setHistoryOpen(true)}>
-            Historia
+            History
           </Button>
         )}
         {canManage && !isDeleted && (
@@ -142,7 +142,7 @@ function VehicleDetailsPage() {
 
       <RecordChangelogModal
         open={historyOpen}
-        title={`History of the vehicle: #${vehicle.id}`}
+        title={`Change history for vehicle #${vehicle.id}`}
         tableName="vehicles"
         recordId={vehicle.id}
         onClose={() => setHistoryOpen(false)}

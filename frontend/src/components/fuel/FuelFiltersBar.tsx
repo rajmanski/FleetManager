@@ -1,5 +1,6 @@
 import { FilterRowsSelect } from '@/components/ui/FilterRowsSelect'
 import { FilterSelect } from '@/components/ui/FilterSelect'
+import { filterDateControlClassName } from '@/constants/inputStyles'
 import type { PaginationHelpers } from '@/hooks/usePagination'
 
 type FuelFiltersBarProps = {
@@ -42,7 +43,7 @@ export function FuelFiltersBar({
           type="date"
           value={dateFrom}
           onChange={(e) => onDateFromChange(e.target.value)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+          className={filterDateControlClassName(dateFrom)}
         />
       </div>
 
@@ -54,7 +55,7 @@ export function FuelFiltersBar({
           type="date"
           value={dateTo}
           onChange={(e) => onDateToChange(e.target.value)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+          className={filterDateControlClassName(dateTo)}
         />
       </div>
 

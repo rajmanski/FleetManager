@@ -153,7 +153,7 @@ function DriversPage() {
       {historyDriver && (
         <RecordChangelogModal
           open
-          title={`History of driver #${historyDriver.id}`}
+          title={`Change history for driver #${historyDriver.id}`}
           tableName="drivers"
           recordId={historyDriver.id}
           onClose={() => setHistoryDriver(null)}

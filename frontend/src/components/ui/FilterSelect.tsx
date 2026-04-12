@@ -1,3 +1,5 @@
+import { FILTER_CONTROL_BASE_CLASS } from '@/constants/inputStyles'
+
 type FilterSelectOption = { value: string; label?: string }
 
 type FilterSelectProps = {
@@ -31,7 +33,7 @@ export function FilterSelect({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+        className={`${FILTER_CONTROL_BASE_CLASS} text-gray-900`}
       >
         {allowEmpty && <option value="">All</option>}
         {normalizedOptions.map((opt) => (

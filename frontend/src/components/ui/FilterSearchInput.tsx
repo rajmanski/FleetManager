@@ -1,3 +1,5 @@
+import { INPUT_CLASS } from '@/constants/inputStyles'
+
 type FilterSearchInputProps = {
   label: string
   value: string
@@ -21,7 +23,7 @@ export function FilterSearchInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+        className={INPUT_CLASS}
       />
     </div>
   )

@@ -1,4 +1,6 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useCallback, useState } from 'react'
+import { ChangelogDiffFields } from '@/components/changelog/ChangelogDiffFields'
+import { ChangelogOperationBadge } from '@/components/changelog/ChangelogOperationBadge'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import type { ChangelogEntry } from '@/hooks/changelog/useChangelog'
 import type { PaginationHelpers } from '@/hooks/usePagination'
@@ -14,21 +16,12 @@ type ChangelogTableProps = {
   >
 }
 
-const operationBadgeClass = (operation: string) => {
-  switch (operation) {
-    case 'INSERT':
-      return 'bg-green-100 text-green-700'
-    case 'UPDATE':
-      return 'bg-amber-100 text-amber-700'
-    case 'DELETE':
-      return 'bg-red-100 text-red-700'
-    default:
-      return 'bg-slate-100 text-slate-700'
-  }
-}
-
 export function ChangelogTable({ rows, page, total, pagination }: ChangelogTableProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null)
+
+  const toggleRow = useCallback((id: number) => {
+    setExpandedId((prev) => (prev === id ? null : id))
+  }, [])
 
   return (
     <DataTablePagination page={page} total={total} pagination={pagination}>
@@ -38,7 +31,7 @@ export function ChangelogTable({ rows, page, total, pagination }: ChangelogTable
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 font-medium text-gray-700">Timestamp</th>
-                <th className="px-4 py-3 font-medium text-gray-700">User ID</th>
+                <th className="px-4 py-3 font-medium text-gray-700">User</th>
                 <th className="px-4 py-3 font-medium text-gray-700">Table</th>
                 <th className="px-4 py-3 font-medium text-gray-700">Record ID</th>
                 <th className="px-4 py-3 font-medium text-gray-700">Operation</th>
@@ -51,27 +44,38 @@ export function ChangelogTable({ rows, page, total, pagination }: ChangelogTable
 
                 return (
                   <Fragment key={row.id}>
-                    <tr>
+                    <tr
+                      role="button"
+                      tabIndex={0}
+                      title="Click row to show or hide change details"
+                      className="cursor-pointer transition-colors hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-slate-400"
+                      onClick={() => toggleRow(row.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          toggleRow(row.id)
+                        }
+                      }}
+                    >
                       <td className="whitespace-nowrap px-4 py-3 text-gray-700">
                         {formatDateTime(row.timestamp)}
                       </td>
-                      <td className="px-4 py-3 text-gray-700">{row.userId ?? '-'}</td>
+                      <td className="px-4 py-3 text-gray-700">
+                        {row.username ?? (row.userId != null ? `#${row.userId}` : '—')}
+                      </td>
                       <td className="px-4 py-3 text-gray-700">{row.tableName}</td>
                       <td className="px-4 py-3 text-gray-700">{row.recordId}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${operationBadgeClass(
-                            row.operation,
-                          )}`}
-                        >
-                          {row.operation}
-                        </span>
+                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                        <ChangelogOperationBadge operation={row.operation} />
                       </td>
                       <td className="px-4 py-3">
                         <button
                           type="button"
-                          className="text-sm font-medium text-slate-700 underline"
-                          onClick={() => setExpandedId(isExpanded ? null : row.id)}
+                          className="text-sm font-medium text-slate-700 underline hover:text-slate-900"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleRow(row.id)
+                          }}
                         >
                           {isExpanded ? 'Hide' : 'Show'}
                         </button>
@@ -80,24 +84,10 @@ export function ChangelogTable({ rows, page, total, pagination }: ChangelogTable
                     {isExpanded && (
                       <tr className="bg-slate-50">
                         <td colSpan={6} className="px-4 py-3">
-                          <div className="grid gap-3 md:grid-cols-2">
-                            <div>
-                              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                Old data
-                              </p>
-                              <pre className="max-h-64 overflow-auto rounded-md border border-gray-200 bg-white p-3 text-xs text-gray-700">
-                                {JSON.stringify(row.oldData ?? null, null, 2)}
-                              </pre>
-                            </div>
-                            <div>
-                              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                                New data
-                              </p>
-                              <pre className="max-h-64 overflow-auto rounded-md border border-gray-200 bg-white p-3 text-xs text-gray-700">
-                                {JSON.stringify(row.newData ?? null, null, 2)}
-                              </pre>
-                            </div>
-                          </div>
+                          <ChangelogDiffFields
+                            oldData={row.oldData}
+                            newData={row.newData}
+                          />
                         </td>
                       </tr>
                     )}

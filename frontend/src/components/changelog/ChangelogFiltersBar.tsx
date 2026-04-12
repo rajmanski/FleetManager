@@ -1,6 +1,7 @@
 import { FilterRowsSelect } from '@/components/ui/FilterRowsSelect'
 import { FilterSearchInput } from '@/components/ui/FilterSearchInput'
 import { FilterSelect } from '@/components/ui/FilterSelect'
+import { filterDateControlClassName } from '@/constants/inputStyles'
 import type { PaginationHelpers } from '@/hooks/usePagination'
 
 const CHANGELOG_OPERATIONS = ['INSERT', 'UPDATE', 'DELETE'] as const
@@ -65,7 +66,7 @@ export function ChangelogFiltersBar({
           type="date"
           value={dateFromFilter}
           onChange={(e) => onDateFromFilterChange(e.target.value)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+          className={filterDateControlClassName(dateFromFilter)}
         />
       </div>
 
@@ -77,7 +78,7 @@ export function ChangelogFiltersBar({
           type="date"
           value={dateToFilter}
           onChange={(e) => onDateToFilterChange(e.target.value)}
-          className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+          className={filterDateControlClassName(dateToFilter)}
         />
       </div>
 

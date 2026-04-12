@@ -97,7 +97,7 @@ export function DriversTable({
                             className="text-xs font-medium text-slate-700 underline"
                             onClick={() => onHistory(driver)}
                           >
-                            Historia
+                            History
                           </button>
                         )}
                         <TableActionsCell

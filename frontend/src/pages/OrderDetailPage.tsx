@@ -101,7 +101,7 @@ export default function OrderDetailPage() {
             </Button>
             {isAdmin && (
               <Button variant="secondary" onClick={() => setIsHistoryOpen(true)}>
-                Historia
+                History
               </Button>
             )}
             <Link to="/orders">
@@ -259,7 +259,7 @@ export default function OrderDetailPage() {
       {orderId != null && orderId > 0 && (
         <RecordChangelogModal
           open={isHistoryOpen}
-          title={`Hisotry of order #${orderId}`}
+          title={`Change history for order #${orderId}`}
           tableName="orders"
           recordId={orderId}
           onClose={() => setIsHistoryOpen(false)}

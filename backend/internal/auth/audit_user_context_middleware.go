@@ -8,6 +8,19 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func parseContextUserID(raw any) (int64, bool) {
+	switch v := raw.(type) {
+	case int64:
+		return v, true
+	case int32:
+		return int64(v), true
+	case int:
+		return int64(v), true
+	default:
+		return 0, false
+	}
+}
+
 func AuditUserContextMiddleware(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		rawUserID, exists := c.Get(ContextUserIDKey)
@@ -16,7 +29,7 @@ func AuditUserContextMiddleware(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 
-		userID, ok := rawUserID.(int32)
+		userID, ok := parseContextUserID(rawUserID)
 		if !ok {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid auth context"})
 			return

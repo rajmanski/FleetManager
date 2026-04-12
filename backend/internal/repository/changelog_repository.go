@@ -17,9 +17,7 @@ func NewChangelogRepository(queries sqlc.Querier) *ChangelogRepository {
 	return &ChangelogRepository{queries: queries}
 }
 
-func (r *ChangelogRepository) List(ctx context.Context, query changelog.ListChangelogQuery) ([]changelog.Entry, int64, error) {
-	offset := (query.Page - 1) * query.Limit
-
+func buildChangelogCountParams(query changelog.ListChangelogQuery) (sqlc.CountChangelogParams, error) {
 	userFlag := interface{}(0)
 	userID := sql.NullInt32{Int32: 0, Valid: true}
 	if query.UserID > 0 {
@@ -45,7 +43,7 @@ func (r *ChangelogRepository) List(ctx context.Context, query changelog.ListChan
 	opEnum := sqlc.ChangelogOperationINSERT
 	if op != "" {
 		if !isValidChangelogOperation(op) {
-			return nil, 0, changelog.ErrInvalidInput
+			return sqlc.CountChangelogParams{}, changelog.ErrInvalidInput
 		}
 		opEnum = sqlc.ChangelogOperation(op)
 		opFlag = op
@@ -65,7 +63,7 @@ func (r *ChangelogRepository) List(ctx context.Context, query changelog.ListChan
 		dateTo = sql.NullTime{Time: *query.DateTo, Valid: true}
 	}
 
-	arg := sqlc.ListChangelogParams{
+	return sqlc.CountChangelogParams{
 		Column1:     userFlag,
 		UserID:      userID,
 		Column3:     recordFlag,
@@ -78,30 +76,44 @@ func (r *ChangelogRepository) List(ctx context.Context, query changelog.ListChan
 		Timestamp:   dateFrom,
 		Column11:    dateToFlag,
 		Timestamp_2: dateTo,
-		Limit:       query.Limit,
+	}, nil
+}
+
+func countParamsToListParams(c sqlc.CountChangelogParams, limit, offset int32) sqlc.ListChangelogParams {
+	return sqlc.ListChangelogParams{
+		Column1:     c.Column1,
+		UserID:      c.UserID,
+		Column3:     c.Column3,
+		RecordID:    c.RecordID,
+		Column5:     c.Column5,
+		TableName:   c.TableName,
+		Column7:     c.Column7,
+		Operation:   c.Operation,
+		Column9:     c.Column9,
+		Timestamp:   c.Timestamp,
+		Column11:    c.Column11,
+		Timestamp_2: c.Timestamp_2,
+		Limit:       limit,
 		Offset:      offset,
 	}
+}
 
-	rows, err := r.queries.ListChangelog(ctx, arg)
+func (r *ChangelogRepository) List(ctx context.Context, query changelog.ListChangelogQuery) ([]changelog.Entry, int64, error) {
+	offset := (query.Page - 1) * query.Limit
+
+	shared, err := buildChangelogCountParams(query)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	countArg := sqlc.CountChangelogParams{
-		Column1:     userFlag,
-		UserID:      userID,
-		Column3:     recordFlag,
-		RecordID:    recordID,
-		Column5:     tableFlag,
-		TableName:   tableName,
-		Column7:     opFlag,
-		Operation:   opEnum,
-		Column9:     dateFromFlag,
-		Timestamp:   dateFrom,
-		Column11:    dateToFlag,
-		Timestamp_2: dateTo,
+	listArg := countParamsToListParams(shared, query.Limit, offset)
+
+	rows, err := r.queries.ListChangelog(ctx, listArg)
+	if err != nil {
+		return nil, 0, err
 	}
-	total, err := r.queries.CountChangelog(ctx, countArg)
+
+	total, err := r.queries.CountChangelog(ctx, shared)
 	if err != nil {
 		return nil, 0, err
 	}

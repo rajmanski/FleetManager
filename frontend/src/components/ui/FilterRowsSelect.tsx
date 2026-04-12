@@ -1,3 +1,4 @@
+import { FILTER_CONTROL_BASE_CLASS } from '@/constants/inputStyles'
 import { PAGINATION_LIMITS } from '@/constants/pagination'
 
 type FilterRowsSelectProps = {
@@ -14,7 +15,7 @@ export function FilterRowsSelect({ value, onChange }: FilterRowsSelectProps) {
       <select
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+        className={`${FILTER_CONTROL_BASE_CLASS} text-gray-900`}
       >
         {PAGINATION_LIMITS.map((v) => (
           <option key={v} value={v}>

@@ -47,6 +47,20 @@ func TestHasPermissionFromMatrix(t *testing.T) {
 			permission: PermissionWrite,
 			allowed:    false,
 		},
+		{
+			name:       "administrator read dictionaries allowed",
+			role:       "Administrator",
+			resource:   ResourceDictionaries,
+			permission: PermissionRead,
+			allowed:    true,
+		},
+		{
+			name:       "spedytor read dictionaries denied",
+			role:       "Spedytor",
+			resource:   ResourceDictionaries,
+			permission: PermissionRead,
+			allowed:    false,
+		},
 	}
 
 	for _, tc := range tests {

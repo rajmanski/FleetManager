@@ -21,6 +21,7 @@ sql:
       - "migrations/000018_create_notifications.up.sql"
       - "migrations/000019_notifications_type_maintenance_due.up.sql"
       - "migrations/000020_create_changelog.up.sql"
+      - "migrations/000023_create_dictionaries.up.sql"
     gen:
       go:
         package: "sqlc"
@@ -28,4 +29,3 @@ sql:
         emit_json_tags: true
         emit_prepared_queries: false
         emit_interface: true
-

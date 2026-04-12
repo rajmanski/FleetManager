@@ -19,6 +19,7 @@ import (
 	"fleet-management/internal/costs"
 	"fleet-management/internal/dashboard"
 	sqlc "fleet-management/internal/db/sqlc"
+	"fleet-management/internal/dictionaries"
 	"fleet-management/internal/drivers"
 	"fleet-management/internal/fuel"
 	"fleet-management/internal/insurance"
@@ -101,6 +102,9 @@ func main() {
 	changelogRepository := repository.NewChangelogRepository(queries)
 	changelogService := changelog.NewService(changelogRepository)
 	changelogHandler := changelog.NewHandler(changelogService)
+	dictionariesRepository := repository.NewDictionariesRepository(queries)
+	dictionariesService := dictionaries.NewService(dictionariesRepository)
+	dictionariesHandler := dictionaries.NewHandler(dictionariesService)
 	cargoService := cargo.NewService(cargoRepository)
 	cargoHandler := cargo.NewHandler(cargoService)
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
@@ -172,6 +176,26 @@ func main() {
 		"/admin/changelog",
 		auth.RBACMiddleware(auth.ResourceAuditLog, auth.PermissionRead),
 		changelogHandler.ListAdminChangelog,
+	)
+	protected.GET(
+		"/admin/dictionaries",
+		auth.RBACMiddleware(auth.ResourceDictionaries, auth.PermissionRead),
+		dictionariesHandler.List,
+	)
+	protected.POST(
+		"/admin/dictionaries",
+		auth.RBACMiddleware(auth.ResourceDictionaries, auth.PermissionWrite),
+		dictionariesHandler.Create,
+	)
+	protected.PUT(
+		"/admin/dictionaries/:id",
+		auth.RBACMiddleware(auth.ResourceDictionaries, auth.PermissionWrite),
+		dictionariesHandler.Update,
+	)
+	protected.DELETE(
+		"/admin/dictionaries/:id",
+		auth.RBACMiddleware(auth.ResourceDictionaries, auth.PermissionWrite),
+		dictionariesHandler.Delete,
 	)
 	protected.GET(
 		"/changelog",

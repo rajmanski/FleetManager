@@ -8,6 +8,7 @@ package sqlc
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 )
 
 const countChangelog = `-- name: CountChangelog :one
@@ -103,8 +104,8 @@ type ListChangelogRow struct {
 	TableName string             `json:"table_name"`
 	RecordID  int32              `json:"record_id"`
 	Operation ChangelogOperation `json:"operation"`
-	OldData   []byte             `json:"old_data"`
-	NewData   []byte             `json:"new_data"`
+	OldData   json.RawMessage    `json:"old_data"`
+	NewData   json.RawMessage    `json:"new_data"`
 	Timestamp sql.NullTime       `json:"timestamp"`
 }
 

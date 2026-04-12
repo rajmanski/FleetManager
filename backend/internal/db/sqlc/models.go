@@ -592,6 +592,14 @@ type Cost struct {
 	CreatedAt     sql.NullTime   `json:"created_at"`
 }
 
+type Dictionary struct {
+	ID        int32     `json:"id"`
+	Category  string    `json:"category"`
+	Key       string    `json:"key"`
+	Value     string    `json:"value"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type Driver struct {
 	DriverID          int32             `json:"driver_id"`
 	UserID            sql.NullInt32     `json:"user_id"`

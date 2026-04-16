@@ -7,7 +7,6 @@ package sqlc
 import (
 	"database/sql"
 	"database/sql/driver"
-	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -566,8 +565,8 @@ type Changelog struct {
 	TableName string             `json:"table_name"`
 	RecordID  int32              `json:"record_id"`
 	Operation ChangelogOperation `json:"operation"`
-	OldData   json.RawMessage    `json:"old_data"`
-	NewData   json.RawMessage    `json:"new_data"`
+	OldData   []byte             `json:"old_data"`
+	NewData   []byte             `json:"new_data"`
 	Timestamp sql.NullTime       `json:"timestamp"`
 }
 

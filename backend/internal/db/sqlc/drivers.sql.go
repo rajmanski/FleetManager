@@ -58,7 +58,7 @@ type CreateDriverParams struct {
 	UserID    sql.NullInt32     `json:"user_id"`
 	FirstName string            `json:"first_name"`
 	LastName  string            `json:"last_name"`
-	Pesel     string            `json:"pesel"`
+	Pesel     sql.NullString    `json:"pesel"`
 	Phone     sql.NullString    `json:"phone"`
 	Email     sql.NullString    `json:"email"`
 	Status    NullDriversStatus `json:"status"`
@@ -80,6 +80,32 @@ func (q *Queries) CreateDriver(ctx context.Context, arg CreateDriverParams) (int
 	return result.LastInsertId()
 }
 
+const forgetDriverByID = `-- name: ForgetDriverByID :execrows
+UPDATE Drivers
+SET
+  user_id = NULL,
+  first_name = 'Anonimowy',
+  last_name = 'Anonimowy',
+  pesel = NULL,
+  phone = NULL,
+  email = NULL,
+  license_number = NULL,
+  license_expiry_date = NULL,
+  adr_certified = 0,
+  adr_expiry_date = NULL,
+  updated_at = NOW()
+WHERE driver_id = ?
+  AND deleted_at IS NULL
+`
+
+func (q *Queries) ForgetDriverByID(ctx context.Context, driverID int32) (int64, error) {
+	result, err := q.db.ExecContext(ctx, forgetDriverByID, driverID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const getDeletedDriverPESELByID = `-- name: GetDeletedDriverPESELByID :one
 SELECT pesel
 FROM Drivers
@@ -88,9 +114,9 @@ WHERE driver_id = ?
 LIMIT 1
 `
 
-func (q *Queries) GetDeletedDriverPESELByID(ctx context.Context, driverID int32) (string, error) {
+func (q *Queries) GetDeletedDriverPESELByID(ctx context.Context, driverID int32) (sql.NullString, error) {
 	row := q.db.QueryRowContext(ctx, getDeletedDriverPESELByID, driverID)
-	var pesel string
+	var pesel sql.NullString
 	err := row.Scan(&pesel)
 	return pesel, err
 }
@@ -122,7 +148,7 @@ type GetDriverByIDRow struct {
 	UserID            sql.NullInt32     `json:"user_id"`
 	FirstName         string            `json:"first_name"`
 	LastName          string            `json:"last_name"`
-	Pesel             string            `json:"pesel"`
+	Pesel             sql.NullString    `json:"pesel"`
 	Phone             sql.NullString    `json:"phone"`
 	Email             sql.NullString    `json:"email"`
 	Status            NullDriversStatus `json:"status"`
@@ -190,8 +216,8 @@ SELECT EXISTS(
 `
 
 type HasActiveDriverWithPESELExcludingIDParams struct {
-	Pesel    string `json:"pesel"`
-	DriverID int32  `json:"driver_id"`
+	Pesel    sql.NullString `json:"pesel"`
+	DriverID int32          `json:"driver_id"`
 }
 
 func (q *Queries) HasActiveDriverWithPESELExcludingID(ctx context.Context, arg HasActiveDriverWithPESELExcludingIDParams) (bool, error) {
@@ -224,8 +250,8 @@ WHERE deleted_at IS NULL
 `
 
 type ListActiveDriverPESELsRow struct {
-	DriverID int32  `json:"driver_id"`
-	Pesel    string `json:"pesel"`
+	DriverID int32          `json:"driver_id"`
+	Pesel    sql.NullString `json:"pesel"`
 }
 
 func (q *Queries) ListActiveDriverPESELs(ctx context.Context) ([]ListActiveDriverPESELsRow, error) {
@@ -292,7 +318,7 @@ type ListDriversRow struct {
 	UserID            sql.NullInt32     `json:"user_id"`
 	FirstName         string            `json:"first_name"`
 	LastName          string            `json:"last_name"`
-	Pesel             string            `json:"pesel"`
+	Pesel             sql.NullString    `json:"pesel"`
 	Phone             sql.NullString    `json:"phone"`
 	Email             sql.NullString    `json:"email"`
 	Status            NullDriversStatus `json:"status"`
@@ -388,7 +414,7 @@ type ListDriversForPESELSearchRow struct {
 	UserID            sql.NullInt32     `json:"user_id"`
 	FirstName         string            `json:"first_name"`
 	LastName          string            `json:"last_name"`
-	Pesel             string            `json:"pesel"`
+	Pesel             sql.NullString    `json:"pesel"`
 	Phone             sql.NullString    `json:"phone"`
 	Email             sql.NullString    `json:"email"`
 	Status            NullDriversStatus `json:"status"`
@@ -493,7 +519,7 @@ type UpdateDriverParams struct {
 	UserID            sql.NullInt32     `json:"user_id"`
 	FirstName         string            `json:"first_name"`
 	LastName          string            `json:"last_name"`
-	Pesel             string            `json:"pesel"`
+	Pesel             sql.NullString    `json:"pesel"`
 	Phone             sql.NullString    `json:"phone"`
 	Email             sql.NullString    `json:"email"`
 	Status            NullDriversStatus `json:"status"`

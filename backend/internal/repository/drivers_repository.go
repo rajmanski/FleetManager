@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/crypto"
+	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/drivers"
 )
 
@@ -134,7 +134,7 @@ func (r *DriversRepository) CreateDriver(ctx context.Context, input drivers.Crea
 		UserID:    toNullInt32(input.UserID),
 		FirstName: strings.TrimSpace(input.FirstName),
 		LastName:  strings.TrimSpace(input.LastName),
-		Pesel:     encrypted,
+		Pesel:     sql.NullString{String: encrypted, Valid: true},
 		Phone:     toNullString(input.Phone),
 		Email:     toNullString(input.Email),
 		Status:    toNullDriversStatus(status),
@@ -171,7 +171,7 @@ func (r *DriversRepository) UpdateDriver(ctx context.Context, driverID int64, in
 		UserID:            toNullInt32(input.UserID),
 		FirstName:         strings.TrimSpace(input.FirstName),
 		LastName:          strings.TrimSpace(input.LastName),
-		Pesel:             encrypted,
+		Pesel:             sql.NullString{String: encrypted, Valid: true},
 		Phone:             toNullString(input.Phone),
 		Email:             toNullString(input.Email),
 		Status:            toNullDriversStatus(status),
@@ -224,8 +224,11 @@ func (r *DriversRepository) RestoreDriver(ctx context.Context, driverID int64) e
 		}
 		return err
 	}
+	if !encryptedPesel.Valid {
+		return drivers.ErrDriverRestoreConflict
+	}
 
-	plainPesel, err := crypto.DecryptPESEL(encryptedPesel, r.encryptionKey)
+	plainPesel, err := crypto.DecryptPESEL(encryptedPesel.String, r.encryptionKey)
 	if err != nil {
 		return drivers.ErrDriverRestoreConflict
 	}
@@ -235,7 +238,10 @@ func (r *DriversRepository) RestoreDriver(ctx context.Context, driverID int64) e
 		return err
 	}
 	for _, row := range activeRows {
-		decrypted, err := crypto.DecryptPESEL(row.Pesel, r.encryptionKey)
+		if !row.Pesel.Valid {
+			continue
+		}
+		decrypted, err := crypto.DecryptPESEL(row.Pesel.String, r.encryptionKey)
 		if err != nil {
 			continue
 		}
@@ -262,7 +268,7 @@ func (r *DriversRepository) GetDriverTripOrderNumberOnDate(ctx context.Context, 
 	}
 	orderNumber, err := r.queries.GetDriverTripOnDate(ctx, sqlc.GetDriverTripOnDateParams{
 		DriverID:  int32(driverID),
-		CheckDate:  sql.NullTime{Time: parsed, Valid: true},
+		CheckDate: sql.NullTime{Time: parsed, Valid: true},
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -311,7 +317,7 @@ func normalizeDriverStatus(status string) string {
 }
 
 func (r *DriversRepository) mapListDriversRow(row sqlc.ListDriversRow) drivers.Driver {
-	pesel, _ := crypto.DecryptPESEL(row.Pesel, r.encryptionKey)
+	pesel := decryptDriverPESEL(row.Pesel, r.encryptionKey)
 	d := drivers.Driver{
 		ID:           int64(row.DriverID),
 		FirstName:    row.FirstName,
@@ -360,7 +366,7 @@ func (r *DriversRepository) mapListDriversRow(row sqlc.ListDriversRow) drivers.D
 }
 
 func (r *DriversRepository) mapListDriversForPESELSearchRow(row sqlc.ListDriversForPESELSearchRow) drivers.Driver {
-	pesel, _ := crypto.DecryptPESEL(row.Pesel, r.encryptionKey)
+	pesel := decryptDriverPESEL(row.Pesel, r.encryptionKey)
 	d := drivers.Driver{
 		ID:           int64(row.DriverID),
 		FirstName:    row.FirstName,
@@ -409,7 +415,7 @@ func (r *DriversRepository) mapListDriversForPESELSearchRow(row sqlc.ListDrivers
 }
 
 func (r *DriversRepository) mapGetDriverRow(row sqlc.GetDriverByIDRow) drivers.Driver {
-	pesel, _ := crypto.DecryptPESEL(row.Pesel, r.encryptionKey)
+	pesel := decryptDriverPESEL(row.Pesel, r.encryptionKey)
 	d := drivers.Driver{
 		ID:           int64(row.DriverID),
 		FirstName:    row.FirstName,
@@ -451,4 +457,12 @@ func (r *DriversRepository) mapGetDriverRow(row sqlc.GetDriverByIDRow) drivers.D
 		d.UpdatedAt = &v
 	}
 	return d
+}
+
+func decryptDriverPESEL(pesel sql.NullString, encryptionKey []byte) string {
+	if !pesel.Valid {
+		return "***"
+	}
+	plain, _ := crypto.DecryptPESEL(pesel.String, encryptionKey)
+	return plain
 }

@@ -10,6 +10,53 @@ import (
 	"database/sql"
 )
 
+const anonymizeDriverChangelog = `-- name: AnonymizeDriverChangelog :execrows
+UPDATE Changelog
+SET
+  old_data = CASE
+    WHEN old_data IS NULL THEN NULL
+    ELSE JSON_SET(
+      old_data,
+      '$.user_id', NULL,
+      '$.first_name', 'Anonimowy',
+      '$.last_name', 'Anonimowy',
+      '$.pesel', NULL,
+      '$.phone', NULL,
+      '$.email', NULL,
+      '$.license_number', NULL,
+      '$.license_expiry_date', NULL,
+      '$.adr_certified', 0,
+      '$.adr_expiry_date', NULL
+    )
+  END,
+  new_data = CASE
+    WHEN new_data IS NULL THEN NULL
+    ELSE JSON_SET(
+      new_data,
+      '$.user_id', NULL,
+      '$.first_name', 'Anonimowy',
+      '$.last_name', 'Anonimowy',
+      '$.pesel', NULL,
+      '$.phone', NULL,
+      '$.email', NULL,
+      '$.license_number', NULL,
+      '$.license_expiry_date', NULL,
+      '$.adr_certified', 0,
+      '$.adr_expiry_date', NULL
+    )
+  END
+WHERE table_name = 'drivers'
+  AND record_id = ?
+`
+
+func (q *Queries) AnonymizeDriverChangelog(ctx context.Context, recordID int32) (int64, error) {
+	result, err := q.db.ExecContext(ctx, anonymizeDriverChangelog, recordID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const countChangelog = `-- name: CountChangelog :one
 SELECT COUNT(*)
 FROM Changelog

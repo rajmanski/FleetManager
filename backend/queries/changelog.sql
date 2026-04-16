@@ -29,3 +29,41 @@ WHERE (? = 0 OR user_id = ?)
   AND (? = '' OR operation = ?)
   AND (? = 0 OR `timestamp` >= ?)
   AND (? = 0 OR `timestamp` <= ?);
+
+-- name: AnonymizeDriverChangelog :execrows
+UPDATE Changelog
+SET
+  old_data = CASE
+    WHEN old_data IS NULL THEN NULL
+    ELSE JSON_SET(
+      old_data,
+      '$.user_id', NULL,
+      '$.first_name', 'Anonimowy',
+      '$.last_name', 'Anonimowy',
+      '$.pesel', NULL,
+      '$.phone', NULL,
+      '$.email', NULL,
+      '$.license_number', NULL,
+      '$.license_expiry_date', NULL,
+      '$.adr_certified', 0,
+      '$.adr_expiry_date', NULL
+    )
+  END,
+  new_data = CASE
+    WHEN new_data IS NULL THEN NULL
+    ELSE JSON_SET(
+      new_data,
+      '$.user_id', NULL,
+      '$.first_name', 'Anonimowy',
+      '$.last_name', 'Anonimowy',
+      '$.pesel', NULL,
+      '$.phone', NULL,
+      '$.email', NULL,
+      '$.license_number', NULL,
+      '$.license_expiry_date', NULL,
+      '$.adr_certified', 0,
+      '$.adr_expiry_date', NULL
+    )
+  END
+WHERE table_name = 'drivers'
+  AND record_id = ?;

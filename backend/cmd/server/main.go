@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	"fleet-management/internal/cargo"
 	"fleet-management/internal/assignments"
 	"fleet-management/internal/auth"
+	"fleet-management/internal/cargo"
 	"fleet-management/internal/changelog"
 	"fleet-management/internal/clients"
 	"fleet-management/internal/config"
@@ -22,16 +22,17 @@ import (
 	"fleet-management/internal/dictionaries"
 	"fleet-management/internal/drivers"
 	"fleet-management/internal/fuel"
+	"fleet-management/internal/gdpr"
 	"fleet-management/internal/insurance"
-	"fleet-management/internal/repository"
-	"fleet-management/internal/routes"
-	"fleet-management/internal/reports"
-	"fleet-management/internal/users"
-	"fleet-management/internal/orders"
 	"fleet-management/internal/maintenance"
 	"fleet-management/internal/notifications"
+	"fleet-management/internal/orders"
+	"fleet-management/internal/reports"
+	"fleet-management/internal/repository"
+	"fleet-management/internal/routes"
 	"fleet-management/internal/scheduler"
 	"fleet-management/internal/trips"
+	"fleet-management/internal/users"
 	"fleet-management/internal/vehicles"
 	"fleet-management/internal/waypoints"
 
@@ -73,6 +74,9 @@ func main() {
 	vehiclesService := vehicles.NewService(vehiclesRepository)
 	vehiclesHandler := vehicles.NewHandler(vehiclesService)
 	driversRepository := repository.NewDriversRepository(queries, cfg.EncryptionKey)
+	gdprRepository := repository.NewGDPRRepository(dbConn, queries)
+	gdprService := gdpr.NewService(gdprRepository)
+	gdprHandler := gdpr.NewHandler(gdprService)
 	cargoRepository := repository.NewCargoRepository(queries)
 	clientsRepository := repository.NewClientsRepository(queries)
 	clientsService := clients.NewService(clientsRepository)
@@ -196,6 +200,11 @@ func main() {
 		"/admin/dictionaries/:id",
 		auth.RBACMiddleware(auth.ResourceDictionaries, auth.PermissionWrite),
 		dictionariesHandler.Delete,
+	)
+	protected.DELETE(
+		"/admin/gdpr/forget-driver/:id",
+		auth.RBACMiddleware(auth.ResourceGDPR, auth.PermissionWrite),
+		gdprHandler.ForgetDriver,
 	)
 	protected.GET(
 		"/changelog",

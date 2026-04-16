@@ -116,6 +116,23 @@ SET deleted_at = NULL, updated_at = NOW()
 WHERE driver_id = ?
   AND deleted_at IS NOT NULL;
 
+-- name: ForgetDriverByID :execrows
+UPDATE Drivers
+SET
+  user_id = NULL,
+  first_name = 'Anonymous',
+  last_name = 'Anonymous',
+  pesel = NULL,
+  phone = NULL,
+  email = NULL,
+  license_number = NULL,
+  license_expiry_date = NULL,
+  adr_certified = 0,
+  adr_expiry_date = NULL,
+  updated_at = NOW()
+WHERE driver_id = ?
+  AND deleted_at IS NULL;
+
 -- name: ListActiveDriverPESELs :many
 SELECT driver_id, pesel
 FROM Drivers

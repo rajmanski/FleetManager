@@ -10,6 +10,7 @@ import (
 )
 
 type Querier interface {
+	AnonymizeDriverChangelog(ctx context.Context, recordID int32) (int64, error)
 	AssignCargoWaypoint(ctx context.Context, arg AssignCargoWaypointParams) (int64, error)
 	CancelOrderByID(ctx context.Context, orderID int32) (int64, error)
 	CountActiveOrders(ctx context.Context) (int64, error)
@@ -51,6 +52,7 @@ type Querier interface {
 	DeleteWaypoint(ctx context.Context, waypointID int32) (int64, error)
 	EndAssignment(ctx context.Context, arg EndAssignmentParams) (int64, error)
 	ExistsOrderWithOrderNumber(ctx context.Context, arg ExistsOrderWithOrderNumberParams) (bool, error)
+	ForgetDriverByID(ctx context.Context, driverID int32) (int64, error)
 	GetActiveAssignmentVehicleID(ctx context.Context, driverID int32) (int32, error)
 	GetAdminUserByID(ctx context.Context, userID int32) (GetAdminUserByIDRow, error)
 	GetAssignmentByID(ctx context.Context, assignmentID int32) (GetAssignmentByIDRow, error)
@@ -63,7 +65,7 @@ type Querier interface {
 	GetCurrentMonthCosts(ctx context.Context) (int64, error)
 	GetCurrentMonthRevenue(ctx context.Context) (interface{}, error)
 	GetDeletedClientNIPByID(ctx context.Context, clientID int32) (string, error)
-	GetDeletedDriverPESELByID(ctx context.Context, driverID int32) (string, error)
+	GetDeletedDriverPESELByID(ctx context.Context, driverID int32) (sql.NullString, error)
 	GetDeletedVehicleVINByID(ctx context.Context, vehicleID int32) (string, error)
 	GetDictionaryByID(ctx context.Context, id int32) (Dictionary, error)
 	GetDriverByID(ctx context.Context, driverID int32) (GetDriverByIDRow, error)

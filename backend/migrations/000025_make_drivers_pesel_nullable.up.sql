@@ -1,0 +1,3 @@
+ALTER TABLE Drivers
+  MODIFY pesel VARCHAR(255) NULL;
+

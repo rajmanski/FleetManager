@@ -26,6 +26,7 @@ const (
 	ResourceCostsFuel         Resource = "CostsFuel"
 	ResourceAuditLog          Resource = "AuditLog"
 	ResourceDictionaries      Resource = "Dictionaries"
+	ResourceGDPR              Resource = "GDPR"
 )
 
 var permissionMatrix = map[string]map[Resource]map[Permission]bool{
@@ -40,6 +41,7 @@ var permissionMatrix = map[string]map[Resource]map[Permission]bool{
 		ResourceCostsFuel:         {PermissionRead: true, PermissionWrite: true},
 		ResourceAuditLog:          {PermissionRead: true},
 		ResourceDictionaries:      {PermissionRead: true, PermissionWrite: true},
+		ResourceGDPR:              {PermissionWrite: true},
 	},
 	"Spedytor": {
 		ResourceVehicles:          {PermissionRead: true},

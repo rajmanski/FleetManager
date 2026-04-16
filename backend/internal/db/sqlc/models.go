@@ -604,7 +604,6 @@ type Driver struct {
 	UserID            sql.NullInt32     `json:"user_id"`
 	FirstName         string            `json:"first_name"`
 	LastName          string            `json:"last_name"`
-	Pesel             string            `json:"pesel"`
 	Phone             sql.NullString    `json:"phone"`
 	Email             sql.NullString    `json:"email"`
 	Status            NullDriversStatus `json:"status"`
@@ -615,6 +614,7 @@ type Driver struct {
 	LicenseExpiryDate sql.NullTime      `json:"license_expiry_date"`
 	AdrCertified      bool              `json:"adr_certified"`
 	AdrExpiryDate     sql.NullTime      `json:"adr_expiry_date"`
+	Pesel             sql.NullString    `json:"pesel"`
 }
 
 type FuelLog struct {

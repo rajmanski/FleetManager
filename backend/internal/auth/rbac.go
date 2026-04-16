@@ -45,7 +45,6 @@ var permissionMatrix = map[string]map[Resource]map[Permission]bool{
 	},
 	"Spedytor": {
 		ResourceVehicles:          {PermissionRead: true},
-		ResourceDrivers:           {PermissionRead: true},
 		ResourceOrders:            {PermissionRead: true, PermissionWrite: true},
 		ResourceRoutes:            {PermissionRead: true, PermissionWrite: true},
 		ResourceMaintenancePolicy: {PermissionRead: true},

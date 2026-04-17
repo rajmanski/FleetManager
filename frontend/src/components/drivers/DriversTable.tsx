@@ -37,6 +37,8 @@ type DriversTableProps = {
   onRestore: (driverId: number) => void
   onHistory: (driver: Driver) => void
   isRestoring: boolean
+  onSoftDelete: (driver: Driver) => void
+  softDeletingId?: number | null
 }
 
 export function DriversTable({
@@ -50,6 +52,8 @@ export function DriversTable({
   onRestore,
   onHistory,
   isRestoring,
+  onSoftDelete,
+  softDeletingId,
 }: DriversTableProps) {
   return (
     <DataTablePagination page={page} total={total} pagination={pagination}>
@@ -107,6 +111,8 @@ export function DriversTable({
                           onRestore={() => onRestore(driver.id)}
                           onEdit={() => onEdit(driver)}
                           isRestoring={isRestoring}
+                          onSoftDelete={() => onSoftDelete(driver)}
+                          isSoftDeleting={softDeletingId === driver.id}
                         />
                       </div>
                     </td>

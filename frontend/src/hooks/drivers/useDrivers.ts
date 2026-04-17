@@ -109,11 +109,22 @@ export function useDrivers({
     },
   })
 
+  const softDeleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await api.delete(`/api/v1/drivers/${id}`)
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['drivers'] })
+    },
+  })
+
   return {
     driversQuery,
     restoreMutation,
     createMutation,
     updateMutation,
+    softDeleteMutation,
     isAdmin,
   }
 }

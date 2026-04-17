@@ -26,6 +26,7 @@ function DriversPage() {
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [editDriver, setEditDriver] = useState<Driver | null>(null)
   const [historyDriver, setHistoryDriver] = useState<Driver | null>(null)
+  const [softDeletingId, setSoftDeletingId] = useState<number | null>(null)
 
   const restoreCallbacks = useMutationCallbacks({
     successMessage: 'Driver restored',
@@ -47,6 +48,7 @@ function DriversPage() {
     restoreMutation,
     createMutation,
     updateMutation,
+    softDeleteMutation,
     isAdmin: isAdminFromHook,
   } = useDrivers({ page, limit, statusFilter, search, showDeleted })
 
@@ -73,6 +75,29 @@ function DriversPage() {
       pagination.resetPage()
     },
     [pagination]
+  )
+
+  const handleSoftDelete = useCallback(
+    (driver: Driver) => {
+      if (!isAdmin) return
+      const confirmed = window.confirm(
+        `Are you sure you want to soft delete driver "${driver.first_name} ${driver.last_name}"?`
+      )
+      if (!confirmed) return
+
+      setSoftDeletingId(driver.id)
+      softDeleteMutation.mutate(driver.id, {
+        onSuccess: () => {
+          setSoftDeletingId(null)
+          window.alert('Driver soft deleted.')
+        },
+        onError: () => {
+          setSoftDeletingId(null)
+          window.alert('Failed to soft delete driver.')
+        },
+      })
+    },
+    [isAdmin, softDeleteMutation]
   )
 
   return (
@@ -120,6 +145,8 @@ function DriversPage() {
           }
           onHistory={setHistoryDriver}
           isRestoring={restoreMutation.isPending}
+          onSoftDelete={handleSoftDelete}
+          softDeletingId={softDeletingId}
         />
       )}
 

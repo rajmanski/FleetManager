@@ -7,6 +7,8 @@ type TableActionsCellProps = {
   onRestore: () => void
   onEdit: () => void
   isRestoring: boolean
+  onSoftDelete?: () => void
+  isSoftDeleting?: boolean
 }
 
 export function TableActionsCell({
@@ -16,6 +18,8 @@ export function TableActionsCell({
   onRestore,
   onEdit,
   isRestoring,
+  onSoftDelete,
+  isSoftDeleting,
 }: TableActionsCellProps) {
   return (
     <div className="flex items-center gap-2">
@@ -30,13 +34,25 @@ export function TableActionsCell({
         </Button>
       )}
       {!isDeleted && canManage && (
-        <Button
-          variant="secondary"
-          onClick={onEdit}
-          className="px-3 py-1.5 text-xs"
-        >
-          Edit
-        </Button>
+        <>
+          <Button
+            variant="secondary"
+            onClick={onEdit}
+            className="px-3 py-1.5 text-xs"
+          >
+            Edit
+          </Button>
+          {isAdmin && onSoftDelete && (
+            <Button
+              variant="danger"
+              onClick={onSoftDelete}
+              disabled={isSoftDeleting}
+              className="px-3 py-1.5 text-xs"
+            >
+              {isSoftDeleting ? 'Deleting...' : 'Soft delete'}
+            </Button>
+          )}
+        </>
       )}
       {!isDeleted && !canManage && !isAdmin && (
         <span className="text-xs text-gray-400">-</span>

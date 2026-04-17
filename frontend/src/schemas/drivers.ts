@@ -6,7 +6,7 @@ export const peselSchema = z
   .trim()
   .length(11, 'PESEL must have exactly 11 digits')
   .refine((v) => /^\d{11}$/.test(v), 'PESEL must contain only digits')
-  .refine((v) => isValidPesel(v), 'Invalid PESEL checksum')
+  .refine((v) => isValidPesel(v), 'Invalid PESEL')
 
 const dateNotTooOld = (v: string) => {
   if (!v) return true

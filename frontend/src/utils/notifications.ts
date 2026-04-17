@@ -4,7 +4,11 @@ export function isNotificationUnread(n: Notification): boolean {
   return n.is_read !== true
 }
 
-export function formatNotificationTypeLabel(type: string): string {
+export function formatNotificationTypeLabel(type: string | null | undefined): string {
+  if (!type || typeof type !== 'string') {
+    return 'Unknown'
+  }
+
   switch (type) {
     case 'Insurance_Expiry':
       return 'Insurance expiry'

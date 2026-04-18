@@ -26,6 +26,7 @@ import (
 	"fleet-management/internal/insurance"
 	"fleet-management/internal/maintenance"
 	"fleet-management/internal/notifications"
+	"fleet-management/internal/operations"
 	"fleet-management/internal/orders"
 	"fleet-management/internal/reports"
 	"fleet-management/internal/repository"
@@ -124,6 +125,9 @@ func main() {
 	tripsRepository := repository.NewTripsRepository(dbConn)
 	tripsService := trips.NewService(tripsRepository, cargoRepository, vehiclesRepository, driversService, vehiclesService)
 	tripsHandler := trips.NewHandler(tripsService)
+	operationsRepository := repository.NewOperationsRepository(dbConn)
+	operationsService := operations.NewService(operationsRepository)
+	operationsHandler := operations.NewHandler(operationsService)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
@@ -456,6 +460,11 @@ func main() {
 		"/trips",
 		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
 		tripsHandler.CreateTrip,
+	)
+	protected.POST(
+		"/operations/orders/plan",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),
+		operationsHandler.CreatePlannedOrderWorkflow,
 	)
 	protected.PATCH(
 		"/trips/:id/start",

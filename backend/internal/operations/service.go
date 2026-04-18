@@ -15,6 +15,18 @@ type Service struct {
 	workflowStore WorkflowStore
 }
 
+var allowedCargoTypes = map[string]bool{
+	"General":      true,
+	"Refrigerated": true,
+	"Hazardous":    true,
+}
+
+var allowedWaypointActions = map[string]bool{
+	"Pickup":   true,
+	"Dropoff":  true,
+	"Stopover": true,
+}
+
 func NewService(workflowStore WorkflowStore) *Service {
 	return &Service{
 		workflowStore: workflowStore,
@@ -113,6 +125,14 @@ func validateWorkflowRequest(req PlanOrderWorkflowRequest) *ValidationError {
 				Message: "sequence_order must be greater than 0",
 			})
 		}
+		actionType := strings.TrimSpace(wp.ActionType)
+		if actionType == "" || !allowedWaypointActions[actionType] {
+			verr.FieldErrors = append(verr.FieldErrors, FieldError{
+				Field:   fieldPrefix + ".action_type",
+				Code:    "INVALID",
+				Message: "action_type must be one of: Pickup, Dropoff, Stopover",
+			})
+		}
 		if wp.SequenceOrder > 0 {
 			if seqSeen[wp.SequenceOrder] {
 				verr.FieldErrors = append(verr.FieldErrors, FieldError{
@@ -163,6 +183,13 @@ func validateWorkflowRequest(req PlanOrderWorkflowRequest) *ValidationError {
 				Field:   fieldPrefix + ".cargo_type",
 				Code:    "REQUIRED",
 				Message: "cargo_type is required",
+			})
+		}
+		if strings.TrimSpace(c.CargoType) != "" && !allowedCargoTypes[strings.TrimSpace(c.CargoType)] {
+			verr.FieldErrors = append(verr.FieldErrors, FieldError{
+				Field:   fieldPrefix + ".cargo_type",
+				Code:    "INVALID",
+				Message: "cargo_type must be one of: General, Refrigerated, Hazardous",
 			})
 		}
 		if c.DestinationWaypointTempID != nil && strings.TrimSpace(*c.DestinationWaypointTempID) != "" {

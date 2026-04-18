@@ -27,3 +27,21 @@ func (e *ValidationError) Error() string {
 func (e *ValidationError) hasErrors() bool {
 	return len(e.FieldErrors) > 0 || len(e.GlobalErrors) > 0
 }
+
+func (e *ValidationError) HasCode(code string) bool {
+	if e == nil || strings.TrimSpace(code) == "" {
+		return false
+	}
+
+	for _, fieldErr := range e.FieldErrors {
+		if fieldErr.Code == code {
+			return true
+		}
+	}
+	for _, globalErr := range e.GlobalErrors {
+		if globalErr.Code == code {
+			return true
+		}
+	}
+	return false
+}

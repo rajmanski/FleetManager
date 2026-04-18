@@ -3,64 +3,21 @@ package operations
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
-	"time"
-
-	"fleet-management/internal/cargo"
-	"fleet-management/internal/orders"
-	"fleet-management/internal/trips"
-	"fleet-management/internal/waypoints"
 )
 
-type OrdersService interface {
-	CreateOrder(ctx context.Context, req orders.CreateOrderRequest) (orders.Order, error)
-}
-
-type CargoService interface {
-	CreateCargo(ctx context.Context, orderID int64, req cargo.CreateCargoRequest) (cargo.Cargo, error)
-	AssignWaypoint(ctx context.Context, cargoID int64, req cargo.AssignWaypointRequest) (cargo.Cargo, error)
-}
-
-type WaypointsService interface {
-	CreateWaypoint(ctx context.Context, routeID int64, req waypoints.CreateWaypointRequest) (waypoints.Waypoint, error)
-}
-
-type TripsService interface {
-	CreateTrip(ctx context.Context, req trips.CreateTripRequest) (trips.Trip, error)
-}
-
-type RouteStore interface {
-	CreateRoute(
-		ctx context.Context,
-		orderID int64,
-		startLocation string,
-		endLocation string,
-		plannedDistanceKm *float64,
-		estimatedTimeMin *int32,
-	) (int64, error)
+type WorkflowStore interface {
+	ExecutePlannedOrderWorkflowTx(ctx context.Context, req PlanOrderWorkflowRequest) (PlanOrderWorkflowResponse, error)
 }
 
 type Service struct {
-	ordersSvc    OrdersService
-	cargoSvc     CargoService
-	waypointsSvc WaypointsService
-	tripsSvc     TripsService
-	routeStore   RouteStore
+	workflowStore WorkflowStore
 }
 
-func NewService(
-	ordersSvc OrdersService,
-	cargoSvc CargoService,
-	waypointsSvc WaypointsService,
-	tripsSvc TripsService,
-	routeStore RouteStore,
-) *Service {
+func NewService(workflowStore WorkflowStore) *Service {
 	return &Service{
-		ordersSvc:    ordersSvc,
-		cargoSvc:     cargoSvc,
-		waypointsSvc: waypointsSvc,
-		tripsSvc:     tripsSvc,
-		routeStore:   routeStore,
+		workflowStore: workflowStore,
 	}
 }
 
@@ -72,141 +29,11 @@ func (s *Service) CreatePlannedOrderWorkflow(
 		return PlanOrderWorkflowResponse{}, verr
 	}
 
-	plannedStatus := "Planned"
-	order, err := s.ordersSvc.CreateOrder(ctx, orders.CreateOrderRequest{
-		ClientID:         req.Order.ClientID,
-		OrderNumber:      strings.TrimSpace(req.Order.OrderNumber),
-		DeliveryDeadline: req.Order.DeliveryDeadline,
-		TotalPricePln:    req.Order.TotalPricePln,
-		Status:           &plannedStatus,
-	})
+	response, err := s.workflowStore.ExecutePlannedOrderWorkflowTx(ctx, req)
 	if err != nil {
+		// Keep rollback reason explicit for monitoring/debug.
+		log.Printf("operations workflow rollback: %v", err)
 		return PlanOrderWorkflowResponse{}, err
-	}
-
-	routeID, err := s.routeStore.CreateRoute(
-		ctx,
-		order.ID,
-		strings.TrimSpace(req.Route.StartLocation),
-		strings.TrimSpace(req.Route.EndLocation),
-		req.Route.PlannedDistanceKm,
-		req.Route.EstimatedTimeMin,
-	)
-	if err != nil {
-		return PlanOrderWorkflowResponse{}, err
-	}
-
-	waypointByTempID := make(map[string]int64, len(req.Route.Waypoints))
-	for _, wp := range req.Route.Waypoints {
-		createdWaypoint, createErr := s.waypointsSvc.CreateWaypoint(ctx, routeID, waypoints.CreateWaypointRequest{
-			SequenceOrder: wp.SequenceOrder,
-			Address:       strings.TrimSpace(wp.Address),
-			Latitude:      wp.Latitude,
-			Longitude:     wp.Longitude,
-			ActionType:    strings.TrimSpace(wp.ActionType),
-		})
-		if createErr != nil {
-			return PlanOrderWorkflowResponse{}, createErr
-		}
-		waypointByTempID[wp.TempID] = createdWaypoint.WaypointID
-	}
-
-	totalWeight := 0.0
-	for _, c := range req.Cargo {
-		createdCargo, createErr := s.cargoSvc.CreateCargo(ctx, order.ID, cargo.CreateCargoRequest{
-			Description: strings.TrimSpace(c.Description),
-			WeightKg:    c.WeightKg,
-			VolumeM3:    c.VolumeM3,
-			CargoType:   strings.TrimSpace(c.CargoType),
-		})
-		if createErr != nil {
-			return PlanOrderWorkflowResponse{}, createErr
-		}
-
-		totalWeight += c.WeightKg
-
-		if c.DestinationWaypointTempID != nil && strings.TrimSpace(*c.DestinationWaypointTempID) != "" {
-			tempID := strings.TrimSpace(*c.DestinationWaypointTempID)
-			waypointID, ok := waypointByTempID[tempID]
-			if !ok {
-				return PlanOrderWorkflowResponse{}, &ValidationError{
-					Message: "workflow validation failed",
-					FieldErrors: []FieldError{
-						{
-							Field:   "cargo.destination_waypoint_temp_id",
-							Code:    "WAYPOINT_REFERENCE_NOT_FOUND",
-							Message: fmt.Sprintf("waypoint temp_id %q does not exist", tempID),
-						},
-					},
-				}
-			}
-			if _, assignErr := s.cargoSvc.AssignWaypoint(ctx, createdCargo.ID, cargo.AssignWaypointRequest{
-				DestinationWaypointID: &waypointID,
-			}); assignErr != nil {
-				return PlanOrderWorkflowResponse{}, assignErr
-			}
-		}
-	}
-
-	tripStartTime, err := time.Parse(time.RFC3339, strings.TrimSpace(req.Trip.StartTime))
-	if err != nil {
-		return PlanOrderWorkflowResponse{}, &ValidationError{
-			Message: "workflow validation failed",
-			FieldErrors: []FieldError{
-				{
-					Field:   "trip.start_time",
-					Code:    "INVALID_DATETIME",
-					Message: "trip.start_time must be a valid RFC3339 datetime",
-				},
-			},
-		}
-	}
-
-	createdTrip, err := s.tripsSvc.CreateTrip(ctx, trips.CreateTripRequest{
-		OrderID:   order.ID,
-		VehicleID: req.Trip.VehicleID,
-		DriverID:  req.Trip.DriverID,
-		StartTime: tripStartTime,
-	})
-	if err != nil {
-		return PlanOrderWorkflowResponse{}, err
-	}
-
-	var distanceKm float64
-	if req.Route.PlannedDistanceKm != nil {
-		distanceKm = *req.Route.PlannedDistanceKm
-	}
-	var estimatedMinutes int32
-	if req.Route.EstimatedTimeMin != nil {
-		estimatedMinutes = *req.Route.EstimatedTimeMin
-	}
-
-	response := PlanOrderWorkflowResponse{
-		Status: "planned",
-		Order: PlannedOrderSummary{
-			ID:          order.ID,
-			OrderNumber: order.OrderNumber,
-			Status:      order.Status,
-		},
-		Route: PlannedRouteSummary{
-			ID:                routeID,
-			PlannedDistanceKm: req.Route.PlannedDistanceKm,
-			EstimatedTimeMin:  req.Route.EstimatedTimeMin,
-		},
-		Trip: PlannedTripSummary{
-			ID:        createdTrip.ID,
-			Status:    createdTrip.Status,
-			VehicleID: createdTrip.VehicleID,
-			DriverID:  createdTrip.DriverID,
-			StartTime: tripStartTime.UTC().Format(time.RFC3339),
-		},
-		Summary: PlannedOrderOverview{
-			CargoCount:       len(req.Cargo),
-			TotalWeightKg:    totalWeight,
-			WaypointsCount:   len(req.Route.Waypoints),
-			DistanceKm:       distanceKm,
-			EstimatedTimeMin: estimatedMinutes,
-		},
 	}
 
 	return response, nil

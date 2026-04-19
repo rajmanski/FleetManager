@@ -6,7 +6,7 @@ import { Trash2 } from 'lucide-react'
 import type { CargoItemErrors } from '@/utils/cargo'
 
 export type WaypointOption = {
-  id: number
+  id: number | string
   address: string
   actionType: string
 }
@@ -106,15 +106,40 @@ export function CargoItemRow({
           <Select
             label="Dropoff point (optional)"
             variant="compact"
-            options={dropoffOptions.map((w) => ({ value: w.id, label: w.address }))}
+            options={dropoffOptions.map((w) => ({
+              value: String(w.id),
+              label: w.address,
+            }))}
             allowEmpty
             emptyLabel="No specific point"
-            value={item.destinationWaypointId ?? ''}
+            value={
+              item.destinationWaypointTempId ??
+              (item.destinationWaypointId != null
+                ? String(item.destinationWaypointId)
+                : '')
+            }
             onChange={(e) => {
               const v = e.target.value
-              onUpdate({
-                destinationWaypointId: v === '' ? null : parseInt(v, 10),
-              })
+              if (v === '') {
+                onUpdate({
+                  destinationWaypointId: null,
+                  destinationWaypointTempId: null,
+                })
+                return
+              }
+              const match = dropoffOptions.find((o) => String(o.id) === v)
+              if (!match) return
+              if (typeof match.id === 'string') {
+                onUpdate({
+                  destinationWaypointTempId: match.id,
+                  destinationWaypointId: null,
+                })
+              } else {
+                onUpdate({
+                  destinationWaypointId: match.id,
+                  destinationWaypointTempId: null,
+                })
+              }
             }}
           />
         </div>

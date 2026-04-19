@@ -100,9 +100,12 @@ export function useRoutePlanning(): UseRoutePlanningReturn {
       const geocodeResult = await reverseGeocode(lat, lng)
       const address =
         geocodeResult?.address ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`
+      const tempId =
+        globalThis.crypto?.randomUUID?.() ??
+        `wp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
       setWaypoints((prev) => [
         ...prev,
-        { address, lat, lng, actionType: 'Stopover' },
+        { address, lat, lng, actionType: 'Stopover', tempId },
       ])
     },
     [waypoints.length]

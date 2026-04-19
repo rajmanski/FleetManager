@@ -24,6 +24,7 @@ export interface WaypointState {
   lat?: number
   lng?: number
   actionType: WaypointActionType
+  tempId?: string
 }
 
 export interface RouteMapProps {

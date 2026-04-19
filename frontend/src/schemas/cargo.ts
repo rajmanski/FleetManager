@@ -9,6 +9,7 @@ export type CargoItemDraft = {
   volumePerUnitM3: string
   cargoType: CargoType
   destinationWaypointId?: number | null
+  destinationWaypointTempId?: string | null
 }
 
 export const EMPTY_CARGO_ITEM: Omit<CargoItemDraft, 'id'> = {
@@ -18,6 +19,7 @@ export const EMPTY_CARGO_ITEM: Omit<CargoItemDraft, 'id'> = {
   volumePerUnitM3: '',
   cargoType: 'General',
   destinationWaypointId: null,
+  destinationWaypointTempId: null,
 }
 
 export type CargoPayload = {

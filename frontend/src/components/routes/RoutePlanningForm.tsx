@@ -54,7 +54,10 @@ export function RoutePlanningForm({
   const addWaypoint = useCallback(() => {
     setWaypoints((prev) => {
       if (prev.length >= MAX_WAYPOINTS) return prev
-      return [...prev, { address: '', actionType: 'Stopover' }]
+      const tempId =
+        globalThis.crypto?.randomUUID?.() ??
+        `wp-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
+      return [...prev, { address: '', actionType: 'Stopover', tempId }]
     })
   }, [setWaypoints])
 

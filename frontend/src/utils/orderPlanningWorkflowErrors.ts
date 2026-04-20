@@ -4,6 +4,38 @@ import type { OrderPlanningFormValues } from '@/schemas/orderPlanning'
 import { extractApiError } from '@/utils/api'
 import type { WorkflowValidationErrorBody } from '@/types/operations'
 
+export type WorkflowValidationIssue = {
+  field: string
+  code: string
+  message: string
+}
+
+export type ParsedWorkflowValidationError = {
+  message: string
+  fieldErrors: WorkflowValidationIssue[]
+  globalErrors: WorkflowValidationIssue[]
+}
+
+export function parseWorkflowValidationError(
+  err: unknown,
+): ParsedWorkflowValidationError | null {
+  if (!isAxiosError(err)) {
+    return null
+  }
+  const body = err.response?.data as
+    | { error?: string | WorkflowValidationErrorBody }
+    | undefined
+  const inner = body?.error
+  if (typeof inner !== 'object') {
+    return null
+  }
+  return {
+    message: inner.message ?? 'Validation failed.',
+    fieldErrors: inner.field_errors ?? [],
+    globalErrors: inner.global_errors ?? [],
+  }
+}
+
 export function applyWorkflowApiErrors(
   err: unknown,
   setError: (
@@ -11,21 +43,15 @@ export function applyWorkflowApiErrors(
     error: { message: string },
   ) => void,
 ): string {
-  if (!isAxiosError(err)) {
-    return extractApiError(err) ?? 'Request failed.'
-  }
-  const body = err.response?.data as
-    | { error?: string | WorkflowValidationErrorBody }
-    | undefined
-  const inner = body?.error
-  if (typeof inner === 'object' && inner.field_errors?.length) {
-    for (const fe of inner.field_errors) {
+  const parsed = parseWorkflowValidationError(err)
+  if (parsed && parsed.fieldErrors.length > 0) {
+    for (const fe of parsed.fieldErrors) {
       const p = mapWorkflowFieldToFormPath(fe.field)
       if (p) {
         setError(p, { message: fe.message })
       }
     }
-    return inner.message ?? 'Validation failed.'
+    return parsed.message
   }
   return extractApiError(err) ?? 'Request failed.'
 }

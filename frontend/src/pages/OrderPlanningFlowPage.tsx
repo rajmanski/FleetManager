@@ -21,6 +21,12 @@ export default function OrderPlanningFlowPage() {
     selectedClient,
     setSelectedClient,
     routePlanning,
+    steps,
+    activeStep,
+    activeStepIndex,
+    goToStep,
+    nextStep,
+    prevStep,
     vehicleOptions,
     driverOptions,
     waypointDropoffOptions,
@@ -28,9 +34,12 @@ export default function OrderPlanningFlowPage() {
     setCargoItems,
     cargoItemErrors,
     mutation,
+    submissionState,
+    backendSectionErrors,
     routeFlowError,
+    criticalIssues,
+    canSubmit,
     totalWeightKg,
-    isCalculating,
   } = flow
 
   const orderNumber = watch('orderNumber') ?? ''
@@ -47,37 +56,78 @@ export default function OrderPlanningFlowPage() {
         className="space-y-8"
         noValidate
       >
-        <OrderPlanningClientOrderSection
-          control={control}
-          register={register}
-          errors={errors}
-          selectedClient={selectedClient}
-          onClientChange={setSelectedClient}
-        />
+        <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="mb-4 flex flex-wrap gap-2">
+            {steps.map((step, index) => {
+              const isActive = step.id === activeStep.id
+              const hasBackendIssues = backendSectionErrors[step.id].length > 0
+              return (
+                <Button
+                  key={step.id}
+                  type="button"
+                  variant={isActive ? 'primary' : 'secondary'}
+                  className="px-3 py-1.5"
+                  onClick={() => goToStep(index)}
+                >
+                  {index + 1}. {step.title}
+                  {hasBackendIssues ? ' *' : ''}
+                </Button>
+              )
+            })}
+          </div>
 
-        <OrderPlanningCargoSection
-          items={cargoWatch}
-          onItemsChange={setCargoItems}
-          waypointDropoffOptions={waypointDropoffOptions}
-          itemErrors={cargoItemErrors}
-        />
+          {backendSectionErrors[activeStep.id].length > 0 && (
+            <ErrorMessage
+              message={backendSectionErrors[activeStep.id].join(' ')}
+            />
+          )}
 
-        <OrderPlanningRouteSection {...routePlanning} />
+          {activeStep.id === 'client_order' && (
+            <OrderPlanningClientOrderSection
+              control={control}
+              register={register}
+              errors={errors}
+              selectedClient={selectedClient}
+              onClientChange={setSelectedClient}
+            />
+          )}
 
-        <OrderPlanningResourcesSection
-          register={register}
-          errors={errors}
-          vehicleOptions={vehicleOptions}
-          driverOptions={driverOptions}
-        />
+          {activeStep.id === 'cargo' && (
+            <OrderPlanningCargoSection
+              items={cargoWatch}
+              onItemsChange={setCargoItems}
+              waypointDropoffOptions={waypointDropoffOptions}
+              itemErrors={cargoItemErrors}
+            />
+          )}
 
-        <OrderPlanningSummarySection
-          selectedClient={selectedClient}
-          orderNumber={orderNumber}
-          cargoLineCount={cargoWatch.length}
-          totalWeightKg={totalWeightKg}
-          routeResult={routePlanning.result}
-        />
+          {activeStep.id === 'route' && (
+            <OrderPlanningRouteSection {...routePlanning} />
+          )}
+
+          {activeStep.id === 'resources' && (
+            <OrderPlanningResourcesSection
+              register={register}
+              errors={errors}
+              vehicleOptions={vehicleOptions}
+              driverOptions={driverOptions}
+            />
+          )}
+
+          {activeStep.id === 'summary' && (
+            <OrderPlanningSummarySection
+              selectedClient={selectedClient}
+              orderNumber={orderNumber}
+              cargoLineCount={cargoWatch.length}
+              totalWeightKg={totalWeightKg}
+              routeResult={routePlanning.result}
+            />
+          )}
+        </section>
+
+        {criticalIssues.length > 0 && activeStep.id !== 'route' && (
+          <ErrorMessage message={criticalIssues.join(' ')} />
+        )}
 
         {(routeFlowError || mutation.error) && (
           <ErrorMessage
@@ -89,15 +139,49 @@ export default function OrderPlanningFlowPage() {
           />
         )}
 
-        <div className="flex justify-end gap-3">
+        {submissionState === 'partial_validation' && (
+          <p className="text-sm text-amber-700">
+            Partial validation failed. Fix highlighted fields and continue.
+          </p>
+        )}
+        {submissionState === 'retry' && (
+          <p className="text-sm text-amber-700">
+            Submission failed. You can update data and retry.
+          </p>
+        )}
+        {submissionState === 'loading' && (
+          <p className="text-sm text-gray-600">Saving workflow...</p>
+        )}
+
+        <div className="flex justify-between gap-3">
+          <div>
+            {activeStepIndex > 0 && (
+              <Button type="button" variant="secondary" onClick={prevStep}>
+                Back
+              </Button>
+            )}
+          </div>
+          <div className="flex gap-3">
+            {activeStep.id !== 'summary' && (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  void nextStep()
+                }}
+              >
+                Next step
+              </Button>
+            )}
           <Button
             type="submit"
             variant="primary"
-            disabled={mutation.isPending || isCalculating}
+            disabled={!canSubmit}
             className="min-w-[10rem]"
           >
             {mutation.isPending ? 'Saving…' : 'Create planned order'}
           </Button>
+          </div>
         </div>
       </form>
     </div>

@@ -19,7 +19,70 @@ import type { CargoItemErrors } from '@/utils/cargo'
 import { generateCargoId } from '@/utils/cargo'
 import { loadMapsLibrary } from '@/utils/googleMapsLoader'
 import { buildPlanOrderWorkflowRequestDTO } from '@/utils/orderPlanning'
-import { applyWorkflowApiErrors } from '@/utils/orderPlanningWorkflowErrors'
+import {
+  applyWorkflowApiErrors,
+  parseWorkflowValidationError,
+} from '@/utils/orderPlanningWorkflowErrors'
+
+export type OrderPlanningStepId =
+  | 'client_order'
+  | 'cargo'
+  | 'route'
+  | 'resources'
+  | 'summary'
+
+export const ORDER_PLANNING_STEPS: Array<{
+  id: OrderPlanningStepId
+  title: string
+}> = [
+  { id: 'client_order', title: 'Client and order' },
+  { id: 'cargo', title: 'Cargo' },
+  { id: 'route', title: 'Route' },
+  { id: 'resources', title: 'Resources' },
+  { id: 'summary', title: 'Summary' },
+]
+
+type SubmissionState = 'idle' | 'partial_validation' | 'loading' | 'retry'
+
+type SectionErrors = Record<OrderPlanningStepId, string[]>
+
+const EMPTY_SECTION_ERRORS: SectionErrors = {
+  client_order: [],
+  cargo: [],
+  route: [],
+  resources: [],
+  summary: [],
+}
+
+const STEP_FIELDS: Record<
+  Exclude<OrderPlanningStepId, 'route' | 'summary'>,
+  Array<keyof OrderPlanningFormValues>
+> = {
+  client_order: ['clientId', 'orderNumber', 'deliveryDeadline', 'totalPricePln'],
+  cargo: ['cargo'],
+  resources: ['vehicleId', 'driverId', 'startTime'],
+}
+
+function fieldBelongsToStep(field: string, step: OrderPlanningStepId): boolean {
+  switch (step) {
+    case 'client_order':
+      return field.startsWith('order.')
+    case 'cargo':
+      return field.startsWith('cargo[')
+    case 'route':
+      return field.startsWith('route.')
+    case 'resources':
+      return field.startsWith('trip.')
+    case 'summary':
+      return false
+  }
+}
+
+function globalErrorStep(code: string): OrderPlanningStepId | null {
+  if (code.includes('WAYPOINT') || code.includes('SEQUENCE')) return 'route'
+  if (code.includes('CARGO')) return 'cargo'
+  return null
+}
 
 export function useOrderPlanningFlow() {
   const navigate = useNavigate()
@@ -27,6 +90,10 @@ export function useOrderPlanningFlow() {
   const queryClient = useQueryClient()
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [routeFlowError, setRouteFlowError] = useState<string | null>(null)
+  const [activeStepIndex, setActiveStepIndex] = useState(0)
+  const [submissionState, setSubmissionState] = useState<SubmissionState>('idle')
+  const [backendSectionErrors, setBackendSectionErrors] =
+    useState<SectionErrors>(EMPTY_SECTION_ERRORS)
 
   const routePlanning = useRoutePlanning()
   const {
@@ -139,6 +206,7 @@ export function useOrderPlanningFlow() {
     handleSubmit,
     control,
     watch,
+    trigger,
     setValue,
     setError,
     getValues,
@@ -193,6 +261,7 @@ export function useOrderPlanningFlow() {
   const mutation = useMutation({
     mutationFn: planOrderWorkflow,
     onSuccess: (data) => {
+      setSubmissionState('idle')
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       toast.success('Planned order created successfully.')
       navigate(`/orders/${data.order.id}`)
@@ -203,6 +272,8 @@ export function useOrderPlanningFlow() {
   const onValidSubmit = useCallback(
     async (values: OrderPlanningFormValues) => {
       setRouteFlowError(null)
+      setBackendSectionErrors(EMPTY_SECTION_ERRORS)
+      setSubmissionState('loading')
       const built = await buildPlanOrderWorkflowRequestDTO(
         values,
         origin,
@@ -212,12 +283,41 @@ export function useOrderPlanningFlow() {
       )
       if (!built.ok) {
         setRouteFlowError(built.error.message)
+        setSubmissionState('partial_validation')
+        setActiveStepIndex(2)
         return
       }
       mutate(built.payload, {
         onError: (err) => {
+          const parsed = parseWorkflowValidationError(err)
+          if (parsed) {
+            const sectionErrors: SectionErrors = {
+              client_order: [],
+              cargo: [],
+              route: [],
+              resources: [],
+              summary: [],
+            }
+            for (const fe of parsed.fieldErrors) {
+              for (const step of ORDER_PLANNING_STEPS) {
+                if (fieldBelongsToStep(fe.field, step.id)) {
+                  sectionErrors[step.id].push(fe.message)
+                }
+              }
+            }
+            for (const ge of parsed.globalErrors) {
+              const step = globalErrorStep(ge.code)
+              if (step) {
+                sectionErrors[step].push(ge.message)
+              } else {
+                sectionErrors.summary.push(ge.message)
+              }
+            }
+            setBackendSectionErrors(sectionErrors)
+          }
           const msg = applyWorkflowApiErrors(err, setError)
           toast.error(msg)
+          setSubmissionState('retry')
         },
       })
     },
@@ -243,6 +343,57 @@ export function useOrderPlanningFlow() {
     [setValue],
   )
 
+  const steps = ORDER_PLANNING_STEPS
+  const activeStep = steps[activeStepIndex] ?? steps[0]
+
+  const criticalIssues = useMemo(() => {
+    const issues: string[] = []
+    if (!origin.address.trim() || !destination.address.trim()) {
+      issues.push('Load and drop-off addresses are required.')
+    }
+    if (waypoints.length < 1) {
+      issues.push('At least one intermediate waypoint is required.')
+    }
+    if (!result) {
+      issues.push('Route must be calculated before submit.')
+    }
+    return issues
+  }, [origin.address, destination.address, waypoints.length, result])
+
+  const canSubmit =
+    !mutation.isPending &&
+    !isCalculating &&
+    criticalIssues.length === 0 &&
+    activeStep.id === 'summary'
+
+  const goToStep = useCallback((index: number) => {
+    if (index < 0 || index >= ORDER_PLANNING_STEPS.length) return
+    setActiveStepIndex(index)
+  }, [])
+
+  const nextStep = useCallback(async () => {
+    const current = ORDER_PLANNING_STEPS[activeStepIndex]
+    if (!current) return false
+    if (current.id === 'summary') return true
+
+    let valid = true
+    if (current.id === 'route') {
+      valid = criticalIssues.length === 0
+    } else {
+      valid = await trigger(STEP_FIELDS[current.id], { shouldFocus: true })
+    }
+    if (!valid) {
+      setSubmissionState('partial_validation')
+      return false
+    }
+    goToStep(activeStepIndex + 1)
+    return true
+  }, [activeStepIndex, criticalIssues.length, goToStep, trigger])
+
+  const prevStep = useCallback(() => {
+    goToStep(activeStepIndex - 1)
+  }, [activeStepIndex, goToStep])
+
   return {
     register,
     handleSubmit: handleSubmit(onValidSubmit),
@@ -267,6 +418,12 @@ export function useOrderPlanningFlow() {
       handleMapClick,
       showMap,
     },
+    steps,
+    activeStep,
+    activeStepIndex,
+    goToStep,
+    nextStep,
+    prevStep,
     vehicleOptions,
     driverOptions,
     waypointDropoffOptions,
@@ -277,7 +434,11 @@ export function useOrderPlanningFlow() {
       isPending: mutation.isPending,
       error: mutation.error,
     },
+    submissionState,
+    backendSectionErrors,
     routeFlowError,
+    criticalIssues,
+    canSubmit,
     totalWeightKg,
     isCalculating,
   }

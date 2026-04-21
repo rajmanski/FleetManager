@@ -38,7 +38,7 @@ export function CargoItemRow({
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
-      <div className="flex flex-wrap items-end gap-2">
+      <div className="flex flex-wrap items-start gap-2">
         <div className="shrink-0">
           <Input
             label="Qty"

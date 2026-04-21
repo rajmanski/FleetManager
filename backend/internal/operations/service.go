@@ -84,12 +84,6 @@ func validateWorkflowRequest(req PlanOrderWorkflowRequest) *ValidationError {
 		})
 	}
 
-	if len(req.Route.Waypoints) == 0 {
-		verr.GlobalErrors = append(verr.GlobalErrors, FieldError{
-			Code:    "WAYPOINTS_REQUIRED",
-			Message: "at least one waypoint is required",
-		})
-	}
 	if len(req.Route.Waypoints) > 10 {
 		verr.GlobalErrors = append(verr.GlobalErrors, FieldError{
 			Code:    "WAYPOINTS_LIMIT",

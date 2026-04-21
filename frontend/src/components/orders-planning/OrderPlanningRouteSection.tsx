@@ -42,8 +42,8 @@ export function OrderPlanningRouteSection({
         Route and waypoints
       </h2>
       <p className="mb-3 text-sm text-gray-600">
-        Add at least one intermediate waypoint. Click &quot;Calculate route&quot;
-        before submitting the workflow.
+        Intermediate waypoints are optional. Click &quot;Calculate route&quot; before
+        submitting the workflow.
       </p>
       <RoutePlanningForm
         origin={origin}
@@ -71,8 +71,8 @@ export function OrderPlanningRouteSection({
         ) : (
           <div className="flex h-[420px] flex-col items-center justify-center gap-2 rounded-md bg-gray-50 text-gray-500">
             <span>
-              Enter load and drop-off addresses, add waypoints, then calculate
-              the route.
+              Enter load and drop-off addresses, optionally add waypoints, then
+              calculate the route.
             </span>
           </div>
         )}

@@ -7,7 +7,6 @@ import { OrderPlanningResourcesSection } from '@/components/orders-planning/Orde
 import { OrderPlanningRouteSection } from '@/components/orders-planning/OrderPlanningRouteSection'
 import { OrderPlanningSummarySection } from '@/components/orders-planning/OrderPlanningSummarySection'
 import { useOrderPlanningFlow } from '@/hooks/orders/useOrderPlanningFlow'
-import { extractApiError } from '@/utils/api'
 
 export default function OrderPlanningFlowPage() {
   const flow = useOrderPlanningFlow()
@@ -36,10 +35,10 @@ export default function OrderPlanningFlowPage() {
     mutation,
     submissionState,
     backendSectionErrors,
-    routeFlowError,
-    criticalIssues,
+    flowErrors,
     canSubmit,
     totalWeightKg,
+    vehicleAvailabilityPending,
   } = flow
 
   const orderNumber = watch('orderNumber') ?? ''
@@ -76,12 +75,6 @@ export default function OrderPlanningFlowPage() {
             })}
           </div>
 
-          {backendSectionErrors[activeStep.id].length > 0 && (
-            <ErrorMessage
-              message={backendSectionErrors[activeStep.id].join(' ')}
-            />
-          )}
-
           {activeStep.id === 'client_order' && (
             <OrderPlanningClientOrderSection
               control={control}
@@ -111,6 +104,7 @@ export default function OrderPlanningFlowPage() {
               errors={errors}
               vehicleOptions={vehicleOptions}
               driverOptions={driverOptions}
+              vehicleAvailabilityPending={vehicleAvailabilityPending}
             />
           )}
 
@@ -125,17 +119,9 @@ export default function OrderPlanningFlowPage() {
           )}
         </section>
 
-        {criticalIssues.length > 0 && activeStep.id !== 'route' && (
-          <ErrorMessage message={criticalIssues.join(' ')} />
-        )}
-
-        {(routeFlowError || mutation.error) && (
+        {flowErrors.length > 0 && (
           <ErrorMessage
-            message={
-              routeFlowError ??
-              extractApiError(mutation.error) ??
-              'Failed to create planned order.'
-            }
+            message={flowErrors.join(' ')}
           />
         )}
 

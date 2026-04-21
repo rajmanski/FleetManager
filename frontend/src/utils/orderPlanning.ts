@@ -118,17 +118,6 @@ export async function buildPlanOrderWorkflowRequestDTO(
     }
   }
 
-  if (waypoints.length < 1) {
-    return {
-      ok: false,
-      error: {
-        kind: 'route',
-        message:
-          'Add at least one intermediate waypoint between load and drop-off (required for integrated planning).',
-      },
-    }
-  }
-
   if (!result) {
     return {
       ok: false,

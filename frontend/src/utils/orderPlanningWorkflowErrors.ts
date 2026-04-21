@@ -16,6 +16,37 @@ export type ParsedWorkflowValidationError = {
   globalErrors: WorkflowValidationIssue[]
 }
 
+function toIssuesArray(value: unknown): WorkflowValidationIssue[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.filter((item): item is WorkflowValidationIssue => {
+    if (!item || typeof item !== 'object') {
+      return false
+    }
+    const maybe = item as Partial<WorkflowValidationIssue>
+    return (
+      typeof maybe.message === 'string' &&
+      typeof maybe.code === 'string' &&
+      typeof maybe.field === 'string'
+    )
+  })
+}
+
+function summarizeWorkflowValidationError(parsed: ParsedWorkflowValidationError): string {
+  const details = [...parsed.fieldErrors, ...parsed.globalErrors]
+    .map((issue) => issue.message.trim())
+    .filter((message) => message.length > 0)
+
+  const uniqueDetails = Array.from(new Set(details))
+  if (uniqueDetails.length > 0) {
+    return uniqueDetails.join(' ')
+  }
+
+  return parsed.message || 'Validation failed.'
+}
+
 export function parseWorkflowValidationError(
   err: unknown,
 ): ParsedWorkflowValidationError | null {
@@ -31,8 +62,8 @@ export function parseWorkflowValidationError(
   }
   return {
     message: inner.message ?? 'Validation failed.',
-    fieldErrors: inner.field_errors ?? [],
-    globalErrors: inner.global_errors ?? [],
+    fieldErrors: toIssuesArray(inner.field_errors),
+    globalErrors: toIssuesArray(inner.global_errors),
   }
 }
 
@@ -44,14 +75,16 @@ export function applyWorkflowApiErrors(
   ) => void,
 ): string {
   const parsed = parseWorkflowValidationError(err)
-  if (parsed && parsed.fieldErrors.length > 0) {
-    for (const fe of parsed.fieldErrors) {
-      const p = mapWorkflowFieldToFormPath(fe.field)
-      if (p) {
-        setError(p, { message: fe.message })
+  if (parsed) {
+    if (parsed.fieldErrors.length > 0) {
+      for (const fe of parsed.fieldErrors) {
+        const p = mapWorkflowFieldToFormPath(fe.field)
+        if (p) {
+          setError(p, { message: fe.message })
+        }
       }
     }
-    return parsed.message
+    return summarizeWorkflowValidationError(parsed)
   }
   return extractApiError(err) ?? 'Request failed.'
 }

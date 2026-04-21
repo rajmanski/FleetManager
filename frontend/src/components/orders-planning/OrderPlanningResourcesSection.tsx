@@ -10,6 +10,7 @@ type OrderPlanningResourcesSectionProps = {
   errors: FieldErrors<OrderPlanningFormValues>
   vehicleOptions: SelectOption[]
   driverOptions: SelectOption[]
+  vehicleAvailabilityPending: boolean
 }
 
 export function OrderPlanningResourcesSection({
@@ -17,6 +18,7 @@ export function OrderPlanningResourcesSection({
   errors,
   vehicleOptions,
   driverOptions,
+  vehicleAvailabilityPending,
 }: OrderPlanningResourcesSectionProps) {
   return (
     <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
@@ -50,6 +52,16 @@ export function OrderPlanningResourcesSection({
             error={errors.startTime?.message}
             {...register('startTime')}
           />
+        </div>
+        <div className="md:col-span-2">
+          {vehicleAvailabilityPending ? (
+            <p className="text-sm text-gray-600">Checking vehicle availability...</p>
+          ) : vehicleOptions.length === 0 ? (
+            <p className="text-sm text-amber-700">
+              No vehicles are available for the selected start time. Choose a different
+              term.
+            </p>
+          ) : null}
         </div>
       </div>
     </section>

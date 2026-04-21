@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { RouteMap } from '@/components/routes/RouteMap'
 import { RoutePlanningForm } from '@/components/routes/RoutePlanningForm'
@@ -30,9 +31,16 @@ export default function RoutePlanningPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Route planning"
-        description="Enter load and drop-off addresses to calculate the route. Click on the map to add intermediate points."
+        title="Route planning (legacy)"
+        description="Legacy planning screen for the previous orders → routes → trips flow. For new operations, use the integrated order planning workflow."
       />
+      <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        This page is kept during the transition period. Start new planning in{' '}
+        <Link className="font-medium underline" to="/orders/new/planning">
+          integrated order planning
+        </Link>
+        .
+      </div>
       <div className="rounded-lg border border-gray-200 bg-white p-4">
         <RoutePlanningForm
           origin={origin}

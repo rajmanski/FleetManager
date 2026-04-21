@@ -63,14 +63,15 @@ export function ClientAutocompleteInput({
   })
 
   const fetchClients = useCallback(async (query: string) => {
-    if (!query.trim()) {
-      setResults([])
-      return
-    }
     setLoading(true)
     try {
       const res = await api.get<ListClientsResponse>('/api/v1/clients', {
-        params: { q: query.trim(), limit: LIMIT, page: 1, include_deleted: 'false' },
+        params: {
+          q: query.trim(),
+          limit: LIMIT,
+          page: 1,
+          include_deleted: 'false',
+        },
       })
       setResults(res.data.data ?? [])
     } catch {
@@ -88,11 +89,14 @@ export function ClientAutocompleteInput({
     }
   }, [value])
 
+  useEffect(() => {
+    void fetchClients('')
+  }, [fetchClients])
+
   const handleInputChange = (v: string) => {
     setInputValue(v)
     onSelect(null)
     debouncedFetch(v)
-    if (!v.trim()) setResults([])
   }
 
   const handleSelect = (client: Client) => {

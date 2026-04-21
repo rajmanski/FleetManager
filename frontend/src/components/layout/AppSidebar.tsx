@@ -93,7 +93,7 @@ export function AppSidebar() {
               className={navItemClass(location.pathname.startsWith('/routes'))}
             >
               <MapPin className="size-5" />
-              <span>Routes</span>
+              <span>Routes (legacy)</span>
             </Link>
             <Link
               to="/reports"

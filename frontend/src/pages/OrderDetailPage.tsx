@@ -67,12 +67,16 @@ export default function OrderDetailPage() {
     return <ErrorMessage message="Invalid order ID" />
   }
 
-  if (orderQuery.isLoading || !order) {
+  if (orderQuery.isError) {
+    return <ErrorMessage message="Failed to load order details." />
+  }
+
+  if (orderQuery.isLoading) {
     return <LoadingMessage />
   }
 
-  if (orderQuery.isError) {
-    return <ErrorMessage message="Failed to load order." />
+  if (!order) {
+    return <ErrorMessage message="Order not found." />
   }
 
   const handleDropoffChange = (cargoId: number, waypointId: number | null) => {

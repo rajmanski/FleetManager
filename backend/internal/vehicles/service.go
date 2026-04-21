@@ -172,7 +172,7 @@ func (s *Service) GetVehicleAvailability(ctx context.Context, vehicleID int64, d
 		Available: true,
 	}
 
-	if vehicle.Status == "Service" || vehicle.Status == "Inactive" {
+	if vehicle.Status != "Available" {
 		reason := fmt.Sprintf("Vehicle status is %s", vehicle.Status)
 		resp.Available = false
 		resp.Reason = &reason

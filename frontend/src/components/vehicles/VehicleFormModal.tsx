@@ -87,7 +87,7 @@ export function VehicleFormModal({
           required
           {...register('vin', {
             validate: (value) =>
-              isValidVin(value.trim().toUpperCase()) || 'Invalid VIN format or checksum.',
+              isValidVin(value.trim().toUpperCase()) || 'Invalid VIN format.',
           })}
         />
         <Input label="Plate number" error={errors.plate_number?.message} {...register('plate_number')} />

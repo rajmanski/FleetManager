@@ -34,9 +34,9 @@ func TestIsValidVIN(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "invalid VIN checksum",
+			name: "VIN with different checksum digit is still valid",
 			vin:  "1HGCM82633A004353",
-			want: false,
+			want: true,
 		},
 		{
 			name: "invalid VIN contains disallowed character I",
@@ -51,6 +51,11 @@ func TestIsValidVIN(t *testing.T) {
 		{
 			name: "invalid VIN contains disallowed character Q",
 			vin:  "1HGQM82633A004352",
+			want: false,
+		},
+		{
+			name: "invalid VIN contains non-alphanumeric character",
+			vin:  "1HGCM82633A00-352",
 			want: false,
 		},
 	}

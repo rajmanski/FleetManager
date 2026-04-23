@@ -5,15 +5,12 @@ import { Button } from '@/components/ui/Button'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
 import { PageHeader } from '@/components/ui/PageHeader'
-import { OrderFormModal } from '@/components/orders/OrderFormModal'
 import { OrdersFiltersBar } from '@/components/orders/OrdersFiltersBar'
 import { OrdersTable } from '@/components/orders/OrdersTable'
 import { useOrders } from '@/hooks/orders/useOrders'
 import { useAuth } from '@/hooks/useAuth'
-import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { usePagination } from '@/hooks/usePagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
-import { extractApiError } from '@/utils/api'
 
 function OrdersPage() {
   const navigate = useNavigate()
@@ -23,14 +20,7 @@ function OrdersPage() {
   const [status, setStatus] = useState('')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE)
-  const [addModalOpen, setAddModalOpen] = useState(false)
-
-  const { ordersQuery, createMutation } = useOrders({ page, limit, status, search })
-  const createCallbacks = useMutationCallbacks({
-    successMessage: 'Order created',
-    errorFallback: 'Failed to create order',
-    onSuccess: () => setAddModalOpen(false),
-  })
+  const { ordersQuery } = useOrders({ page, limit, status, search })
 
   const orders = useMemo(() => ordersQuery.data?.data ?? [], [ordersQuery.data])
   const total = ordersQuery.data?.total ?? 0
@@ -43,8 +33,6 @@ function OrdersPage() {
     },
     [pagination]
   )
-
-  const createErrorMessage = extractApiError(createMutation.error)
 
   return (
     <div className="space-y-6">
@@ -61,23 +49,10 @@ function OrdersPage() {
                 <Plus className="mr-2 h-4 w-4 shrink-0" />
                 New order (integrated flow)
               </Button>
-              <Button
-                variant="secondary"
-                onClick={() => setAddModalOpen(true)}
-                className="whitespace-nowrap"
-              >
-                Legacy: add order only
-              </Button>
             </div>
           ) : undefined
         }
       />
-
-      <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-        Migration period: use the integrated flow for all new orders. Legacy flow
-        (orders → routes → trips) remains available temporarily for users finishing
-        in-progress work.
-      </div>
 
       <OrdersFiltersBar
         search={search}
@@ -100,22 +75,6 @@ function OrdersPage() {
         />
       )}
 
-      {createErrorMessage && !createMutation.isPending && (
-        <ErrorMessage message={createErrorMessage} />
-      )}
-
-      {addModalOpen && (
-        <OrderFormModal
-          title="Add order"
-          submitLabel={createMutation.isPending ? 'Creating...' : 'Create order'}
-          onClose={() => setAddModalOpen(false)}
-          onSubmit={(payload) =>
-            createMutation.mutate(payload, createCallbacks)
-          }
-          isSubmitting={createMutation.isPending}
-          errorMessage={createErrorMessage}
-        />
-      )}
     </div>
   )
 }

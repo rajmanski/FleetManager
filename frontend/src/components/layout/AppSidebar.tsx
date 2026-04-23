@@ -7,7 +7,6 @@ import {
   FileSpreadsheet,
   FileText,
   Fuel,
-  MapPin,
   Shield,
   Truck,
   Users,
@@ -87,13 +86,6 @@ export function AppSidebar() {
             >
               <Truck className="size-5" />
               <span>Trips</span>
-            </Link>
-            <Link
-              to="/routes"
-              className={navItemClass(location.pathname.startsWith('/routes'))}
-            >
-              <MapPin className="size-5" />
-              <span>Routes (legacy)</span>
             </Link>
             <Link
               to="/reports"

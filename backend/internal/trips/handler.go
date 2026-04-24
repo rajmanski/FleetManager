@@ -30,6 +30,25 @@ func (h *Handler) ListTrips(c *gin.Context) {
 	c.JSON(http.StatusOK, rows)
 }
 
+func (h *Handler) ListTripsByOrder(c *gin.Context) {
+	orderID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil || orderID <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order id"})
+		return
+	}
+
+	rows, err := h.service.ListTripsByOrderID(c.Request.Context(), orderID)
+	if err != nil {
+		if errors.Is(err, ErrInvalidInput) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order id"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+	c.JSON(http.StatusOK, rows)
+}
+
 func (h *Handler) GetTrip(c *gin.Context) {
 	tripID, err := parseTripIDParam(c)
 	if err != nil {

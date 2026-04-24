@@ -3,16 +3,18 @@ package orders
 import "time"
 
 type Order struct {
-	ID               int64      `json:"id"`
-	ClientID         int64      `json:"clientId"`
-	OrderNumber      string     `json:"orderNumber"`
-	CreationDate     *time.Time `json:"creationDate,omitempty"`
-	DeliveryDeadline *time.Time `json:"deliveryDeadline,omitempty"`
-	TotalPricePln    *float64   `json:"totalPricePln,omitempty"`
-	Status           string     `json:"status"`
-	ClientCompany    string     `json:"clientCompany,omitempty"`
-	CargoTypes       string     `json:"cargoTypes,omitempty"`
-	RouteID          *int64     `json:"routeId,omitempty"`
+	ID                 int64      `json:"id"`
+	ClientID           int64      `json:"clientId"`
+	OrderNumber        string     `json:"orderNumber"`
+	CreationDate       *time.Time `json:"creationDate,omitempty"`
+	DeliveryDeadline   *time.Time `json:"deliveryDeadline,omitempty"`
+	TotalPricePln      *float64   `json:"totalPricePln,omitempty"`
+	Status             string     `json:"status"`
+	ClientCompany      string     `json:"clientCompany,omitempty"`
+	CargoTypes         string     `json:"cargoTypes,omitempty"`
+	RouteID            *int64     `json:"routeId,omitempty"`
+	RouteStartLocation string     `json:"routeStartLocation,omitempty"`
+	RouteEndLocation   string     `json:"routeEndLocation,omitempty"`
 }
 
 type ListOrdersQuery struct {

@@ -134,6 +134,7 @@ type Querier interface {
 	ListSchedulerInsuranceNotifications(ctx context.Context, dollar_1 int64) ([]string, error)
 	ListSchedulerMaintenanceDueNotifications(ctx context.Context, dollar_1 int64) ([]string, error)
 	ListTrips(ctx context.Context, arg ListTripsParams) ([]ListTripsRow, error)
+	ListTripsByOrderID(ctx context.Context, orderID int32) ([]ListTripsByOrderIDRow, error)
 	ListUpcomingInspectionAlerts(ctx context.Context) ([]ListUpcomingInspectionAlertsRow, error)
 	ListVehicleMaintenanceHistory(ctx context.Context, arg ListVehicleMaintenanceHistoryParams) ([]ListVehicleMaintenanceHistoryRow, error)
 	ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]Vehicle, error)

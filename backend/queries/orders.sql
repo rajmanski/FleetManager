@@ -42,7 +42,9 @@ SELECT
   o.total_price_pln,
   o.status,
   c.company_name AS client_company_name,
-  r.route_id AS route_id
+  r.route_id AS route_id,
+  r.start_location AS route_start_location,
+  r.end_location AS route_end_location
 FROM Orders o
 LEFT JOIN Clients c ON c.client_id = o.client_id AND c.deleted_at IS NULL
 LEFT JOIN Routes r ON r.order_id = o.order_id

@@ -28,7 +28,7 @@ func TestCreatePlannedOrderWorkflowHandler_Success(t *testing.T) {
 	store := &handlerStoreStub{
 		response: PlanOrderWorkflowResponse{
 			Status: "planned",
-			Order:  PlannedOrderSummary{ID: 101, OrderNumber: "ORD-2026-001", Status: "InProgress"},
+			Order:  PlannedOrderSummary{ID: 101, OrderNumber: "ORD-2026-001", Status: "Planned"},
 		},
 	}
 	router := testRouter(store)

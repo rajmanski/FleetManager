@@ -43,6 +43,13 @@ func (s *Service) GetTripByID(ctx context.Context, tripID int64) (Trip, error) {
 	return s.repo.GetTripByID(ctx, tripID)
 }
 
+func (s *Service) ListTripsByOrderID(ctx context.Context, orderID int64) ([]Trip, error) {
+	if orderID <= 0 {
+		return nil, ErrInvalidInput
+	}
+	return s.repo.ListTripsByOrderID(ctx, orderID)
+}
+
 func (s *Service) CreateTrip(ctx context.Context, req CreateTripRequest) (Trip, error) {
 	if req.OrderID <= 0 || req.VehicleID <= 0 || req.DriverID <= 0 {
 		return Trip{}, ErrInvalidInput

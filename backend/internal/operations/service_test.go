@@ -28,7 +28,7 @@ func TestCreatePlannedOrderWorkflow_Success(t *testing.T) {
 		Order: PlannedOrderSummary{
 			ID:          1,
 			OrderNumber: "ORD-2026-001",
-			Status:      "InProgress",
+			Status:      "Planned",
 		},
 	}
 	store := &workflowStoreStub{response: expected}

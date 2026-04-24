@@ -1,5 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
 import { useOrderPlanningSubmission } from './useOrderPlanningSubmission'
+import type { FlowAction } from './orderPlanningFlowReducer'
+import type { OrderPlanningStepId } from './orderPlanningFlowTypes'
+import type { WaypointState } from '@/types/routes'
 
 const navigateMock = vi.fn()
 const mutateMock = vi.fn()
@@ -25,11 +28,7 @@ vi.mock('@tanstack/react-query', async () => {
     useQueryClient: () => ({ invalidateQueries: invalidateQueriesMock }),
     useMutation: (options: { onSuccess?: (data: { order: { id: number } }) => void }) => {
       mutationOptionsRef.onSuccess = options.onSuccess
-      return {
-      isPending: false,
-      error: null,
-      mutate: mutateMock,
-      }
+      return { isPending: false, error: null, mutate: mutateMock }
     },
   }
 })
@@ -45,172 +44,123 @@ vi.mock('@/utils/orderPlanning', () => ({
     buildPlanOrderWorkflowRequestDTOMock(...args),
 }))
 
+function makeDispatch() {
+  const dispatched: FlowAction[] = []
+  const dispatch = vi.fn((action: FlowAction) => dispatched.push(action))
+  return { dispatch, dispatched }
+}
+
+const baseSteps: Array<{ id: OrderPlanningStepId }> = [
+  { id: 'client_order' },
+  { id: 'route' },
+  { id: 'cargo' },
+  { id: 'resources' },
+  { id: 'summary' },
+]
+
+const baseArgs = {
+  origin: { address: '', lat: undefined, lng: undefined },
+  destination: { address: '', lat: undefined, lng: undefined },
+  waypoints: [] as WaypointState[],
+  result: null,
+  steps: baseSteps,
+  setError: vi.fn(),
+}
+
 describe('useOrderPlanningSubmission', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('sets partial validation state when dto build fails', async () => {
+  it('dispatches BUILD_FAILED when dto build fails', async () => {
     buildPlanOrderWorkflowRequestDTOMock.mockResolvedValue({
       ok: false,
       error: { message: 'Route is not calculated' },
     })
-
-    const setRouteFlowError = vi.fn()
-    const setBackendSectionErrors = vi.fn()
-    const setSubmissionState = vi.fn()
-    const setLastErrorSource = vi.fn()
-    const setActiveStepIndex = vi.fn()
+    const { dispatch, dispatched } = makeDispatch()
 
     const { result } = renderHook(() =>
-      useOrderPlanningSubmission({
-        origin: { address: '', lat: undefined, lng: undefined },
-        destination: { address: '', lat: undefined, lng: undefined },
-        waypoints: [],
-        result: null,
-        steps: [{ id: 'route' }],
-        setError: vi.fn(),
-        setRouteFlowError,
-        setBackendSectionErrors,
-        setSubmissionState,
-        setLastErrorSource,
-        setActiveStepIndex,
-      }),
+      useOrderPlanningSubmission({ ...baseArgs, dispatch }),
     )
 
     await act(async () => {
       await result.current.onValidSubmit({} as never)
     })
 
-    expect(setSubmissionState).toHaveBeenCalledWith('partial_validation')
-    expect(setRouteFlowError).toHaveBeenCalledWith('Route is not calculated')
-    expect(setActiveStepIndex).toHaveBeenCalledWith(2)
-    expect(setLastErrorSource).toHaveBeenCalledWith('local')
+    expect(dispatched).toContainEqual({ type: 'SUBMIT_START' })
+    expect(dispatched).toContainEqual({ type: 'BUILD_FAILED', routeError: 'Route is not calculated' })
     expect(mutateMock).not.toHaveBeenCalled()
   })
 
-  it('sets retry state when backend mutate fails', async () => {
-    buildPlanOrderWorkflowRequestDTOMock.mockResolvedValue({
-      ok: true,
-      payload: { order: {} },
-    })
+  it('dispatches BACKEND_FAILED with section errors and first error step index', async () => {
+    buildPlanOrderWorkflowRequestDTOMock.mockResolvedValue({ ok: true, payload: {} })
     parseWorkflowValidationErrorMock.mockReturnValue({
       fieldErrors: [{ field: 'trip.driver_id', code: 'ADR_REQUIRED', message: 'ADR required' }],
       globalErrors: [],
     })
     applyWorkflowApiErrorsMock.mockReturnValue('Submission failed')
-
-    const setRouteFlowError = vi.fn()
-    const setBackendSectionErrors = vi.fn()
-    const setSubmissionState = vi.fn()
-    const setLastErrorSource = vi.fn()
-    const setActiveStepIndex = vi.fn()
-
     mutateMock.mockImplementation((_payload: unknown, opts: { onError?: (err: unknown) => void }) => {
       opts.onError?.(new Error('backend failed'))
     })
 
+    const { dispatch, dispatched } = makeDispatch()
     const { result } = renderHook(() =>
-      useOrderPlanningSubmission({
-        origin: { address: '', lat: undefined, lng: undefined },
-        destination: { address: '', lat: undefined, lng: undefined },
-        waypoints: [],
-        result: { distance_km: 12, duration_minutes: 10, polyline: 'abc' },
-        steps: [{ id: 'client_order' }, { id: 'cargo' }, { id: 'route' }, { id: 'resources' }, { id: 'summary' }],
-        setError: vi.fn(),
-        setRouteFlowError,
-        setBackendSectionErrors,
-        setSubmissionState,
-        setLastErrorSource,
-        setActiveStepIndex,
-      }),
+      useOrderPlanningSubmission({ ...baseArgs, result: { distance_km: 12, duration_minutes: 10, polyline: 'abc' }, dispatch }),
     )
 
     await act(async () => {
       await result.current.onValidSubmit({} as never)
     })
 
-    expect(setSubmissionState).toHaveBeenCalledWith('retry')
-    expect(setLastErrorSource).toHaveBeenCalledWith('backend')
-    expect(setRouteFlowError).toHaveBeenCalledWith('Submission failed')
+    const backendFailedAction = dispatched.find((a) => a.type === 'BACKEND_FAILED')
+    expect(backendFailedAction).toBeDefined()
+    expect(backendFailedAction?.type).toBe('BACKEND_FAILED')
+    if (backendFailedAction?.type === 'BACKEND_FAILED') {
+      expect(backendFailedAction.routeError).toBe('Submission failed')
+      expect(backendFailedAction.backendErrors.resources).toContain('ADR required')
+      expect(backendFailedAction.stepIndex).toBe(3) // resources step index
+    }
   })
 
-  it('handles success by invalidating orders, showing toast and navigating', async () => {
-    buildPlanOrderWorkflowRequestDTOMock.mockResolvedValue({
-      ok: true,
-      payload: { order: {} },
+  it('dispatches SUBMIT_SUCCESS, invalidates queries, shows toast and navigates on success', async () => {
+    buildPlanOrderWorkflowRequestDTOMock.mockResolvedValue({ ok: true, payload: {} })
+    mutateMock.mockImplementation(() => {
+      mutationOptionsRef.onSuccess?.({ order: { id: 321 } })
     })
-    mutateMock.mockImplementation(
-      () => {
-        mutationOptionsRef.onSuccess?.({ order: { id: 321 } })
-      },
-    )
 
-    const setSubmissionState = vi.fn()
-
+    const { dispatch, dispatched } = makeDispatch()
     const { result } = renderHook(() =>
-      useOrderPlanningSubmission({
-        origin: { address: '', lat: undefined, lng: undefined },
-        destination: { address: '', lat: undefined, lng: undefined },
-        waypoints: [],
-        result: { distance_km: 12, duration_minutes: 10, polyline: 'abc' },
-        steps: [{ id: 'client_order' }, { id: 'cargo' }, { id: 'route' }, { id: 'resources' }, { id: 'summary' }],
-        setError: vi.fn(),
-        setRouteFlowError: vi.fn(),
-        setBackendSectionErrors: vi.fn(),
-        setSubmissionState,
-        setLastErrorSource: vi.fn(),
-        setActiveStepIndex: vi.fn(),
-      }),
+      useOrderPlanningSubmission({ ...baseArgs, result: { distance_km: 12, duration_minutes: 10, polyline: 'abc' }, dispatch }),
     )
 
     await act(async () => {
       await result.current.onValidSubmit({} as never)
     })
 
-    expect(setSubmissionState).toHaveBeenCalledWith('loading')
+    expect(dispatched).toContainEqual({ type: 'SUBMIT_START' })
+    expect(dispatched).toContainEqual({ type: 'SUBMIT_SUCCESS' })
     expect(invalidateQueriesMock).toHaveBeenCalledWith({ queryKey: ['orders'] })
     expect(toastSuccessMock).toHaveBeenCalled()
     expect(navigateMock).toHaveBeenCalledWith('/orders/321')
   })
 
-  it('maps backend field errors to RHF setError paths', async () => {
-    buildPlanOrderWorkflowRequestDTOMock.mockResolvedValue({
-      ok: true,
-      payload: { order: {} },
-    })
-    parseWorkflowValidationErrorMock.mockReturnValue({
-      fieldErrors: [
-        { field: 'trip.vehicle_id', code: 'REQUIRED', message: 'Vehicle required' },
-        { field: 'cargo[0].weight_kg', code: 'INVALID', message: 'Weight invalid' },
-      ],
-      globalErrors: [],
-    })
-    applyWorkflowApiErrorsMock.mockImplementation((_err: unknown, setError: (name: string, error: { message: string }) => void) => {
-      setError('vehicleId', { message: 'Vehicle required' })
-      setError('cargo.0.weightPerUnitKg', { message: 'Weight invalid' })
-      return 'Submission failed'
-    })
-
-    const setError = vi.fn()
+  it('calls setError for field-level backend validation errors', async () => {
+    buildPlanOrderWorkflowRequestDTOMock.mockResolvedValue({ ok: true, payload: {} })
+    parseWorkflowValidationErrorMock.mockReturnValue({ fieldErrors: [], globalErrors: [] })
+    applyWorkflowApiErrorsMock.mockImplementation(
+      (_err: unknown, setError: (name: string, error: { message: string }) => void) => {
+        setError('vehicleId', { message: 'Vehicle required' })
+        return 'Submission failed'
+      },
+    )
     mutateMock.mockImplementation((_payload: unknown, opts: { onError?: (err: unknown) => void }) => {
       opts.onError?.(new Error('backend failed'))
     })
 
+    const setError = vi.fn()
+    const { dispatch } = makeDispatch()
     const { result } = renderHook(() =>
-      useOrderPlanningSubmission({
-        origin: { address: '', lat: undefined, lng: undefined },
-        destination: { address: '', lat: undefined, lng: undefined },
-        waypoints: [],
-        result: { distance_km: 12, duration_minutes: 10, polyline: 'abc' },
-        steps: [{ id: 'client_order' }, { id: 'cargo' }, { id: 'route' }, { id: 'resources' }, { id: 'summary' }],
-        setError,
-        setRouteFlowError: vi.fn(),
-        setBackendSectionErrors: vi.fn(),
-        setSubmissionState: vi.fn(),
-        setLastErrorSource: vi.fn(),
-        setActiveStepIndex: vi.fn(),
-      }),
+      useOrderPlanningSubmission({ ...baseArgs, result: { distance_km: 12, duration_minutes: 10, polyline: 'abc' }, setError, dispatch }),
     )
 
     await act(async () => {
@@ -218,19 +168,11 @@ describe('useOrderPlanningSubmission', () => {
     })
 
     expect(setError).toHaveBeenCalledWith('vehicleId', { message: 'Vehicle required' })
-    expect(setError).toHaveBeenCalledWith('cargo.0.weightPerUnitKg', { message: 'Weight invalid' })
   })
 
-  it('supports retry flow: first error then successful submit', async () => {
-    buildPlanOrderWorkflowRequestDTOMock.mockResolvedValue({
-      ok: true,
-      payload: { order: {} },
-    })
+  it('supports retry: first fails then succeeds on second submit', async () => {
+    buildPlanOrderWorkflowRequestDTOMock.mockResolvedValue({ ok: true, payload: {} })
     applyWorkflowApiErrorsMock.mockReturnValue('Submission failed')
-
-    const setSubmissionState = vi.fn()
-    const setRouteFlowError = vi.fn()
-    const setLastErrorSource = vi.fn()
 
     let callNo = 0
     mutateMock.mockImplementation((_payload: unknown, opts: { onError?: (err: unknown) => void }) => {
@@ -242,32 +184,16 @@ describe('useOrderPlanningSubmission', () => {
       }
     })
 
+    const { dispatch, dispatched } = makeDispatch()
     const { result } = renderHook(() =>
-      useOrderPlanningSubmission({
-        origin: { address: '', lat: undefined, lng: undefined },
-        destination: { address: '', lat: undefined, lng: undefined },
-        waypoints: [],
-        result: { distance_km: 12, duration_minutes: 10, polyline: 'abc' },
-        steps: [{ id: 'client_order' }, { id: 'cargo' }, { id: 'route' }, { id: 'resources' }, { id: 'summary' }],
-        setError: vi.fn(),
-        setRouteFlowError,
-        setBackendSectionErrors: vi.fn(),
-        setSubmissionState,
-        setLastErrorSource,
-        setActiveStepIndex: vi.fn(),
-      }),
+      useOrderPlanningSubmission({ ...baseArgs, result: { distance_km: 12, duration_minutes: 10, polyline: 'abc' }, dispatch }),
     )
 
-    await act(async () => {
-      await result.current.onValidSubmit({} as never)
-    })
-    await act(async () => {
-      await result.current.onValidSubmit({} as never)
-    })
+    await act(async () => { await result.current.onValidSubmit({} as never) })
+    await act(async () => { await result.current.onValidSubmit({} as never) })
 
-    expect(setSubmissionState).toHaveBeenCalledWith('retry')
-    expect(setLastErrorSource).toHaveBeenCalledWith('backend')
-    expect(setRouteFlowError).toHaveBeenCalledWith('Submission failed')
+    expect(dispatched.filter((a) => a.type === 'BACKEND_FAILED')).toHaveLength(1)
+    expect(dispatched.filter((a) => a.type === 'SUBMIT_SUCCESS')).toHaveLength(1)
     expect(navigateMock).toHaveBeenCalledWith('/orders/555')
   })
 })

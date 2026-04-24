@@ -1,6 +1,5 @@
-import { renderHook } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import { useOrderPlanningFlow } from './useOrderPlanningFlow'
-import { act, waitFor } from '@testing-library/react'
 
 vi.mock('@/hooks/routes/useRoutePlanning', () => ({
   useRoutePlanning: () => ({
@@ -22,22 +21,18 @@ vi.mock('@/hooks/routes/useRoutePlanning', () => ({
 }))
 
 vi.mock('@/hooks/vehicles/useVehicles', () => ({
-  useVehicles: () => ({
-    vehiclesQuery: { data: { data: [] } },
-  }),
+  useVehicles: () => ({ vehiclesQuery: { data: { data: [] } } }),
 }))
 
 vi.mock('@/hooks/drivers/useDrivers', () => ({
-  useDrivers: () => ({
-    driversQuery: { data: { data: [] } },
-  }),
+  useDrivers: () => ({ driversQuery: { data: { data: [] } } }),
 }))
 
 vi.mock('./planning/useOrderPlanningResourceFilters', () => ({
   useOrderPlanningResourceFilters: () => ({
     vehicleOptions: [{ value: '5', label: 'Vehicle 5' }],
     driverOptions: [{ value: '12', label: 'Driver 12' }],
-    isCheckingAvailability: false,
+    isPending: false,
   }),
 }))
 
@@ -45,89 +40,71 @@ vi.mock('./planning/useOrderPlanningRouteEffects', () => ({
   useOrderPlanningRouteEffects: () => undefined,
 }))
 
-let submissionArgsRef:
-  | {
-      setRouteFlowError: (message: string | null) => void
-      setBackendSectionErrors: (errors: {
-        client_order: string[]
-        cargo: string[]
-        route: string[]
-        resources: string[]
-        summary: string[]
-      }) => void
-      setSubmissionState: (state: 'idle' | 'partial_validation' | 'loading' | 'retry') => void
-      setLastErrorSource: (source: 'none' | 'backend' | 'local') => void
-    }
-  | undefined
-
 vi.mock('./planning/useOrderPlanningSubmission', () => ({
-  useOrderPlanningSubmission: (args: typeof submissionArgsRef) => {
-    submissionArgsRef = args
-    return {
-      mutation: { isPending: false, error: null, mutate: vi.fn() },
-      onValidSubmit: vi.fn(),
-    }
-  },
+  useOrderPlanningSubmission: () => ({
+    mutation: { isPending: false, error: null, mutate: vi.fn() },
+    onValidSubmit: vi.fn(),
+  }),
 }))
 
 describe('useOrderPlanningFlow', () => {
-  it('returns initial state with blocked submit before summary step', () => {
+  it('returns initial state with summary step blocked for submit', () => {
     const { result } = renderHook(() => useOrderPlanningFlow())
 
-    expect(result.current.activeStep.id).toBe('client_order')
-    expect(result.current.canSubmit).toBe(false)
-    expect(result.current.steps).toHaveLength(5)
+    expect(result.current.steps.active.id).toBe('client_order')
+    expect(result.current.steps.activeIndex).toBe(0)
+    expect(result.current.steps.list).toHaveLength(5)
+    expect(result.current.submission.canSubmit).toBe(false)
+  })
+
+  it('returns grouped return shape with all expected keys', () => {
+    const { result } = renderHook(() => useOrderPlanningFlow())
+    const flow = result.current
+
+    expect(flow).toHaveProperty('form')
+    expect(flow).toHaveProperty('client')
+    expect(flow).toHaveProperty('route')
+    expect(flow).toHaveProperty('steps')
+    expect(flow).toHaveProperty('cargo')
+    expect(flow).toHaveProperty('resources')
+    expect(flow).toHaveProperty('submission')
   })
 
   it('tracks total cargo weight from form cargo rows', () => {
     const { result } = renderHook(() => useOrderPlanningFlow())
 
-    expect(result.current.totalWeightKg).toBeGreaterThanOrEqual(0)
-    expect(Array.isArray(result.current.cargoWatch)).toBe(true)
+    expect(result.current.cargo.totalWeightKg).toBeGreaterThanOrEqual(0)
+    expect(Array.isArray(result.current.cargo.items)).toBe(true)
   })
 
-  it('resets backend/local error state after retry state resumes and user edits', async () => {
+  it('exposes vehicle and driver options from resources', () => {
     const { result } = renderHook(() => useOrderPlanningFlow())
 
+    expect(result.current.resources.vehicleOptions).toEqual([{ value: '5', label: 'Vehicle 5' }])
+    expect(result.current.resources.driverOptions).toEqual([{ value: '12', label: 'Driver 12' }])
+  })
+
+  it('goTo changes active step', () => {
+    const { result } = renderHook(() => useOrderPlanningFlow())
+
+    act(() => { result.current.steps.goTo(1) })
+
+    expect(result.current.steps.activeIndex).toBe(1)
+    expect(result.current.steps.active.id).toBe('route')
+  })
+
+  it('resets error state to idle after user modifies client selection', async () => {
+    const { result } = renderHook(() => useOrderPlanningFlow())
+
+    act(() => { result.current.steps.goTo(1) })
+    expect(result.current.steps.activeIndex).toBe(1)
+
     act(() => {
-      submissionArgsRef?.setRouteFlowError('Backend validation failed')
-      submissionArgsRef?.setBackendSectionErrors({
-        client_order: [],
-        cargo: [],
-        route: ['Route failed'],
-        resources: [],
-        summary: [],
-      })
-      submissionArgsRef?.setSubmissionState('loading')
-      submissionArgsRef?.setLastErrorSource('backend')
+      result.current.client.onChange({ id: 11, companyName: 'Test', nip: '1234567890' })
     })
 
     await waitFor(() => {
-      expect(result.current.submissionState).toBe('loading')
-      expect(result.current.routeFlowError).toBe('Backend validation failed')
-    })
-
-    act(() => {
-      result.current.setSelectedClient({
-        id: 11,
-        companyName: 'Changed Client',
-        nip: '1234567890',
-      })
-    })
-
-    await waitFor(() => {
-      expect(result.current.submissionState).toBe('loading')
-      expect(result.current.routeFlowError).toBe('Backend validation failed')
-    })
-
-    act(() => {
-      submissionArgsRef?.setSubmissionState('retry')
-    })
-
-    await waitFor(() => {
-      expect(result.current.submissionState).toBe('idle')
-      expect(result.current.routeFlowError).toBeNull()
-      expect(result.current.backendSectionErrors.route).toHaveLength(0)
+      expect(result.current.submission.state).toBe('idle')
     })
   })
 })

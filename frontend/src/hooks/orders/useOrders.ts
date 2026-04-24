@@ -13,6 +13,8 @@ export type Order = {
   clientCompany?: string
   cargoTypes?: string
   routeId?: number | null
+  routeStartLocation?: string
+  routeEndLocation?: string
 }
 
 type ListOrdersResponse = {

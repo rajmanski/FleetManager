@@ -98,7 +98,7 @@ func (r *OperationsRepository) ExecutePlannedOrderWorkflowTx(
 		Order: operations.PlannedOrderSummary{
 			ID:          orderID,
 			OrderNumber: strings.TrimSpace(req.Order.OrderNumber),
-			Status:      "InProgress",
+			Status:      "Planned",
 		},
 		Route: operations.PlannedRouteSummary{
 			ID:                routeID,
@@ -440,9 +440,7 @@ func (r *OperationsRepository) insertTripTx(
 	if _, err := tx.ExecContext(ctx, `UPDATE Drivers SET status = 'InRoute' WHERE driver_id = ?`, trip.DriverID); err != nil {
 		return 0, err
 	}
-	if _, err := tx.ExecContext(ctx, `UPDATE Orders SET status = 'InProgress' WHERE order_id = ?`, orderID); err != nil {
-		return 0, err
-	}
+	// Order stays Planned until the trip is started (see StartTrip). Trip remains Scheduled.
 
 	return tripID, nil
 }

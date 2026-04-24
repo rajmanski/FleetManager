@@ -36,9 +36,10 @@ export function useTrips() {
       const res = await api.post<Trip>('/api/v1/trips', payload)
       return res.data
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       queryClient.invalidateQueries({ queryKey: ['trips'] })
+      queryClient.invalidateQueries({ queryKey: ['orders', variables.order_id, 'trips'] })
     },
   })
 

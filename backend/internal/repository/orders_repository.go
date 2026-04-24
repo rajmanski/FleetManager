@@ -196,6 +196,12 @@ func mapGetOrderByIDRow(row sqlc.GetOrderByIDRow) orders.Order {
 		rid := int64(row.RouteID.Int32)
 		o.RouteID = &rid
 	}
+	if row.RouteStartLocation.Valid {
+		o.RouteStartLocation = row.RouteStartLocation.String
+	}
+	if row.RouteEndLocation.Valid {
+		o.RouteEndLocation = row.RouteEndLocation.String
+	}
 	return o
 }
 

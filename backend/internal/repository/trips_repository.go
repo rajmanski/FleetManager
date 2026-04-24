@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"math"
 	"strconv"
 	"strings"
 	"time"
@@ -42,6 +43,33 @@ func (r *TripsRepository) ListTrips(ctx context.Context, query trips.ListTripsQu
 	result := make([]trips.Trip, 0, len(rows))
 	for _, row := range rows {
 		result = append(result, mapTripRow(row))
+	}
+	return result, nil
+}
+
+func (r *TripsRepository) ListTripsByOrderID(ctx context.Context, orderID int64) ([]trips.Trip, error) {
+	rows, err := r.queries.ListTripsByOrderID(ctx, int32(orderID))
+	if err != nil {
+		return nil, err
+	}
+	result := make([]trips.Trip, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, mapTripRow(sqlc.ListTripsRow{
+			TripID:            row.TripID,
+			OrderID:           row.OrderID,
+			OrderNumber:       row.OrderNumber,
+			ClientCompany:     row.ClientCompany,
+			VehicleID:         row.VehicleID,
+			VehicleVin:        row.VehicleVin,
+			DriverID:          row.DriverID,
+			FirstName:         row.FirstName,
+			LastName:          row.LastName,
+			PlannedDistanceKm: row.PlannedDistanceKm,
+			StartTime:         row.StartTime,
+			EndTime:           row.EndTime,
+			ActualDistanceKm:  row.ActualDistanceKm,
+			Status:            row.Status,
+		}))
 	}
 	return result, nil
 }
@@ -114,7 +142,7 @@ func (r *TripsRepository) CreateTripAndSetInRoute(ctx context.Context, input tri
 	}
 
 	if _, err := qtx.UpdateOrderStatusByID(ctx, sqlc.UpdateOrderStatusByIDParams{
-		Status:  toNullOrdersStatus("InProgress"),
+		Status:  toNullOrdersStatus("Planned"),
 		OrderID: int32(input.OrderID),
 	}); err != nil {
 		return 0, err
@@ -307,6 +335,22 @@ SELECT EXISTS(
 	return exists, err
 }
 
+func plannedDistanceKmFromNullString(ns sql.NullString) *int32 {
+	if !ns.Valid {
+		return nil
+	}
+	s := strings.TrimSpace(ns.String)
+	if s == "" {
+		return nil
+	}
+	f, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return nil
+	}
+	v := int32(math.Round(f))
+	return &v
+}
+
 func toNullTripsStatus(status string) sqlc.NullTripsStatus {
 	if strings.TrimSpace(status) == "" {
 		return sqlc.NullTripsStatus{}
@@ -333,12 +377,7 @@ func mapTripRow(row sqlc.ListTripsRow) trips.Trip {
 		DriverName:    row.FirstName + " " + row.LastName,
 		Status:        string(row.Status.TripsStatus),
 	}
-	if row.PlannedDistanceKm.Valid {
-		if v, err := strconv.Atoi(row.PlannedDistanceKm.String); err == nil {
-			value := int32(v)
-			t.PlannedDistanceKm = &value
-		}
-	}
+	t.PlannedDistanceKm = plannedDistanceKmFromNullString(row.PlannedDistanceKm)
 	if row.StartTime.Valid {
 		v := row.StartTime.Time
 		t.StartTime = &v
@@ -366,12 +405,7 @@ func mapGetTripRow(row sqlc.GetTripByIDRow) trips.Trip {
 		DriverName:    row.FirstName + " " + row.LastName,
 		Status:        string(row.Status.TripsStatus),
 	}
-	if row.PlannedDistanceKm.Valid {
-		if v, err := strconv.Atoi(row.PlannedDistanceKm.String); err == nil {
-			value := int32(v)
-			t.PlannedDistanceKm = &value
-		}
-	}
+	t.PlannedDistanceKm = plannedDistanceKmFromNullString(row.PlannedDistanceKm)
 	if row.StartTime.Valid {
 		v := row.StartTime.Time
 		t.StartTime = &v
@@ -386,4 +420,3 @@ func mapGetTripRow(row sqlc.GetTripByIDRow) trips.Trip {
 	}
 	return t
 }
-

@@ -1,32 +1,32 @@
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import type { UseFormTrigger } from 'react-hook-form'
-import { STEP_FIELDS, type OrderPlanningStepId, type SubmissionState } from './orderPlanningFlow.helpers'
 import type { OrderPlanningFormValues } from '@/schemas/orderPlanning'
+import { STEP_FIELDS, type OrderPlanningStepId } from './orderPlanningFlowTypes'
+import type { FlowAction } from './orderPlanningFlowReducer'
 
 type Args = {
   steps: Array<{ id: OrderPlanningStepId }>
+  activeStepIndex: number
   criticalIssuesCount: number
   trigger: UseFormTrigger<OrderPlanningFormValues>
-  setSubmissionState: (state: SubmissionState) => void
+  dispatch: (action: FlowAction) => void
 }
 
 export function useOrderPlanningStepNavigation({
   steps,
+  activeStepIndex,
   criticalIssuesCount,
   trigger,
-  setSubmissionState,
+  dispatch,
 }: Args) {
-  const [activeStepIndex, setActiveStepIndex] = useState(0)
   const activeStep = steps[activeStepIndex] ?? steps[0]
 
   const goToStep = useCallback(
     (index: number) => {
-      if (index < 0 || index >= steps.length) {
-        return
-      }
-      setActiveStepIndex(index)
+      if (index < 0 || index >= steps.length) return
+      dispatch({ type: 'GO_TO_STEP', index })
     },
-    [steps.length],
+    [dispatch, steps.length],
   )
 
   const nextStep = useCallback(async () => {
@@ -40,25 +40,19 @@ export function useOrderPlanningStepNavigation({
     } else {
       valid = await trigger(STEP_FIELDS[current.id], { shouldFocus: true })
     }
+
     if (!valid) {
-      setSubmissionState('partial_validation')
+      dispatch({ type: 'STEP_VALIDATION_FAILED' })
       return false
     }
-    goToStep(activeStepIndex + 1)
+
+    dispatch({ type: 'GO_TO_STEP', index: activeStepIndex + 1 })
     return true
-  }, [activeStepIndex, criticalIssuesCount, goToStep, setSubmissionState, steps, trigger])
+  }, [activeStepIndex, criticalIssuesCount, dispatch, steps, trigger])
 
   const prevStep = useCallback(() => {
-    goToStep(activeStepIndex - 1)
-  }, [activeStepIndex, goToStep])
+    dispatch({ type: 'GO_TO_STEP', index: activeStepIndex - 1 })
+  }, [activeStepIndex, dispatch])
 
-  return {
-    activeStepIndex,
-    activeStep,
-    setActiveStepIndex,
-    goToStep,
-    nextStep,
-    prevStep,
-  }
+  return { activeStep, goToStep, nextStep, prevStep }
 }
-

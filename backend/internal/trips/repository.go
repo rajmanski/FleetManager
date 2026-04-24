@@ -7,6 +7,7 @@ import (
 
 type Repository interface {
 	ListTrips(ctx context.Context, query ListTripsQuery) ([]Trip, error)
+	ListTripsByOrderID(ctx context.Context, orderID int64) ([]Trip, error)
 	GetTripByID(ctx context.Context, tripID int64) (Trip, error)
 	CreateTripAndSetInRoute(ctx context.Context, input CreateTripRequest) (int64, error)
 	StartTripAndSetInRoute(ctx context.Context, tripID int64) error
@@ -19,4 +20,3 @@ type Repository interface {
 	DriverHasTripInRange(ctx context.Context, driverID int64, from, to time.Time) (bool, error)
 	VehicleHasTripInRange(ctx context.Context, vehicleID int64, from, to time.Time) (bool, error)
 }
-

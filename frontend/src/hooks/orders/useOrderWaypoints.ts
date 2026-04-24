@@ -5,11 +5,11 @@ export type WaypointOption = {
   id: number
   address: string
   actionType: string
+  sequenceOrder: number
   latitude?: number
   longitude?: number
 }
 
-/** Fetches waypoints for a route. Pass routeId from order.routeId (GET /orders/:id returns it). */
 export function useOrderWaypoints(routeId: number | null | undefined) {
   const effectiveRouteId = routeId ?? null
 
@@ -17,6 +17,7 @@ export function useOrderWaypoints(routeId: number | null | undefined) {
     waypoint_id: number
     address: string
     action_type: string
+    sequence_order: number
     latitude?: number
     longitude?: number
   }
@@ -29,13 +30,15 @@ export function useOrderWaypoints(routeId: number | null | undefined) {
         `/api/v1/routes/${effectiveRouteId}/waypoints`
       )
       const raw = Array.isArray(res.data) ? res.data : []
-      return raw.map((w) => ({
+      const mapped = raw.map((w) => ({
         id: w.waypoint_id,
         address: w.address,
         actionType: w.action_type,
+        sequenceOrder: w.sequence_order,
         latitude: w.latitude,
         longitude: w.longitude,
       }))
+      return mapped.sort((a, b) => a.sequenceOrder - b.sequenceOrder)
     },
     enabled: effectiveRouteId != null && effectiveRouteId > 0,
   })

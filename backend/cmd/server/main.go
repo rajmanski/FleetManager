@@ -350,6 +350,11 @@ func main() {
 		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
 		ordersHandler.GetOrder,
 	)
+	protected.GET(
+		"/orders/:id/trips",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
+		tripsHandler.ListTripsByOrder,
+	)
 	protected.POST(
 		"/orders",
 		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionWrite),

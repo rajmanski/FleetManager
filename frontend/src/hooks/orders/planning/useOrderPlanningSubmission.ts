@@ -12,13 +12,11 @@ import {
 import type { AddressState, WaypointState } from '@/types/routes'
 import type { OrderPlanningFormValues } from '@/schemas/orderPlanning'
 import {
-  EMPTY_SECTION_ERRORS,
   findFirstStepWithErrors,
   mapWorkflowErrorsToSections,
-  type OrderPlanningStepId,
-  type SectionErrors,
-  type SubmissionState,
-} from './orderPlanningFlow.helpers'
+} from './orderPlanningFlowErrors'
+import { EMPTY_SECTION_ERRORS, type OrderPlanningStepId } from './orderPlanningFlowTypes'
+import type { FlowAction } from './orderPlanningFlowReducer'
 import type { CalculateResult } from '@/services/routes'
 
 type Args = {
@@ -28,11 +26,7 @@ type Args = {
   result: CalculateResult | null
   steps: Array<{ id: OrderPlanningStepId }>
   setError: UseFormSetError<OrderPlanningFormValues>
-  setRouteFlowError: (message: string | null) => void
-  setBackendSectionErrors: (errors: SectionErrors) => void
-  setSubmissionState: (state: SubmissionState) => void
-  setLastErrorSource: (source: 'none' | 'backend' | 'local') => void
-  setActiveStepIndex: (index: number) => void
+  dispatch: (action: FlowAction) => void
 }
 
 export function useOrderPlanningSubmission({
@@ -42,11 +36,7 @@ export function useOrderPlanningSubmission({
   result,
   steps,
   setError,
-  setRouteFlowError,
-  setBackendSectionErrors,
-  setSubmissionState,
-  setLastErrorSource,
-  setActiveStepIndex,
+  dispatch,
 }: Args) {
   const navigate = useNavigate()
   const toast = useToast()
@@ -55,7 +45,7 @@ export function useOrderPlanningSubmission({
   const mutation = useMutation({
     mutationFn: planOrderWorkflow,
     onSuccess: (data) => {
-      setSubmissionState('idle')
+      dispatch({ type: 'SUBMIT_SUCCESS' })
       queryClient.invalidateQueries({ queryKey: ['orders'] })
       toast.success('Planned order created successfully.')
       navigate(`/orders/${data.order.id}`)
@@ -64,9 +54,7 @@ export function useOrderPlanningSubmission({
 
   const onValidSubmit = useCallback(
     async (values: OrderPlanningFormValues) => {
-      setRouteFlowError(null)
-      setBackendSectionErrors(EMPTY_SECTION_ERRORS)
-      setSubmissionState('loading')
+      dispatch({ type: 'SUBMIT_START' })
 
       const built = await buildPlanOrderWorkflowRequestDTO(
         values,
@@ -75,53 +63,26 @@ export function useOrderPlanningSubmission({
         waypoints,
         result,
       )
+
       if (!built.ok) {
-        setRouteFlowError(built.error.message)
-        setSubmissionState('partial_validation')
-        setActiveStepIndex(2)
-        setLastErrorSource('local')
+        dispatch({ type: 'BUILD_FAILED', routeError: built.error.message })
         return
       }
 
       mutation.mutate(built.payload, {
         onError: (err) => {
           const parsed = parseWorkflowValidationError(err)
-          if (parsed) {
-            const sectionErrors = mapWorkflowErrorsToSections(parsed, steps)
-            setBackendSectionErrors(sectionErrors)
-
-            const firstStepWithErrors = findFirstStepWithErrors(sectionErrors, steps)
-            if (firstStepWithErrors >= 0) {
-              setActiveStepIndex(firstStepWithErrors)
-            }
-          }
-
-          const message = applyWorkflowApiErrors(err, setError)
-          setRouteFlowError(message)
-          setLastErrorSource('backend')
-          setSubmissionState('retry')
+          const backendErrors = parsed
+            ? mapWorkflowErrorsToSections(parsed, steps)
+            : EMPTY_SECTION_ERRORS
+          const stepIndex = findFirstStepWithErrors(backendErrors, steps)
+          const routeError = applyWorkflowApiErrors(err, setError)
+          dispatch({ type: 'BACKEND_FAILED', backendErrors, routeError, stepIndex })
         },
       })
     },
-    [
-      destination,
-      mutation,
-      origin,
-      result,
-      setActiveStepIndex,
-      setBackendSectionErrors,
-      setError,
-      setLastErrorSource,
-      setRouteFlowError,
-      setSubmissionState,
-      steps,
-      waypoints,
-    ],
+    [destination, dispatch, mutation, origin, result, setError, steps, waypoints],
   )
 
-  return {
-    mutation,
-    onValidSubmit,
-  }
+  return { mutation, onValidSubmit }
 }
-

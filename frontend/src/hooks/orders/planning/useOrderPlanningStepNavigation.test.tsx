@@ -1,57 +1,85 @@
 import { act, renderHook } from '@testing-library/react'
 import { useOrderPlanningStepNavigation } from './useOrderPlanningStepNavigation'
+import type { FlowAction } from './orderPlanningFlowReducer'
+
+function makeDispatch() {
+  const dispatched: FlowAction[] = []
+  const dispatch = vi.fn((action: FlowAction) => dispatched.push(action))
+  return { dispatch, dispatched }
+}
 
 describe('useOrderPlanningStepNavigation', () => {
-  it('does not move to next step when route critical issues exist', async () => {
+  it('dispatches STEP_VALIDATION_FAILED and does not move when route has critical issues', async () => {
     const trigger = vi.fn(async () => true)
-    const setSubmissionState = vi.fn()
+    const { dispatch, dispatched } = makeDispatch()
+
     const { result } = renderHook(() =>
       useOrderPlanningStepNavigation({
         steps: [{ id: 'route' }, { id: 'resources' }],
+        activeStepIndex: 0,
         criticalIssuesCount: 1,
         trigger,
-        setSubmissionState,
+        dispatch,
       }),
     )
 
-    await act(async () => {
-      await result.current.nextStep()
-    })
+    await act(async () => { await result.current.nextStep() })
 
-    expect(result.current.activeStep.id).toBe('route')
-    expect(setSubmissionState).toHaveBeenCalledWith('partial_validation')
+    expect(dispatched).toContainEqual({ type: 'STEP_VALIDATION_FAILED' })
+    expect(dispatched).not.toContainEqual(expect.objectContaining({ type: 'GO_TO_STEP' }))
     expect(trigger).not.toHaveBeenCalled()
   })
 
-  it('validates fields and moves forward when current step is valid', async () => {
+  it('dispatches GO_TO_STEP when current step is valid', async () => {
     const trigger = vi.fn(async () => true)
-    const setSubmissionState = vi.fn()
+    const { dispatch, dispatched } = makeDispatch()
+
     const { result } = renderHook(() =>
       useOrderPlanningStepNavigation({
         steps: [{ id: 'client_order' }, { id: 'cargo' }],
+        activeStepIndex: 0,
         criticalIssuesCount: 0,
         trigger,
-        setSubmissionState,
+        dispatch,
       }),
     )
 
-    await act(async () => {
-      await result.current.nextStep()
-    })
+    await act(async () => { await result.current.nextStep() })
 
     expect(trigger).toHaveBeenCalled()
-    expect(result.current.activeStep.id).toBe('cargo')
+    expect(dispatched).toContainEqual({ type: 'GO_TO_STEP', index: 1 })
   })
 
-  it('ignores out-of-range goToStep indices', () => {
-    const trigger = vi.fn(async () => true)
-    const setSubmissionState = vi.fn()
+  it('dispatches STEP_VALIDATION_FAILED when form validation fails', async () => {
+    const trigger = vi.fn(async () => false)
+    const { dispatch, dispatched } = makeDispatch()
+
     const { result } = renderHook(() =>
       useOrderPlanningStepNavigation({
         steps: [{ id: 'client_order' }, { id: 'cargo' }],
+        activeStepIndex: 0,
         criticalIssuesCount: 0,
         trigger,
-        setSubmissionState,
+        dispatch,
+      }),
+    )
+
+    await act(async () => { await result.current.nextStep() })
+
+    expect(dispatched).toContainEqual({ type: 'STEP_VALIDATION_FAILED' })
+    expect(dispatched).not.toContainEqual(expect.objectContaining({ type: 'GO_TO_STEP' }))
+  })
+
+  it('ignores out-of-range goToStep indices', () => {
+    const { dispatch, dispatched } = makeDispatch()
+
+    const { result } = renderHook(() =>
+      useOrderPlanningStepNavigation({
+        steps: [{ id: 'client_order' }, { id: 'cargo' }],
+        activeStepIndex: 0,
+        criticalIssuesCount: 0,
+        trigger: vi.fn(async () => true),
+        dispatch,
       }),
     )
 
@@ -60,28 +88,46 @@ describe('useOrderPlanningStepNavigation', () => {
       result.current.goToStep(999)
     })
 
-    expect(result.current.activeStep.id).toBe('client_order')
+    expect(dispatched).toHaveLength(0)
   })
 
-  it('returns true on summary step and does not move further', async () => {
+  it('returns true on summary step without dispatching or calling trigger', async () => {
     const trigger = vi.fn(async () => true)
-    const setSubmissionState = vi.fn()
+    const { dispatch, dispatched } = makeDispatch()
+
     const { result } = renderHook(() =>
       useOrderPlanningStepNavigation({
         steps: [{ id: 'summary' }],
+        activeStepIndex: 0,
         criticalIssuesCount: 0,
         trigger,
-        setSubmissionState,
+        dispatch,
       }),
     )
 
     let nextResult = false
-    await act(async () => {
-      nextResult = await result.current.nextStep()
-    })
+    await act(async () => { nextResult = await result.current.nextStep() })
 
     expect(nextResult).toBe(true)
-    expect(result.current.activeStep.id).toBe('summary')
     expect(trigger).not.toHaveBeenCalled()
+    expect(dispatched).toHaveLength(0)
+  })
+
+  it('prevStep dispatches GO_TO_STEP with index - 1', () => {
+    const { dispatch, dispatched } = makeDispatch()
+
+    const { result } = renderHook(() =>
+      useOrderPlanningStepNavigation({
+        steps: [{ id: 'client_order' }, { id: 'cargo' }, { id: 'route' }],
+        activeStepIndex: 2,
+        criticalIssuesCount: 0,
+        trigger: vi.fn(async () => true),
+        dispatch,
+      }),
+    )
+
+    act(() => { result.current.prevStep() })
+
+    expect(dispatched).toContainEqual({ type: 'GO_TO_STEP', index: 1 })
   })
 })

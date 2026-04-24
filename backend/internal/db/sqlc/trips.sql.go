@@ -222,6 +222,87 @@ func (q *Queries) ListTrips(ctx context.Context, arg ListTripsParams) ([]ListTri
 	return items, nil
 }
 
+const listTripsByOrderID = `-- name: ListTripsByOrderID :many
+SELECT
+  t.trip_id,
+  t.order_id,
+  o.order_number,
+  c.company_name AS client_company,
+  t.vehicle_id,
+  v.vin AS vehicle_vin,
+  t.driver_id,
+  d.first_name,
+  d.last_name,
+  r.planned_distance_km,
+  t.start_time,
+  t.end_time,
+  t.actual_distance_km,
+  t.status
+FROM Trips t
+JOIN Orders o ON o.order_id = t.order_id
+JOIN Clients c ON c.client_id = o.client_id
+JOIN Vehicles v ON v.vehicle_id = t.vehicle_id
+JOIN Drivers d ON d.driver_id = t.driver_id
+LEFT JOIN Routes r ON r.order_id = o.order_id
+WHERE t.order_id = ?
+ORDER BY t.trip_id DESC
+`
+
+type ListTripsByOrderIDRow struct {
+	TripID            int32           `json:"trip_id"`
+	OrderID           int32           `json:"order_id"`
+	OrderNumber       string          `json:"order_number"`
+	ClientCompany     string          `json:"client_company"`
+	VehicleID         int32           `json:"vehicle_id"`
+	VehicleVin        string          `json:"vehicle_vin"`
+	DriverID          int32           `json:"driver_id"`
+	FirstName         string          `json:"first_name"`
+	LastName          string          `json:"last_name"`
+	PlannedDistanceKm sql.NullString  `json:"planned_distance_km"`
+	StartTime         sql.NullTime    `json:"start_time"`
+	EndTime           sql.NullTime    `json:"end_time"`
+	ActualDistanceKm  sql.NullInt32   `json:"actual_distance_km"`
+	Status            NullTripsStatus `json:"status"`
+}
+
+func (q *Queries) ListTripsByOrderID(ctx context.Context, orderID int32) ([]ListTripsByOrderIDRow, error) {
+	rows, err := q.db.QueryContext(ctx, listTripsByOrderID, orderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListTripsByOrderIDRow
+	for rows.Next() {
+		var i ListTripsByOrderIDRow
+		if err := rows.Scan(
+			&i.TripID,
+			&i.OrderID,
+			&i.OrderNumber,
+			&i.ClientCompany,
+			&i.VehicleID,
+			&i.VehicleVin,
+			&i.DriverID,
+			&i.FirstName,
+			&i.LastName,
+			&i.PlannedDistanceKm,
+			&i.StartTime,
+			&i.EndTime,
+			&i.ActualDistanceKm,
+			&i.Status,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateDriverStatusByID = `-- name: UpdateDriverStatusByID :execrows
 UPDATE Drivers
 SET status = ?, updated_at = NOW()

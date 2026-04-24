@@ -84,8 +84,8 @@ const forgetDriverByID = `-- name: ForgetDriverByID :execrows
 UPDATE Drivers
 SET
   user_id = NULL,
-  first_name = 'Anonimowy',
-  last_name = 'Anonimowy',
+  first_name = 'Anonymous',
+  last_name = 'Anonymous',
   pesel = NULL,
   phone = NULL,
   email = NULL,

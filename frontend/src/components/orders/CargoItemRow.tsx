@@ -38,8 +38,8 @@ export function CargoItemRow({
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
-      <div className="flex flex-wrap items-start gap-2">
-        <div className="shrink-0">
+      <div className="flex flex-col gap-2 md:flex-row md:flex-nowrap md:items-start md:gap-2">
+        <div className="min-w-0 w-full max-w-full md:max-w-[7ch] md:shrink-0">
           <Input
             label="Qty"
             type="number"
@@ -52,7 +52,7 @@ export function CargoItemRow({
             placeholder="1"
           />
         </div>
-        <div className="shrink-0">
+        <div className="min-w-0 w-full max-w-full md:max-w-[14ch] md:shrink-0">
           <Input
             label="Vol. (m³)"
             type="number"
@@ -66,7 +66,7 @@ export function CargoItemRow({
             placeholder="0"
           />
         </div>
-        <div className="shrink-0">
+        <div className="min-w-0 w-full max-w-full md:max-w-[14ch] md:shrink-0">
           <Input
             label="Weight (kg)"
             type="number"
@@ -80,7 +80,7 @@ export function CargoItemRow({
             placeholder="0"
           />
         </div>
-        <div className="shrink-0">
+        <div className="min-w-0 w-full max-w-full md:max-w-[8.5rem] md:shrink-0">
           <Select
             label="Type"
             required
@@ -88,10 +88,10 @@ export function CargoItemRow({
             options={CARGO_TYPES}
             value={item.cargoType}
             onChange={(e) => onUpdate({ cargoType: e.target.value as CargoType })}
-            className="min-w-[6rem]"
+            className="w-full min-w-0"
           />
         </div>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 w-full flex-1 md:min-w-[12rem]">
           <Input
             label="Description"
             variant="compact"

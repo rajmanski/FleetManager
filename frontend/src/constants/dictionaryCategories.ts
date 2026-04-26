@@ -1,4 +1,3 @@
-/** Kategorie słowników (TASKS E16.1 — założenia). */
 export const DICTIONARY_CATEGORIES = [
   { id: 'cargo_types', label: 'Cargo types' },
   { id: 'vehicle_statuses', label: 'Vehicle statuses' },

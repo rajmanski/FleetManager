@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useState } from 'react'
+import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { NotificationsFiltersBar } from '@/components/notifications/NotificationsFiltersBar'
 import { NotificationsTable } from '@/components/notifications/NotificationsTable'
+import { usePagination } from '@/hooks/usePagination'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
 import { PageHeader } from '@/components/ui/PageHeader'
@@ -9,6 +11,8 @@ import { useNotifications } from '@/hooks/notifications/useNotifications'
 
 function NotificationsPage() {
   const [typeFilter, setTypeFilter] = useState('')
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE)
   const { listQuery, markReadMutation } = useNotifications()
 
   const markCallbacks = useMutationCallbacks({
@@ -16,14 +20,21 @@ function NotificationsPage() {
     errorFallback: 'Failed to mark notification as read',
   })
 
-  const rows = useMemo(() => {
+  const filteredRows = useMemo(() => {
     const data = listQuery.data ?? []
     if (!typeFilter) return data
     return data.filter((n) => n.type === typeFilter)
   }, [listQuery.data, typeFilter])
+  const total = filteredRows.length
+  const pagination = usePagination({ page, setPage, limit, setLimit, total })
+  const rows = useMemo(() => {
+    const start = (page - 1) * limit
+    const end = start + limit
+    return filteredRows.slice(start, end)
+  }, [filteredRows, page, limit])
 
   const markingId =
-    markReadMutation.isPending && typeof markReadMutation.variables === 'number'
+    markReadMutation.isPending && true
       ? markReadMutation.variables
       : null
 
@@ -36,6 +47,13 @@ function NotificationsPage() {
     },
     [markReadMutation, markCallbacks.onSuccess, markCallbacks.onError],
   )
+  const handleTypeFilterChange = useCallback(
+    (value: string) => {
+      setTypeFilter(value)
+      pagination.resetPage()
+    },
+    [pagination],
+  )
 
   return (
     <div className="space-y-6">
@@ -44,7 +62,7 @@ function NotificationsPage() {
         description="In-app alerts for your account (inspections, insurance, certificates, fuel)"
       />
 
-      <NotificationsFiltersBar typeFilter={typeFilter} onTypeFilterChange={setTypeFilter} />
+      <NotificationsFiltersBar typeFilter={typeFilter} onTypeFilterChange={handleTypeFilterChange} />
 
       {listQuery.isLoading && <LoadingMessage />}
       {listQuery.isError && <ErrorMessage message="Failed to load notifications." />}
@@ -60,7 +78,14 @@ function NotificationsPage() {
         )}
 
       {listQuery.isSuccess && rows.length > 0 && (
-        <NotificationsTable rows={rows} markingId={markingId} onMarkRead={handleMarkRead} />
+        <NotificationsTable
+          rows={rows}
+          page={page}
+          total={total}
+          pagination={pagination}
+          markingId={markingId}
+          onMarkRead={handleMarkRead}
+        />
       )}
     </div>
   )

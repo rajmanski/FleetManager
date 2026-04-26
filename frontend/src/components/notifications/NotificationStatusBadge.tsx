@@ -17,8 +17,8 @@ export function NotificationStatusBadge({ unread, variant }: NotificationStatusB
   }
 
   return unread ? (
-    <span className="text-xs font-medium text-blue-700">Unread</span>
+    <span className="text-xs font-medium text-red-700">Unread</span>
   ) : (
-    <span className="text-xs text-gray-500">Read</span>
+    <span className="text-xs font-medium text-emerald-700">Read</span>
   )
 }

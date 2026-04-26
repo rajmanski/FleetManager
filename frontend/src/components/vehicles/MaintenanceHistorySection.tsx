@@ -35,7 +35,7 @@ export function MaintenanceHistorySection({ vehicleId }: MaintenanceHistorySecti
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-5">
-      <h3 className="mb-3 text-base font-semibold text-gray-800">Historia napraw</h3>
+      <h3 className="mb-3 text-base font-semibold text-gray-800">Fixing history</h3>
 
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <FilterSelect

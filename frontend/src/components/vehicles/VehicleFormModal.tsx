@@ -3,8 +3,10 @@ import { useForm } from 'react-hook-form'
 import { Input } from '@/components/ui/Input'
 import { Modal } from '@/components/ui/Modal'
 import { ModalFooter } from '@/components/ui/ModalFooter'
+import { Select } from '@/components/ui/Select'
 import type { VehicleMutationPayload } from '@/hooks/vehicles/useVehicles'
 import { VEHICLE_STATUSES } from '@/constants/vehicleStatuses'
+import { getVehicleStatusMeta } from '@/utils/vehicleStatus'
 import { isValidVin } from '@/utils/vin'
 
 export type VehicleFormModalProps = {
@@ -79,14 +81,23 @@ export function VehicleFormModal({
     }
     onSubmit(payload)
   }
+  const statusMeta = getVehicleStatusMeta(selectedStatus)
+  const statusOptions = VEHICLE_STATUSES.map((status) => ({
+    value: status,
+    label: getVehicleStatusMeta(status).label,
+  }))
 
   return (
-    <Modal title={title} error={errorMessage}>
-      <form className="mt-4 space-y-3" onSubmit={handleSubmit(onFormSubmit)}>
+    <Modal title={title} error={errorMessage} onClose={onClose}>
+      <form
+        className="scrollbar-styled mt-4 max-h-[75vh] space-y-3 overflow-y-auto pr-1"
+        onSubmit={handleSubmit(onFormSubmit)}
+      >
         <Input
           label="VIN"
           error={errors.vin?.message}
           required
+          autoFocus
           {...register('vin', {
             validate: (value) =>
               isValidVin(value.trim().toUpperCase()) || 'Invalid VIN format.',
@@ -121,19 +132,21 @@ export function VehicleFormModal({
               'Production year must be between 1900 and 2100.',
           })}
         />
-        <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">
-            Status
-          </label>
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-slate-500 focus:outline-none focus:ring-1 focus:ring-slate-500"
-          >
-            {VEHICLE_STATUSES.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
+        <Select
+          label="Status"
+          value={selectedStatus}
+          options={statusOptions}
+          onChange={(event) => setSelectedStatus(event.target.value)}
+        />
+        <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Selected status</p>
+          <div className="mt-1 flex items-center gap-2">
+            <span className={statusMeta.colorClass}>
+              <statusMeta.Icon className="size-4 shrink-0" aria-hidden="true" />
+            </span>
+            <p className="text-sm font-medium text-gray-900">{statusMeta.label}</p>
+          </div>
+          <p className="mt-1 text-xs text-gray-600">{statusMeta.description}</p>
         </div>
         <Input
           label="Capacity (kg)"
@@ -166,3 +179,4 @@ export function VehicleFormModal({
     </Modal>
   )
 }
+

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Gauge, Hash, Truck } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { DetailItem } from '@/components/ui/DetailItem'
@@ -16,6 +17,7 @@ import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { vehicleToFormInitialData } from '@/utils/vehicle'
 import { extractApiError } from '@/utils/api'
 import { formatDateTime } from '@/utils/date'
+import { formatVehicleStatusLabel, getVehicleStatusMeta } from '@/utils/vehicleStatus'
 
 function VehicleDetailsPage() {
   const { id } = useParams()
@@ -56,11 +58,12 @@ function VehicleDetailsPage() {
 
   const vehicle = vehicleQuery.data
   const isDeleted = Boolean(vehicle.deleted_at)
+  const statusMeta = getVehicleStatusMeta(vehicle.status)
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Vehicle details"
+        title={`Vehicle ${vehicle.vin}`}
         description="Full vehicle data and availability information"
         action={
           <Link
@@ -72,10 +75,35 @@ function VehicleDetailsPage() {
         }
       />
 
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <InfoCard
+          label="Status"
+          value={formatVehicleStatusLabel(vehicle.status)}
+          icon={<statusMeta.Icon className={`size-4 ${statusMeta.colorClass}`} aria-hidden="true" />}
+          hint={statusMeta.description}
+        />
+        <InfoCard
+          label="Mileage"
+          value={`${vehicle.current_mileage_km ?? 0} km`}
+          icon={<Gauge className="size-4 text-slate-700" aria-hidden="true" />}
+          hint="Latest odometer snapshot."
+        />
+        <InfoCard
+          label="Plate number"
+          value={vehicle.plate_number ?? '-'}
+          icon={<Hash className="size-4 text-slate-700" aria-hidden="true" />}
+          hint="Registration identifier."
+        />
+      </div>
+
       <div className="rounded-lg border border-gray-200 bg-white p-5">
+        <div className="mb-4 flex items-center gap-2">
+          <Truck className="size-4 text-slate-700" aria-hidden="true" />
+          <h3 className="text-base font-semibold text-gray-800">Technical details</h3>
+        </div>
         <dl className="grid gap-4 sm:grid-cols-2">
           <DetailItem label="VIN" value={vehicle.vin} />
-          <DetailItem label="Status" value={vehicle.status} />
+          <DetailItem label="Status" value={formatVehicleStatusLabel(vehicle.status)} />
           <DetailItem label="Brand" value={vehicle.brand ?? '-'} />
           <DetailItem label="Model" value={vehicle.model ?? '-'} />
           <DetailItem label="Production year" value={vehicle.production_year ? String(vehicle.production_year) : '-'} />
@@ -147,6 +175,26 @@ function VehicleDetailsPage() {
         recordId={vehicle.id}
         onClose={() => setHistoryOpen(false)}
       />
+    </div>
+  )
+}
+
+type InfoCardProps = {
+  label: string
+  value: string
+  icon: React.ReactNode
+  hint: string
+}
+
+function InfoCard({ label, value, icon, hint }: InfoCardProps) {
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-4">
+      <div className="flex items-center gap-2 text-sm text-gray-600">
+        {icon}
+        <span>{label}</span>
+      </div>
+      <p className="mt-2 text-lg font-semibold text-gray-900">{value}</p>
+      <p className="mt-1 text-xs text-gray-500">{hint}</p>
     </div>
   )
 }

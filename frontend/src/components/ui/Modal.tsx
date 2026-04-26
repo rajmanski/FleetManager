@@ -1,11 +1,29 @@
+import { useEffect } from 'react'
+
 type ModalProps = {
   title: string
   children: React.ReactNode
   contentClassName?: string
   error?: string | null
+  onClose?: () => void
 }
 
-export function Modal({ title, children, contentClassName, error }: ModalProps) {
+export function Modal({ title, children, contentClassName, error, onClose }: ModalProps) {
+  useEffect(() => {
+    if (!onClose) {
+      return
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
   return (
     <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/50 p-4">
       <div

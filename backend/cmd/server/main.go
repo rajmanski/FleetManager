@@ -87,7 +87,7 @@ func main() {
 	ordersService := orders.NewService(ordersRepository)
 	ordersHandler := orders.NewHandler(ordersService)
 	maintenanceRepository := repository.NewMaintenanceRepository(queries)
-	maintenanceService := maintenance.NewService(maintenanceRepository)
+	maintenanceService := maintenance.NewService(maintenanceRepository, queries)
 	maintenanceHandler := maintenance.NewHandler(maintenanceService)
 	insuranceRepository := repository.NewInsuranceRepository(queries)
 	insuranceService := insurance.NewService(insuranceRepository)

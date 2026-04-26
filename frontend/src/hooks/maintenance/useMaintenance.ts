@@ -1,5 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/services/api'
+import { MAINTENANCE_STATUSES } from '@/constants/maintenanceStatuses'
+
+export type MaintenanceStatus = (typeof MAINTENANCE_STATUSES)[number]
 
 export type Maintenance = {
   id: number
@@ -72,6 +75,22 @@ export function useMaintenanceList({
     },
   })
 
-  return { maintenanceQuery, createMaintenanceMutation }
+  const updateMaintenanceStatusMutation = useMutation({
+    mutationFn: async ({
+      id,
+      status,
+    }: {
+      id: number
+      status: MaintenanceStatus
+    }) => {
+      const res = await api.patch<Maintenance>(`/api/v1/maintenance/${id}/status`, { status })
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['maintenance'] })
+    },
+  })
+
+  return { maintenanceQuery, createMaintenanceMutation, updateMaintenanceStatusMutation }
 }
 

@@ -7,6 +7,7 @@ import { MaintenanceFiltersBar } from '@/components/maintenance/MaintenanceFilte
 import { MaintenanceTable } from '@/components/maintenance/MaintenanceTable'
 import { MaintenanceFormModal } from '@/components/maintenance/MaintenanceFormModal'
 import { useMaintenanceList } from '@/hooks/maintenance/useMaintenance'
+import type { MaintenanceStatus } from '@/hooks/maintenance/useMaintenance'
 import { useVehicles } from '@/hooks/vehicles/useVehicles'
 import { usePagination } from '@/hooks/usePagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
@@ -20,8 +21,13 @@ function MaintenancePage() {
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [updatingId, setUpdatingId] = useState<number | null>(null)
 
-  const { maintenanceQuery, createMaintenanceMutation } = useMaintenanceList({
+  const {
+    maintenanceQuery,
+    createMaintenanceMutation,
+    updateMaintenanceStatusMutation,
+  } = useMaintenanceList({
     page,
     limit,
     vehicleId: vehicleFilter,
@@ -60,7 +66,7 @@ function MaintenancePage() {
     return map
   }, [vehicleOptions])
 
-  const handleStatusChange = useCallback(
+  const handleFilterStatusChange = useCallback(
     (value: string) => {
       setStatusFilter(value)
       pagination.resetPage()
@@ -97,6 +103,19 @@ function MaintenancePage() {
     )
   }
 
+  const handleTableStatusChange = useCallback(
+    (id: number, status: MaintenanceStatus) => {
+      setUpdatingId(id)
+      updateMaintenanceStatusMutation.mutate(
+        { id, status },
+        {
+          onSettled: () => setUpdatingId(null),
+        },
+      )
+    },
+    [updateMaintenanceStatusMutation],
+  )
+
   const createError = extractApiError(createMaintenanceMutation.error)
 
   return (
@@ -113,7 +132,7 @@ function MaintenancePage() {
 
       <MaintenanceFiltersBar
         statusFilter={statusFilter}
-        onStatusFilterChange={handleStatusChange}
+        onStatusFilterChange={handleFilterStatusChange}
         vehicleFilter={vehicleFilter}
         onVehicleFilterChange={handleVehicleChange}
         vehicleOptions={vehicleOptions}
@@ -133,6 +152,8 @@ function MaintenancePage() {
           total={total}
           pagination={pagination}
           vehicleLabelsById={vehicleLabelsById}
+          updatingId={updatingId}
+          onStatusChange={handleTableStatusChange}
         />
       )}
 

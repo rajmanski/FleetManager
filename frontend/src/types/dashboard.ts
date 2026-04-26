@@ -1,4 +1,4 @@
-export type DashboardAlertType = 'insurance_expiry' | 'inspection_due' | 'certificate_expiry'
+export type DashboardAlertType = 'insurance_expiry' | 'inspection_due' | 'license_expiry' | 'adr_expiry'
 
 export type DashboardAlert = {
   type: DashboardAlertType

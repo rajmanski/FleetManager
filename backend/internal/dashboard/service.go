@@ -41,15 +41,21 @@ func (s *Service) GetKPI(ctx context.Context) (KPIResponse, error) {
 		return KPIResponse{}, err
 	}
 
-	certificateAlerts, err := s.repo.ListExpiringCertificateAlerts(ctx)
+	licenseAlerts, err := s.repo.ListExpiringLicenseAlerts(ctx)
 	if err != nil {
 		return KPIResponse{}, err
 	}
 
-	alerts := make([]Alert, 0, len(insuranceAlerts)+len(inspectionAlerts)+len(certificateAlerts))
+	adrAlerts, err := s.repo.ListExpiringAdrAlerts(ctx)
+	if err != nil {
+		return KPIResponse{}, err
+	}
+
+	alerts := make([]Alert, 0, len(insuranceAlerts)+len(inspectionAlerts)+len(licenseAlerts)+len(adrAlerts))
 	alerts = append(alerts, insuranceAlerts...)
 	alerts = append(alerts, inspectionAlerts...)
-	alerts = append(alerts, certificateAlerts...)
+	alerts = append(alerts, licenseAlerts...)
+	alerts = append(alerts, adrAlerts...)
 
 	return KPIResponse{
 		ActiveOrders:        activeOrders,

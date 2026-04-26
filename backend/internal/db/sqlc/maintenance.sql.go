@@ -239,6 +239,7 @@ const updateMaintenanceStatus = `-- name: UpdateMaintenanceStatus :execrows
 UPDATE Maintenance
 SET
   status = ?,
+  end_date = CASE WHEN ? = 'Completed' THEN NOW() ELSE end_date END,
   updated_at = NOW()
 WHERE maintenance_id = ?
 `
@@ -249,7 +250,7 @@ type UpdateMaintenanceStatusParams struct {
 }
 
 func (q *Queries) UpdateMaintenanceStatus(ctx context.Context, arg UpdateMaintenanceStatusParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, updateMaintenanceStatus, arg.Status, arg.MaintenanceID)
+	result, err := q.db.ExecContext(ctx, updateMaintenanceStatus, arg.Status, arg.Status, arg.MaintenanceID)
 	if err != nil {
 		return 0, err
 	}

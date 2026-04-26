@@ -69,8 +69,23 @@ func (r *DashboardRepository) ListUpcomingInspectionAlerts(ctx context.Context) 
 	return out, nil
 }
 
-func (r *DashboardRepository) ListExpiringCertificateAlerts(ctx context.Context) ([]dashboard.Alert, error) {
-	rows, err := r.queries.ListExpiringCertificateAlerts(ctx)
+func (r *DashboardRepository) ListExpiringLicenseAlerts(ctx context.Context) ([]dashboard.Alert, error) {
+	rows, err := r.queries.ListExpiringLicenseAlerts(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]dashboard.Alert, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, dashboard.Alert{
+			Type:    row.Type,
+			Message: row.Message,
+		})
+	}
+	return out, nil
+}
+
+func (r *DashboardRepository) ListExpiringAdrAlerts(ctx context.Context) ([]dashboard.Alert, error) {
+	rows, err := r.queries.ListExpiringAdrAlerts(ctx)
 	if err != nil {
 		return nil, err
 	}

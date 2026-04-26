@@ -9,5 +9,6 @@ type Repository interface {
 	GetCurrentMonthRevenue(ctx context.Context) (float64, error)
 	ListExpiringInsuranceAlerts(ctx context.Context) ([]Alert, error)
 	ListUpcomingInspectionAlerts(ctx context.Context) ([]Alert, error)
-	ListExpiringCertificateAlerts(ctx context.Context) ([]Alert, error)
+	ListExpiringLicenseAlerts(ctx context.Context) ([]Alert, error)
+	ListExpiringAdrAlerts(ctx context.Context) ([]Alert, error)
 }

@@ -37,7 +37,7 @@ WHERE DATE_FORMAT(o.creation_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m');
 -- name: ListExpiringInsuranceAlerts :many
 SELECT
   'insurance_expiry' AS type,
-  CONCAT('Polisa pojazdu ', v.vin, ' wygasa ', DATE_FORMAT(ip.end_date, '%Y-%m-%d')) AS message
+  CONCAT('Insurance policy for vehicle ', v.vin, ' expires on ', DATE_FORMAT(ip.end_date, '%Y-%m-%d')) AS message
 FROM insurance_policies ip
 JOIN Vehicles v ON v.vehicle_id = ip.vehicle_id
 WHERE ip.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
@@ -48,7 +48,7 @@ LIMIT 50;
 -- name: ListUpcomingInspectionAlerts :many
 SELECT
   'inspection_due' AS type,
-  CONCAT('Przeglad pojazdu ', v.vin, ' zaplanowany na ', DATE_FORMAT(v.next_inspection_date, '%Y-%m-%d')) AS message
+  CONCAT('Vehicle inspection for ', v.vin, ' scheduled on ', DATE_FORMAT(v.next_inspection_date, '%Y-%m-%d')) AS message
 FROM Vehicles v
 WHERE v.next_inspection_date IS NOT NULL
   AND v.next_inspection_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
@@ -56,23 +56,25 @@ WHERE v.next_inspection_date IS NOT NULL
 ORDER BY v.next_inspection_date ASC
 LIMIT 50;
 
--- name: ListExpiringCertificateAlerts :many
+-- name: ListExpiringLicenseAlerts :many
 SELECT
-  'certificate_expiry' AS type,
-  CONCAT('Certyfikat kierowcy ', d.first_name, ' ', d.last_name, ' wygasa ', DATE_FORMAT(d.expiry_date, '%Y-%m-%d')) AS message
-FROM (
-  SELECT driver_id, first_name, last_name, license_expiry_date AS expiry_date
-  FROM Drivers
-  WHERE deleted_at IS NULL
-    AND license_expiry_date IS NOT NULL
-    AND license_expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
-  UNION ALL
-  SELECT driver_id, first_name, last_name, adr_expiry_date AS expiry_date
-  FROM Drivers
-  WHERE deleted_at IS NULL
-    AND adr_certified = 1
-    AND adr_expiry_date IS NOT NULL
-    AND adr_expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
-) d
-ORDER BY d.expiry_date ASC
+  'license_expiry' AS type,
+  CONCAT('Driver license for ', d.first_name, ' ', d.last_name, ' expires on ', DATE_FORMAT(d.license_expiry_date, '%Y-%m-%d')) AS message
+FROM Drivers d
+WHERE d.deleted_at IS NULL
+  AND d.license_expiry_date IS NOT NULL
+  AND d.license_expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+ORDER BY d.license_expiry_date ASC
+LIMIT 50;
+
+-- name: ListExpiringAdrAlerts :many
+SELECT
+  'adr_expiry' AS type,
+  CONCAT('ADR certificate for ', d.first_name, ' ', d.last_name, ' expires on ', DATE_FORMAT(d.adr_expiry_date, '%Y-%m-%d')) AS message
+FROM Drivers d
+WHERE d.deleted_at IS NULL
+  AND d.adr_certified = 1
+  AND d.adr_expiry_date IS NOT NULL
+  AND d.adr_expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+ORDER BY d.adr_expiry_date ASC
 LIMIT 50;

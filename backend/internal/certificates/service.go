@@ -45,7 +45,7 @@ func (s *Service) CheckExpiringCertificates(ctx context.Context) ([]ExpiringAler
 
 		if row.LicenseExpiryDate.Valid {
 			expiry := row.LicenseExpiryDate.Time.Format("2006-01-02")
-			msg := fmt.Sprintf("Prawo jazdy kierowcy (ID %d) wygasa %s", row.DriverID, expiry)
+			msg := fmt.Sprintf("Driver license for driver (ID %d) expires on %s", row.DriverID, expiry)
 			id, err := s.queries.CreateAlert(ctx, sqlc.CreateAlertParams{
 				VehicleID: vehicleIDNull,
 				AlertType: "driver_license_expiry",
@@ -59,7 +59,7 @@ func (s *Service) CheckExpiringCertificates(ctx context.Context) ([]ExpiringAler
 
 		if row.AdrCertified && row.AdrExpiryDate.Valid {
 			expiry := row.AdrExpiryDate.Time.Format("2006-01-02")
-			msg := fmt.Sprintf("Certyfikat ADR kierowcy (ID %d) wygasa %s", row.DriverID, expiry)
+			msg := fmt.Sprintf("ADR certificate for driver (ID %d) expires on %s", row.DriverID, expiry)
 			id, err := s.queries.CreateAlert(ctx, sqlc.CreateAlertParams{
 				VehicleID: vehicleIDNull,
 				AlertType: "driver_adr_expiry",

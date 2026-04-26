@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { VehicleFormModal } from '@/components/vehicles/VehicleFormModal'
 import { VehiclesFiltersBar } from '@/components/vehicles/VehiclesFiltersBar'
 import { VehiclesTable } from '@/components/vehicles/VehiclesTable'
-import { useVehicles, type Vehicle } from '@/hooks/vehicles/useVehicles'
+import { useVehicles, type Vehicle, type VehicleMutationPayload } from '@/hooks/vehicles/useVehicles'
 import { useAuth } from '@/hooks/useAuth'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { usePagination } from '@/hooks/usePagination'
@@ -134,10 +134,7 @@ function VehiclesPage() {
             updateMutation.mutate(
               {
                 id: editVehicle.id,
-                payload: {
-                  ...payload,
-                  status: editVehicle.status,
-                },
+                payload: payload as VehicleMutationPayload & { status: string },
               },
               updateCallbacks
             )

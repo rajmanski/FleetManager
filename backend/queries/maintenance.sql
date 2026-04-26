@@ -73,5 +73,6 @@ WHERE maintenance_id = ?;
 UPDATE Maintenance
 SET
   status = ?,
+  end_date = CASE WHEN ? = 'Completed' THEN NOW() ELSE end_date END,
   updated_at = NOW()
 WHERE maintenance_id = ?;

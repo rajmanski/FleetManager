@@ -64,9 +64,9 @@ func (s *Service) CreateFuelLog(ctx context.Context, req CreateFuelRequest) (Cre
 			roundedDeviation := math.Round(deviationPercent)
 			var msg string
 			if currentConsumption >= *avgNorm {
-				msg = fmt.Sprintf("Zużycie o %.0f%% wyższe niż norma", roundedDeviation)
+				msg = fmt.Sprintf("Consumption %.0f%% higher than average", roundedDeviation)
 			} else {
-				msg = fmt.Sprintf("Zużycie o %.0f%% niższe niż norma", roundedDeviation)
+				msg = fmt.Sprintf("Consumption %.0f%% lower than average", roundedDeviation)
 			}
 
 			alert = &FuelAlert{

@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
@@ -14,9 +14,10 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
 function OrdersPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { role } = useAuth()
   const canManageOrders = role === 'Administrator' || role === 'Spedytor'
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(searchParams.get('q') ?? '')
   const [status, setStatus] = useState('')
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE)

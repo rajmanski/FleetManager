@@ -1,3 +1,5 @@
+import { CalendarClock, UserCheck, Truck, Users, CircleCheckBig, Ban } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import type { Assignment } from '@/hooks/assignments/useAssignments'
 import type { PaginationHelpers } from '@/hooks/usePagination'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
@@ -34,15 +36,34 @@ export function AssignmentsTable({
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-4 py-3 font-medium text-gray-700">
-                  Assignment ID
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">Vehicle</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Driver</th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  Assigned from
+                  <span className="inline-flex items-center gap-1.5">
+                    <Users className="size-4 text-slate-600" aria-hidden="true" />
+                    Assignment ID
+                  </span>
                 </th>
                 <th className="px-4 py-3 font-medium text-gray-700">
-                  Assigned to
+                  <span className="inline-flex items-center gap-1.5">
+                    <Truck className="size-4 text-slate-600" aria-hidden="true" />
+                    Vehicle
+                  </span>
+                </th>
+                <th className="px-4 py-3 font-medium text-gray-700">
+                  <span className="inline-flex items-center gap-1.5">
+                    <UserCheck className="size-4 text-slate-600" aria-hidden="true" />
+                    Driver
+                  </span>
+                </th>
+                <th className="px-4 py-3 font-medium text-gray-700">
+                  <span className="inline-flex items-center gap-1.5">
+                    <CalendarClock className="size-4 text-slate-600" aria-hidden="true" />
+                    Assigned from
+                  </span>
+                </th>
+                <th className="px-4 py-3 font-medium text-gray-700">
+                  <span className="inline-flex items-center gap-1.5">
+                    <CalendarClock className="size-4 text-slate-600" aria-hidden="true" />
+                    Assigned to
+                  </span>
                 </th>
                 {showActions && (
                   <th className="px-4 py-3 font-medium text-gray-700">Actions</th>
@@ -50,46 +71,78 @@ export function AssignmentsTable({
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
-              {assignments.map((a) => (
-                <tr key={a.assignment_id}>
-                  <td className="px-4 py-3">{a.assignment_id}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col">
-                      <span className="font-mono text-xs text-gray-800">
-                        {a.vehicle_vin}
-                      </span>
-                      {(a.vehicle_brand || a.vehicle_model) && (
-                        <span className="text-xs text-gray-500">
-                          {[a.vehicle_brand, a.vehicle_model]
-                            .filter(Boolean)
-                            .join(' ')}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">{a.driver_name ?? a.driver_id}</td>
-                  <td className="px-4 py-3">
-                    {formatDateTime(a.assigned_from)}
-                  </td>
-                  <td className="px-4 py-3">
-                    {a.assigned_to ? formatDateTime(a.assigned_to) : 'Active'}
-                  </td>
-                  {showActions && (
+              {assignments.map((a) => {
+                const isActive = !a.assigned_to
+                return (
+                  <tr
+                    key={a.assignment_id}
+                    className="transition-colors hover:bg-gray-50 focus-within:bg-gray-50"
+                  >
                     <td className="px-4 py-3">
-                      {onEndAssignment && !a.assigned_to && (
-                        <Button
-                          variant="secondary"
-                          className="px-3 py-1 text-xs"
-                          onClick={() => onEndAssignment(a.assignment_id)}
-                          disabled={isEnding}
-                        >
-                          {isEnding ? 'Ending...' : 'End assignment'}
-                        </Button>
-                      )}
+                      <span className="inline-flex items-center gap-2">
+                        {isActive ? (
+                          <CircleCheckBig className="size-4 shrink-0 text-green-600" aria-hidden="true" />
+                        ) : (
+                          <Ban className="size-4 shrink-0 text-gray-400" aria-hidden="true" />
+                        )}
+                        <span>{a.assignment_id}</span>
+                      </span>
                     </td>
-                  )}
-                </tr>
-              ))}
+                    <td className="px-4 py-3">
+                      <Link
+                        to={`/vehicles/${a.vehicle_id}`}
+                        className="underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 rounded"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-mono text-xs text-slate-700">
+                            {a.vehicle_vin}
+                          </span>
+                          {(a.vehicle_brand || a.vehicle_model) && (
+                            <span className="text-xs text-gray-500">
+                              {[a.vehicle_brand, a.vehicle_model]
+                                .filter(Boolean)
+                                .join(' ')}
+                            </span>
+                          )}
+                        </div>
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        to={`/drivers/${a.driver_id}`}
+                        className="text-slate-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 rounded"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {a.driver_name ?? a.driver_id}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      {formatDateTime(a.assigned_from)}
+                    </td>
+                    <td className="px-4 py-3">
+                      {a.assigned_to ? formatDateTime(a.assigned_to) : 'Active'}
+                    </td>
+                    {showActions && (
+                      <td
+                        className="px-4 py-3"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {onEndAssignment && !a.assigned_to && (
+                          <Button
+                            variant="secondary"
+                            className="px-3 py-1 text-xs"
+                            onClick={() => onEndAssignment(a.assignment_id)}
+                            disabled={isEnding}
+                          >
+                            {isEnding ? 'Ending...' : 'End assignment'}
+                          </Button>
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>

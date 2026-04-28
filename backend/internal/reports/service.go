@@ -29,15 +29,17 @@ func (s *Service) GetVehicleProfitability(
 		return VehicleProfitabilityResponse{}, ErrInvalidInput
 	}
 
-	revenue, err := s.repo.GetVehicleRevenueForMonth(ctx, query.VehicleID, query.Month)
+	nextMonthStart := monthStart.AddDate(0, 1, 0)
+
+	revenue, err := s.repo.GetVehicleRevenueForMonth(ctx, query.VehicleID, monthStart, nextMonthStart)
 	if err != nil {
 		return VehicleProfitabilityResponse{}, err
 	}
-	fuelCosts, err := s.repo.GetVehicleFuelCostsForMonth(ctx, query.VehicleID, query.Month)
+	fuelCosts, err := s.repo.GetVehicleFuelCostsForMonth(ctx, query.VehicleID, monthStart, nextMonthStart)
 	if err != nil {
 		return VehicleProfitabilityResponse{}, err
 	}
-	maintenanceCosts, err := s.repo.GetVehicleMaintenanceCostsForMonth(ctx, query.VehicleID, query.Month)
+	maintenanceCosts, err := s.repo.GetVehicleMaintenanceCostsForMonth(ctx, query.VehicleID, monthStart, nextMonthStart)
 	if err != nil {
 		return VehicleProfitabilityResponse{}, err
 	}
@@ -45,7 +47,7 @@ func (s *Service) GetVehicleProfitability(
 	if err != nil {
 		return VehicleProfitabilityResponse{}, err
 	}
-	tollsCosts, err := s.repo.GetVehicleTollsForMonth(ctx, query.VehicleID, query.Month)
+	tollsCosts, err := s.repo.GetVehicleTollsForMonth(ctx, query.VehicleID, monthStart, nextMonthStart)
 	if err != nil {
 		return VehicleProfitabilityResponse{}, err
 	}

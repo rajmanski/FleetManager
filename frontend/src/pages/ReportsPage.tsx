@@ -21,19 +21,11 @@ function ReportsPage() {
   )
 
   const { vehiclesQuery } = useVehicles({
-    page: 1,
-    limit: 500,
-    statusFilter: '',
-    search: '',
-    showDeleted: false,
+    page: 1, limit: 100, statusFilter: '', search: '', showDeleted: false,
   })
 
   const { driversQuery } = useDrivers({
-    page: 1,
-    limit: 500,
-    statusFilter: '',
-    search: '',
-    showDeleted: false,
+    page: 1, limit: 100, statusFilter: '', search: '', showDeleted: false,
   })
 
   const vehicleOptions = useMemo(() => {
@@ -70,16 +62,21 @@ function ReportsPage() {
 
       {listsError && <ErrorMessage message={listsError} />}
 
-      <ReportsQueryForm
-        formValues={formValues}
-        vehicleOptions={vehicleOptions}
-        driverOptions={driverOptions}
-        vehiclesLoading={vehiclesQuery.isLoading}
-        driversLoading={driversQuery.isLoading}
-        onApply={handleApply}
-      />
-
-      <ReportResultsPanel searchParams={searchParams} />
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+        <div className="w-full shrink-0 lg:w-auto">
+          <ReportsQueryForm
+            formValues={formValues}
+            vehicleOptions={vehicleOptions}
+            driverOptions={driverOptions}
+            vehiclesLoading={vehiclesQuery.isLoading}
+            driversLoading={driversQuery.isLoading}
+            onApply={handleApply}
+          />
+        </div>
+        <div className="min-w-0 flex-1">
+          <ReportResultsPanel searchParams={searchParams} />
+        </div>
+      </div>
     </div>
   )
 }

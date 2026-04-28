@@ -5,21 +5,24 @@ WHERE o.order_id IN (
   SELECT DISTINCT t.order_id
   FROM Trips t
   WHERE t.vehicle_id = ?
-)
-  AND DATE_FORMAT(o.creation_date, '%Y-%m') = ?;
+    AND COALESCE(t.end_time, t.start_time) >= ?
+    AND COALESCE(t.end_time, t.start_time) < ?
+);
 
 -- name: GetVehicleFuelCostsForMonth :one
 SELECT COALESCE(SUM(fl.total_cost), 0) AS fuel_cost
 FROM fuel_logs fl
 WHERE fl.vehicle_id = ?
-  AND DATE_FORMAT(fl.date, '%Y-%m') = ?;
+  AND fl.date >= ?
+  AND fl.date < ?;
 
 -- name: GetVehicleMaintenanceCostsForMonth :one
 SELECT COALESCE(SUM(m.total_cost_pln), 0) AS maintenance_cost
 FROM Maintenance m
 WHERE m.vehicle_id = ?
   AND m.start_date IS NOT NULL
-  AND DATE_FORMAT(m.start_date, '%Y-%m') = ?;
+  AND m.start_date >= ?
+  AND m.start_date < ?;
 
 -- name: GetVehicleInsuranceMonthlyCost :one
 SELECT COALESCE(SUM(ip.cost / 12), 0) AS insurance_cost
@@ -33,7 +36,8 @@ SELECT COALESCE(SUM(c.amount), 0) AS tolls_cost
 FROM costs c
 WHERE c.vehicle_id = ?
   AND c.category = 'Tolls'
-  AND DATE_FORMAT(c.date, '%Y-%m') = ?;
+  AND c.date >= ?
+  AND c.date < ?;
 
 -- name: GetDriverMileageReport :one
 SELECT
@@ -49,15 +53,7 @@ WHERE t.driver_id = ?
   AND t.status = 'Finished'
   AND t.end_time IS NOT NULL
   AND DATE(t.end_time) >= ?
-  AND DATE(t.end_time) <= ?
-  AND EXISTS (
-    SELECT 1
-    FROM Assignments a
-    WHERE a.driver_id = t.driver_id
-      AND a.vehicle_id = t.vehicle_id
-      AND a.assigned_from <= COALESCE(t.end_time, t.start_time)
-      AND (a.assigned_to IS NULL OR a.assigned_to >= COALESCE(t.start_time, t.end_time))
-  );
+  AND DATE(t.end_time) <= ?;
 
 -- name: GetGlobalFuelCostsInRange :one
 SELECT COALESCE(SUM(fl.total_cost), 0) AS total

@@ -1,3 +1,4 @@
+import { TrendingUp, Route, Globe } from 'lucide-react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/Button'
@@ -9,6 +10,12 @@ import {
   REPORT_TYPES,
   type ReportType,
 } from '@/schemas/reports'
+
+const REPORT_TYPE_ICONS: Record<string, typeof TrendingUp> = {
+  'vehicle-profitability': TrendingUp,
+  'driver-mileage': Route,
+  'global-costs': Globe,
+}
 
 const REPORT_TYPE_OPTIONS: { value: ReportType; label: string }[] = [
   { value: REPORT_TYPES[0], label: 'Vehicle profitability' },
@@ -45,6 +52,7 @@ export function ReportsQueryForm({
   })
 
   const reportType = watch('reportType')
+  const ReportTypeIcon = reportType ? REPORT_TYPE_ICONS[reportType] : null
 
   return (
     <form
@@ -69,6 +77,17 @@ export function ReportsQueryForm({
           />
         )}
       />
+
+      {reportType && ReportTypeIcon && (
+        <div className="flex items-center gap-2 rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+          <ReportTypeIcon className="size-4 shrink-0 text-gray-500" aria-hidden="true" />
+          <span>
+            {reportType === 'vehicle-profitability' && 'Analyse revenue, costs and profit for a specific vehicle per month.'}
+            {reportType === 'driver-mileage' && 'View total distance driven and order count for a driver over a period.'}
+            {reportType === 'global-costs' && 'Aggregate all operational costs by category for a given date range.'}
+          </span>
+        </div>
+      )}
 
       {reportType === 'vehicle-profitability' && (
         <div className="space-y-4">

@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	sqlc "fleet-management/internal/db/sqlc"
@@ -23,16 +22,13 @@ func NewReportsRepository(queries sqlc.Querier) *ReportsRepository {
 func (r *ReportsRepository) GetVehicleRevenueForMonth(
 	ctx context.Context,
 	vehicleID int64,
-	month string,
+	monthStart time.Time,
+	monthEnd time.Time,
 ) (float64, error) {
-	monthTime, err := time.Parse("2006-01", strings.TrimSpace(month))
-	if err != nil {
-		return 0, reports.ErrInvalidInput
-	}
-
 	value, err := r.queries.GetVehicleRevenueForMonth(ctx, sqlc.GetVehicleRevenueForMonthParams{
-		VehicleID:    int32(vehicleID),
-		CreationDate: sql.NullTime{Time: monthTime, Valid: true},
+		VehicleID:      int32(vehicleID),
+		CreationDate:   sql.NullTime{Time: monthStart, Valid: true},
+		CreationDate_2: sql.NullTime{Time: monthEnd, Valid: true},
 	})
 	if err != nil {
 		return 0, err
@@ -43,16 +39,13 @@ func (r *ReportsRepository) GetVehicleRevenueForMonth(
 func (r *ReportsRepository) GetVehicleFuelCostsForMonth(
 	ctx context.Context,
 	vehicleID int64,
-	month string,
+	monthStart time.Time,
+	monthEnd time.Time,
 ) (float64, error) {
-	monthTime, err := time.Parse("2006-01", strings.TrimSpace(month))
-	if err != nil {
-		return 0, reports.ErrInvalidInput
-	}
-
 	value, err := r.queries.GetVehicleFuelCostsForMonth(ctx, sqlc.GetVehicleFuelCostsForMonthParams{
 		VehicleID: int32(vehicleID),
-		Date:      monthTime,
+		DateStart: monthStart,
+		DateEnd:   monthEnd,
 	})
 	if err != nil {
 		return 0, err
@@ -63,16 +56,13 @@ func (r *ReportsRepository) GetVehicleFuelCostsForMonth(
 func (r *ReportsRepository) GetVehicleMaintenanceCostsForMonth(
 	ctx context.Context,
 	vehicleID int64,
-	month string,
+	monthStart time.Time,
+	monthEnd time.Time,
 ) (float64, error) {
-	monthTime, err := time.Parse("2006-01", strings.TrimSpace(month))
-	if err != nil {
-		return 0, reports.ErrInvalidInput
-	}
-
 	value, err := r.queries.GetVehicleMaintenanceCostsForMonth(ctx, sqlc.GetVehicleMaintenanceCostsForMonthParams{
 		VehicleID: int32(vehicleID),
-		StartDate: sql.NullTime{Time: monthTime, Valid: true},
+		StartDate: sql.NullTime{Time: monthStart, Valid: true},
+		EndDate:   sql.NullTime{Time: monthEnd, Valid: true},
 	})
 	if err != nil {
 		return 0, err
@@ -100,16 +90,13 @@ func (r *ReportsRepository) GetVehicleInsuranceMonthlyCost(
 func (r *ReportsRepository) GetVehicleTollsForMonth(
 	ctx context.Context,
 	vehicleID int64,
-	month string,
+	monthStart time.Time,
+	monthEnd time.Time,
 ) (float64, error) {
-	monthTime, err := time.Parse("2006-01", strings.TrimSpace(month))
-	if err != nil {
-		return 0, reports.ErrInvalidInput
-	}
-
 	value, err := r.queries.GetVehicleTollsForMonth(ctx, sqlc.GetVehicleTollsForMonthParams{
 		VehicleID: int32(vehicleID),
-		Date:      monthTime,
+		DateStart: monthStart,
+		DateEnd:   monthEnd,
 	})
 	if err != nil {
 		return 0, err

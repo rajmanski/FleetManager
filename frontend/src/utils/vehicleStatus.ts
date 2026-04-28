@@ -40,7 +40,7 @@ export function getVehicleStatusMeta(status: string): VehicleStatusMeta {
       }
     case 'Inactive':
       return {
-        label: 'Inactive',
+        label: 'In active',
         description: 'Vehicle is temporarily disabled from operational use.',
         Icon: Ban,
         colorClass: 'text-gray-600',

@@ -5,8 +5,10 @@ import {
   FileText,
   Wrench,
 } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
 import { NotificationStatusBadge } from '@/components/notifications/NotificationStatusBadge'
+import { EntityCellLink } from '@/components/ui/EntityCellLink'
+import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { useClickableRow } from '@/hooks/useClickableRow'
 import {
   extractVehicleVin,
   notificationDetailsPath,
@@ -36,7 +38,7 @@ export function NotificationsTable({
   markingId,
   onMarkRead,
 }: NotificationsTableProps) {
-  const navigate = useNavigate()
+  const { getRowProps } = useClickableRow()
 
   return (
     <DataTablePagination page={page} total={total} pagination={pagination}>
@@ -45,36 +47,11 @@ export function NotificationsTable({
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Bell className="size-4 text-slate-600" aria-hidden="true" />
-                    Type
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <FileText className="size-4 text-slate-600" aria-hidden="true" />
-                    Message
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <CalendarClock className="size-4 text-slate-600" aria-hidden="true" />
-                    Created
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <CircleCheckBig className="size-4 text-slate-600" aria-hidden="true" />
-                    Status
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Wrench className="size-4 text-slate-600" aria-hidden="true" />
-                    Actions
-                  </span>
-                </th>
+                <ThWithIcon icon={Bell}>Type</ThWithIcon>
+                <ThWithIcon icon={FileText}>Message</ThWithIcon>
+                <ThWithIcon icon={CalendarClock}>Created</ThWithIcon>
+                <ThWithIcon icon={CircleCheckBig}>Status</ThWithIcon>
+                <ThWithIcon icon={Wrench}>Actions</ThWithIcon>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -89,17 +66,8 @@ export function NotificationsTable({
                 return (
                   <tr
                     key={row.id}
+                    {...getRowProps(targetPath, `Open related details for notification: ${formatNotificationTypeLabel(row.type)}`)}
                     className={`${rowClassName} cursor-pointer`}
-                    role="link"
-                    tabIndex={0}
-                    aria-label={`Open related details for notification: ${formatNotificationTypeLabel(row.type)}`}
-                    onClick={() => navigate(targetPath)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault()
-                        navigate(targetPath)
-                      }
-                    }}
                   >
                     <td className="px-4 py-3 font-medium text-gray-900">
                       <div className="flex items-center gap-2">
@@ -111,15 +79,13 @@ export function NotificationsTable({
                       <div className="flex items-center gap-2">
                         <span>{row.message ?? '—'}</span>
                         {vehicleVin ? (
-                          <Link
+                          <EntityCellLink
                             to="/vehicles"
                             className="text-xs font-medium text-slate-700 underline underline-offset-2 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
-                            onClick={(event) => event.stopPropagation()}
-                            onKeyDown={(event) => event.stopPropagation()}
-                            aria-label={`Open vehicles view for VIN ${vehicleVin}`}
+                            ariaLabel={`Open vehicles view for VIN ${vehicleVin}`}
                           >
                             Vehicle {vehicleVin}
-                          </Link>
+                          </EntityCellLink>
                         ) : null}
                       </div>
                     </td>

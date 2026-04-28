@@ -1,6 +1,9 @@
+import { Wrench, AlertTriangle, CircleDot, Calendar } from 'lucide-react'
 import type { Maintenance, MaintenanceStatus } from '@/hooks/maintenance/useMaintenance'
 import type { PaginationHelpers } from '@/hooks/usePagination'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
+import { EntityCellLink } from '@/components/ui/EntityCellLink'
+import { ThWithIcon } from '@/components/ui/ThWithIcon'
 import { formatDateTime } from '@/utils/date'
 
 type MaintenanceTableProps = {
@@ -45,10 +48,10 @@ export function MaintenanceTable({
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 font-medium text-gray-700">Vehicle</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Type</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Status</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Date</th>
+                <ThWithIcon icon={Wrench}>Vehicle</ThWithIcon>
+                <ThWithIcon icon={AlertTriangle}>Type</ThWithIcon>
+                <ThWithIcon icon={CircleDot}>Status</ThWithIcon>
+                <ThWithIcon icon={Calendar}>Date</ThWithIcon>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -57,7 +60,9 @@ export function MaintenanceTable({
                 return (
                   <tr key={row.id}>
                     <td className="px-4 py-3">
-                      {vehicleLabelsById[row.vehicleId] ?? `#${row.vehicleId}`}
+                      <EntityCellLink to={`/vehicles/${row.vehicleId}`}>
+                        {vehicleLabelsById[row.vehicleId] ?? `#${row.vehicleId}`}
+                      </EntityCellLink>
                     </td>
                     <td className="px-4 py-3">{row.type}</td>
                     <td className="px-4 py-3">

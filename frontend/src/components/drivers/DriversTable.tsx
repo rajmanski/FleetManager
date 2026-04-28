@@ -1,9 +1,11 @@
-import { Trash2, UserCheck, CalendarOff, Truck } from 'lucide-react'
+import { Trash2, UserCheck, CalendarOff, Truck, User, BadgeInfo, CircleDot, ShieldCheck } from 'lucide-react'
 import type { Driver } from '@/hooks/drivers/useDrivers'
 import type { PaginationHelpers } from '@/hooks/usePagination'
 import { CertificateStatusTooltip } from '@/components/drivers/CertificateStatusTooltip'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
+import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { TableActionsCell } from '@/components/ui/TableActionsCell'
+import { ThWithIcon } from '@/components/ui/ThWithIcon'
 
 const DRIVER_STATUS_CONFIG: Record<
   string,
@@ -62,22 +64,22 @@ export function DriversTable({
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 font-medium text-gray-700">Name</th>
-                <th className="px-4 py-3 font-medium text-gray-700">PESEL</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Status</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Certificate status</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Actions</th>
+                <ThWithIcon icon={User}>Name</ThWithIcon>
+                <ThWithIcon icon={BadgeInfo}>PESEL</ThWithIcon>
+                <ThWithIcon icon={CircleDot}>Status</ThWithIcon>
+                <ThWithIcon icon={ShieldCheck}>Certificate status</ThWithIcon>
+                <ThWithIcon icon={Trash2}>Actions</ThWithIcon>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
               {drivers.map((driver) => {
                 const isDeleted = Boolean(driver.deleted_at)
                 return (
-                  <tr key={driver.id} className={isDeleted ? 'bg-gray-100 text-gray-500' : ''}>
+                  <tr key={driver.id} className={`${isDeleted ? 'bg-gray-100 text-gray-500' : 'bg-white transition-colors hover:bg-gray-50 focus-within:bg-gray-50'}`}>
                     <td className="px-4 py-3">
-                      <span className="font-medium text-slate-700">
-                        {driver.first_name} {driver.last_name}
-                      </span>
+                      <EntityCellLink to={`/drivers/${driver.id}`}>
+                        <span className="font-medium">{driver.first_name} {driver.last_name}</span>
+                      </EntityCellLink>
                     </td>
                     <td className="px-4 py-3">{driver.pesel}</td>
                     <td className="px-4 py-3">

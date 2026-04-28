@@ -1,9 +1,11 @@
 import { CalendarClock, FileText, Route, Truck, Trash2, Wrench } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
 import type { Vehicle } from '@/hooks/vehicles/useVehicles'
 import type { PaginationHelpers } from '@/hooks/usePagination'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
+import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { TableActionsCell } from '@/components/ui/TableActionsCell'
+import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { useClickableRow } from '@/hooks/useClickableRow'
 import { formatVehicleStatusLabel, getVehicleStatusMeta } from '@/utils/vehicleStatus'
 
 type VehiclesTableProps = {
@@ -29,7 +31,7 @@ export function VehiclesTable({
   onRestore,
   isRestoring,
 }: VehiclesTableProps) {
-  const navigate = useNavigate()
+  const { getRowProps } = useClickableRow()
 
   return (
     <DataTablePagination page={page} total={total} pagination={pagination}>
@@ -38,48 +40,13 @@ export function VehiclesTable({
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <FileText className="size-4 text-slate-600" aria-hidden="true" />
-                    VIN
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Truck className="size-4 text-slate-600" aria-hidden="true" />
-                    Brand
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Route className="size-4 text-slate-600" aria-hidden="true" />
-                    Model
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <CalendarClock className="size-4 text-slate-600" aria-hidden="true" />
-                    Production year
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Route className="size-4 text-slate-600" aria-hidden="true" />
-                    Mileage (km)
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Wrench className="size-4 text-slate-600" aria-hidden="true" />
-                    Status
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Wrench className="size-4 text-slate-600" aria-hidden="true" />
-                    Actions
-                  </span>
-                </th>
+                <ThWithIcon icon={FileText}>VIN</ThWithIcon>
+                <ThWithIcon icon={Truck}>Brand</ThWithIcon>
+                <ThWithIcon icon={Route}>Model</ThWithIcon>
+                <ThWithIcon icon={CalendarClock}>Production year</ThWithIcon>
+                <ThWithIcon icon={Route}>Mileage (km)</ThWithIcon>
+                <ThWithIcon icon={Wrench}>Status</ThWithIcon>
+                <ThWithIcon icon={Wrench}>Actions</ThWithIcon>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -92,27 +59,13 @@ export function VehiclesTable({
                 return (
                   <tr
                     key={vehicle.id}
+                    {...getRowProps(detailsPath, `Open vehicle details for VIN ${vehicle.vin}`)}
                     className={`${rowClassName} cursor-pointer`}
-                    role="link"
-                    tabIndex={0}
-                    aria-label={`Open vehicle details for VIN ${vehicle.vin}`}
-                    onClick={() => navigate(detailsPath)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter' || event.key === ' ') {
-                        event.preventDefault()
-                        navigate(detailsPath)
-                      }
-                    }}
                   >
                     <td className="px-4 py-3">
-                      <Link
-                        to={detailsPath}
-                        className="text-slate-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
-                        onClick={(event) => event.stopPropagation()}
-                        onKeyDown={(event) => event.stopPropagation()}
-                      >
+                      <EntityCellLink to={detailsPath}>
                         {vehicle.vin}
-                      </Link>
+                      </EntityCellLink>
                     </td>
                     <td className="px-4 py-3">{vehicle.brand ?? '-'}</td>
                     <td className="px-4 py-3">{vehicle.model ?? '-'}</td>
@@ -128,10 +81,7 @@ export function VehiclesTable({
                         <span>{formatVehicleStatusLabel(vehicle.status)}</span>
                       </span>
                     </td>
-                    <td
-                      className="px-4 py-3"
-                      onClick={(event) => event.stopPropagation()}
-                    >
+                    <td className="px-4 py-3">
                       <TableActionsCell
                         isDeleted={isDeleted}
                         isAdmin={isAdmin}

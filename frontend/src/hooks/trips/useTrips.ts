@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
 import api from '@/services/api'
 
 export type Trip = {
@@ -28,6 +29,14 @@ export type UseTripsListParams = {
   status: string
 }
 
+function invalidateTripQueries(queryClient: QueryClient, orderId?: number) {
+  queryClient.invalidateQueries({ queryKey: ['trips'] })
+  queryClient.invalidateQueries({ queryKey: ['orders'] })
+  if (orderId) {
+    queryClient.invalidateQueries({ queryKey: ['orders', orderId, 'trips'] })
+  }
+}
+
 export function useTrips() {
   const queryClient = useQueryClient()
 
@@ -37,9 +46,7 @@ export function useTrips() {
       return res.data
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] })
-      queryClient.invalidateQueries({ queryKey: ['trips'] })
-      queryClient.invalidateQueries({ queryKey: ['orders', variables.order_id, 'trips'] })
+      invalidateTripQueries(queryClient, variables.order_id)
     },
   })
 
@@ -49,8 +56,7 @@ export function useTrips() {
       return res.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] })
-      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      invalidateTripQueries(queryClient)
     },
   })
 
@@ -62,8 +68,7 @@ export function useTrips() {
       return res.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] })
-      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      invalidateTripQueries(queryClient)
     },
   })
 
@@ -73,8 +78,7 @@ export function useTrips() {
       return res.data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['trips'] })
-      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      invalidateTripQueries(queryClient)
     },
   })
 
@@ -103,4 +107,3 @@ export function useTripsList({ status }: UseTripsListParams) {
     tripsQuery,
   }
 }
-

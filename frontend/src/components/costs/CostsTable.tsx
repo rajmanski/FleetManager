@@ -1,6 +1,9 @@
+import { Truck, Tag, DollarSign, Calendar } from 'lucide-react'
 import type { Cost } from '@/hooks/costs/useCosts'
 import type { PaginationHelpers } from '@/hooks/usePagination'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
+import { EntityCellLink } from '@/components/ui/EntityCellLink'
+import { ThWithIcon } from '@/components/ui/ThWithIcon'
 import { formatDateOnly } from '@/utils/date'
 
 type CostsTableProps = {
@@ -28,17 +31,19 @@ export function CostsTable({ rows, page, total, pagination, vehicleLabelsById }:
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 font-medium text-gray-700">Vehicle</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Category</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Amount (PLN)</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Date</th>
+                <ThWithIcon icon={Truck}>Vehicle</ThWithIcon>
+                <ThWithIcon icon={Tag}>Category</ThWithIcon>
+                <ThWithIcon icon={DollarSign}>Amount (PLN)</ThWithIcon>
+                <ThWithIcon icon={Calendar}>Date</ThWithIcon>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
               {rows.map((row) => (
                 <tr key={row.id} className="bg-white">
                   <td className="px-4 py-3">
-                    {vehicleLabelsById[row.vehicleId] ?? `#${row.vehicleId}`}
+                    <EntityCellLink to={`/vehicles/${row.vehicleId}`}>
+                      {vehicleLabelsById[row.vehicleId] ?? `#${row.vehicleId}`}
+                    </EntityCellLink>
                   </td>
                   <td className="px-4 py-3">{row.category}</td>
                   <td className="px-4 py-3">{formatAmount(row.amount)}</td>

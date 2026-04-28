@@ -1,6 +1,9 @@
+import { Truck, Calendar, Droplets, DollarSign, Gauge, Flame, AlertTriangle } from 'lucide-react'
 import type { FuelLog } from '@/hooks/fuel/useFuel'
 import type { PaginationHelpers } from '@/hooks/usePagination'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
+import { EntityCellLink } from '@/components/ui/EntityCellLink'
+import { ThWithIcon } from '@/components/ui/ThWithIcon'
 import { formatDateOnly } from '@/utils/date'
 import { Tooltip } from '@/components/ui/Tooltip'
 
@@ -32,13 +35,13 @@ export function FuelTable({ rows, page, total, pagination, vehicleLabelsById }: 
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 font-medium text-gray-700">Vehicle</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Date</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Liters</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Cost (PLN)</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Mileage</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Spalanie</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Alert</th>
+                <ThWithIcon icon={Truck}>Vehicle</ThWithIcon>
+                <ThWithIcon icon={Calendar}>Date</ThWithIcon>
+                <ThWithIcon icon={Droplets}>Liters</ThWithIcon>
+                <ThWithIcon icon={DollarSign}>Cost (PLN)</ThWithIcon>
+                <ThWithIcon icon={Gauge}>Mileage</ThWithIcon>
+                <ThWithIcon icon={Flame}>Spalanie</ThWithIcon>
+                <ThWithIcon icon={AlertTriangle}>Alert</ThWithIcon>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -48,7 +51,9 @@ export function FuelTable({ rows, page, total, pagination, vehicleLabelsById }: 
                   className={row.is_anomaly ? 'bg-red-50' : 'bg-white'}
                 >
                   <td className="px-4 py-3">
-                    {vehicleLabelsById[row.vehicle_id] ?? `#${row.vehicle_id}`}
+                    <EntityCellLink to={`/vehicles/${row.vehicle_id}`}>
+                      {vehicleLabelsById[row.vehicle_id] ?? `#${row.vehicle_id}`}
+                    </EntityCellLink>
                   </td>
                   <td className="px-4 py-3">{formatDateOnly(row.date)}</td>
                   <td className="px-4 py-3">{formatNumber(row.liters)}</td>

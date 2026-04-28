@@ -1,6 +1,9 @@
+import { Truck, Shield, FileText, Calendar } from 'lucide-react'
 import type { InsurancePolicy } from '@/hooks/insurance/useInsurance'
 import type { PaginationHelpers } from '@/hooks/usePagination'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
+import { EntityCellLink } from '@/components/ui/EntityCellLink'
+import { ThWithIcon } from '@/components/ui/ThWithIcon'
 import { formatDateOnly, getInsuranceExpiryStatus } from '@/utils/date'
 
 type InsuranceTableProps = {
@@ -35,17 +38,19 @@ export function InsuranceTable({
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 font-medium text-gray-700">Vehicle</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Type</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Policy number</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Valid until</th>
+                <ThWithIcon icon={Truck}>Vehicle</ThWithIcon>
+                <ThWithIcon icon={Shield}>Type</ThWithIcon>
+                <ThWithIcon icon={FileText}>Policy number</ThWithIcon>
+                <ThWithIcon icon={Calendar}>Valid until</ThWithIcon>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {rows.map((row) => (
                 <tr key={row.id} className={rowClassForExpiry(row.endDate)}>
                   <td className="px-4 py-3">
-                    {vehicleLabelsById[row.vehicleId] ?? `#${row.vehicleId}`}
+                    <EntityCellLink to={`/vehicles/${row.vehicleId}`}>
+                      {vehicleLabelsById[row.vehicleId] ?? `#${row.vehicleId}`}
+                    </EntityCellLink>
                   </td>
                   <td className="px-4 py-3">{row.type}</td>
                   <td className="px-4 py-3">{row.policyNumber}</td>

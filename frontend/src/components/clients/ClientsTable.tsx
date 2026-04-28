@@ -5,11 +5,12 @@ import {
   Mail,
   MapPin,
 } from 'lucide-react'
-import { Link } from 'react-router-dom'
 import type { Client } from '@/hooks/clients/useClients'
 import type { PaginationHelpers } from '@/hooks/usePagination'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
+import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { TableActionsCell } from '@/components/ui/TableActionsCell'
+import { ThWithIcon } from '@/components/ui/ThWithIcon'
 
 type ClientsTableProps = {
   clients: Client[]
@@ -41,42 +42,12 @@ export function ClientsTable({
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Building2 className="size-4 text-slate-600" aria-hidden="true" />
-                    Company name
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <BadgeInfo className="size-4 text-slate-600" aria-hidden="true" />
-                    NIP
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <MapPin className="size-4 text-slate-600" aria-hidden="true" />
-                    Address
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Mail className="size-4 text-slate-600" aria-hidden="true" />
-                    Contact email
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <ClipboardList className="size-4 text-slate-600" aria-hidden="true" />
-                    Related data
-                  </span>
-                </th>
-                <th className="px-4 py-3 font-medium text-gray-700">
-                  <span className="inline-flex items-center gap-1.5">
-                    <BadgeInfo className="size-4 text-slate-600" aria-hidden="true" />
-                    Actions
-                  </span>
-                </th>
+                <ThWithIcon icon={Building2}>Company name</ThWithIcon>
+                <ThWithIcon icon={BadgeInfo}>NIP</ThWithIcon>
+                <ThWithIcon icon={MapPin}>Address</ThWithIcon>
+                <ThWithIcon icon={Mail}>Contact email</ThWithIcon>
+                <ThWithIcon icon={ClipboardList}>Related data</ThWithIcon>
+                <ThWithIcon icon={BadgeInfo}>Actions</ThWithIcon>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -102,20 +73,15 @@ export function ClientsTable({
                     <td className="px-4 py-3">{client.address ?? '-'}</td>
                     <td className="px-4 py-3">{client.contactEmail ?? '-'}</td>
                     <td className="px-4 py-3">
-                      <Link
+                      <EntityCellLink
                         to={ordersPath}
                         className="text-slate-700 underline underline-offset-2 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2"
-                        onClick={(event) => event.stopPropagation()}
-                        onKeyDown={(event) => event.stopPropagation()}
-                        aria-label={`Open filtered orders for client ${client.companyName}`}
+                        ariaLabel={`Open filtered orders for client ${client.companyName}`}
                       >
                         View orders
-                      </Link>
+                      </EntityCellLink>
                     </td>
-                    <td
-                      className="px-4 py-3"
-                      onClick={(event) => event.stopPropagation()}
-                    >
+                    <td className="px-4 py-3">
                       <TableActionsCell
                         isDeleted={isDeleted}
                         isAdmin={isAdmin}

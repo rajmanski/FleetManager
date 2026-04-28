@@ -1,7 +1,10 @@
 import { Fragment, useCallback, useState } from 'react'
+import { Clock, User, Database, Hash, Activity, Eye } from 'lucide-react'
 import { ChangelogDiffFields } from '@/components/changelog/ChangelogDiffFields'
 import { ChangelogOperationBadge } from '@/components/changelog/ChangelogOperationBadge'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
+import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { useClickableRow } from '@/hooks/useClickableRow'
 import type { ChangelogEntry } from '@/hooks/changelog/useChangelog'
 import type { PaginationHelpers } from '@/hooks/usePagination'
 import { formatDateTime } from '@/utils/date'
@@ -18,6 +21,7 @@ type ChangelogTableProps = {
 
 export function ChangelogTable({ rows, page, total, pagination }: ChangelogTableProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null)
+  const { getRowProps } = useClickableRow()
 
   const toggleRow = useCallback((id: number) => {
     setExpandedId((prev) => (prev === id ? null : id))
@@ -30,12 +34,12 @@ export function ChangelogTable({ rows, page, total, pagination }: ChangelogTable
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 font-medium text-gray-700">Timestamp</th>
-                <th className="px-4 py-3 font-medium text-gray-700">User</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Table</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Record ID</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Operation</th>
-                <th className="px-4 py-3 font-medium text-gray-700">Details</th>
+                <ThWithIcon icon={Clock}>Timestamp</ThWithIcon>
+                <ThWithIcon icon={User}>User</ThWithIcon>
+                <ThWithIcon icon={Database}>Table</ThWithIcon>
+                <ThWithIcon icon={Hash}>Record ID</ThWithIcon>
+                <ThWithIcon icon={Activity}>Operation</ThWithIcon>
+                <ThWithIcon icon={Eye}>Details</ThWithIcon>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
@@ -45,17 +49,9 @@ export function ChangelogTable({ rows, page, total, pagination }: ChangelogTable
                 return (
                   <Fragment key={row.id}>
                     <tr
-                      role="button"
-                      tabIndex={0}
+                      {...getRowProps(() => toggleRow(row.id))}
                       title="Click row to show or hide change details"
                       className="cursor-pointer transition-colors hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-slate-400"
-                      onClick={() => toggleRow(row.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          toggleRow(row.id)
-                        }
-                      }}
                     >
                       <td className="whitespace-nowrap px-4 py-3 text-gray-700">
                         {formatDateTime(row.timestamp)}

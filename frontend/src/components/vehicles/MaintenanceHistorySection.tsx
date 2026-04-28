@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react'
+import { Calendar, AlertTriangle, CircleDot, DollarSign, FileText } from 'lucide-react'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { FilterSelect } from '@/components/ui/FilterSelect'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
+import { MaintenanceStatusBadge } from '@/components/maintenance/MaintenanceStatusBadge'
+import { MaintenanceTypeBadge } from '@/components/maintenance/MaintenanceTypeBadge'
+import { ThWithIcon } from '@/components/ui/ThWithIcon'
 import { formatPrice } from '@/utils/price'
 import { useVehicleMaintenanceHistory } from '@/hooks/vehicles/useVehicleMaintenanceHistory'
-import { MaintenanceTypeBadge } from '@/components/maintenance/MaintenanceTypeBadge'
 
 type MaintenanceHistorySectionProps = {
   vehicleId: number
@@ -66,24 +69,26 @@ export function MaintenanceHistorySection({ vehicleId }: MaintenanceHistorySecti
               <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-3 font-medium text-gray-700">Data</th>
-                    <th className="px-4 py-3 font-medium text-gray-700">Typ</th>
-                    <th className="px-4 py-3 font-medium text-gray-700">Status</th>
-                    <th className="px-4 py-3 font-medium text-gray-700">Koszt całkowity</th>
-                    <th className="px-4 py-3 font-medium text-gray-700">Opis</th>
+                    <ThWithIcon icon={Calendar}>Data</ThWithIcon>
+                    <ThWithIcon icon={AlertTriangle}>Typ</ThWithIcon>
+                    <ThWithIcon icon={CircleDot}>Status</ThWithIcon>
+                    <ThWithIcon icon={DollarSign}>Koszt całkowity</ThWithIcon>
+                    <ThWithIcon icon={FileText}>Opis</ThWithIcon>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {rows.map((row) => (
-                    <tr key={row.maintenance_id}>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                    <tr key={row.maintenance_id} className="transition-colors hover:bg-gray-50">
+                      <td className="whitespace-nowrap px-4 py-3">
                         {dateRangeLabel(row.start_date, row.end_date)}
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">
+                      <td className="whitespace-nowrap px-4 py-3">
                         <MaintenanceTypeBadge type={row.type} />
                       </td>
-                      <td className="px-4 py-3 whitespace-nowrap">{row.status}</td>
-                      <td className="px-4 py-3 whitespace-nowrap">{formatPrice(row.total_cost_pln)}</td>
+                      <td className="whitespace-nowrap px-4 py-3">
+                        <MaintenanceStatusBadge status={row.status} />
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3">{formatPrice(row.total_cost_pln)}</td>
                       <td className="px-4 py-3">{row.description ?? '-'}</td>
                     </tr>
                   ))}
@@ -101,4 +106,3 @@ export function MaintenanceHistorySection({ vehicleId }: MaintenanceHistorySecti
     </div>
   )
 }
-

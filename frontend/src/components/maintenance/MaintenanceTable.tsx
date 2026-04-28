@@ -3,6 +3,7 @@ import type { Maintenance, MaintenanceStatus } from '@/hooks/maintenance/useMain
 import type { PaginationHelpers } from '@/hooks/usePagination'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
+import { MaintenanceStatusBadge } from '@/components/maintenance/MaintenanceStatusBadge'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
 import { formatDateTime } from '@/utils/date'
 
@@ -58,7 +59,7 @@ export function MaintenanceTable({
               {rows.map((row) => {
                 const ns = nextStatus(row.status)
                 return (
-                  <tr key={row.id}>
+                  <tr key={row.id} className="transition-colors hover:bg-gray-50">
                     <td className="px-4 py-3">
                       <EntityCellLink to={`/vehicles/${row.vehicleId}`}>
                         {vehicleLabelsById[row.vehicleId] ?? `#${row.vehicleId}`}
@@ -67,18 +68,21 @@ export function MaintenanceTable({
                     <td className="px-4 py-3">{row.type}</td>
                     <td className="px-4 py-3">
                       {ns ? (
-                        <button
-                          type="button"
-                          disabled={updatingId === row.id}
-                          onClick={() => onStatusChange(row.id, ns)}
-                          className="rounded px-2 py-1 text-xs font-medium transition-colors disabled:opacity-50
-                            bg-slate-100 text-slate-700 hover:bg-slate-200
-                            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
-                        >
-                          {updatingId === row.id ? '...' : row.status}
-                        </button>
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <MaintenanceStatusBadge status={row.status} />
+                          <button
+                            type="button"
+                            disabled={updatingId === row.id}
+                            onClick={() => onStatusChange(row.id, ns)}
+                            className="rounded px-2 py-1 text-xs font-medium transition-colors disabled:opacity-50
+                              bg-slate-100 text-slate-700 hover:bg-slate-200
+                              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500"
+                          >
+                            {updatingId === row.id ? '...' : `→ ${ns}`}
+                          </button>
+                        </div>
                       ) : (
-                        <span className="text-xs text-gray-500">{row.status}</span>
+                        <MaintenanceStatusBadge status={row.status} />
                       )}
                     </td>
                     <td className="px-4 py-3">{formatMaintenanceDate(row) || '-'}</td>
@@ -92,4 +96,3 @@ export function MaintenanceTable({
     </DataTablePagination>
   )
 }
-

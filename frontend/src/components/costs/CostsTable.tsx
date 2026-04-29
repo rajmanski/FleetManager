@@ -39,7 +39,7 @@ export function CostsTable({ rows, page, total, pagination, vehicleLabelsById }:
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
               {rows.map((row) => (
-                <tr key={row.id} className="bg-white">
+                <tr key={row.id} className="transition-colors hover:bg-gray-50">
                   <td className="px-4 py-3">
                     <EntityCellLink to={`/vehicles/${row.vehicleId}`}>
                       {vehicleLabelsById[row.vehicleId] ?? `#${row.vehicleId}`}

@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { Button } from '@/components/ui/Button'
-import { CargoItemRow, type WaypointOption } from '@/components/orders/CargoItemRow'
+import { CargoItemRow } from '@/components/orders/CargoItemRow'
+import type { WaypointOption } from '@/types/waypoints'
 import { CargoTotalsBar } from '@/components/orders/CargoTotalsBar'
 import { EMPTY_CARGO_ITEM } from '@/schemas/cargo'
 import { type CargoItemDraft } from '@/schemas/cargo'

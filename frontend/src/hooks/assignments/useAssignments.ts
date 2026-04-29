@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/services/api'
+import type { PaginatedResponse } from '@/types/common'
 
 export type Assignment = {
   assignment_id: number
@@ -13,12 +14,7 @@ export type Assignment = {
   driver_name?: string
 }
 
-export type ListAssignmentsResponse = {
-  data: Assignment[]
-  page: number
-  limit: number
-  total: number
-}
+export type ListAssignmentsResponse = PaginatedResponse<Assignment>
 
 export type UseAssignmentsParams = {
   page: number

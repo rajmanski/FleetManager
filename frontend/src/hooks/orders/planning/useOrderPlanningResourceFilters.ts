@@ -1,10 +1,9 @@
 import { useEffect, useMemo } from 'react'
 import type { Driver } from '@/hooks/drivers/useDrivers'
 import type { Vehicle } from '@/hooks/vehicles/useVehicles'
+import type { SelectOption } from '@/components/ui/Select'
 import { isDriverAdrValid } from './orderPlanningFlowData'
 import { useResourceAvailability } from './useResourceAvailability'
-
-type SelectOption = { value: string; label: string }
 
 type Args = {
   vehicles: Vehicle[]

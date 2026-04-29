@@ -10,6 +10,7 @@ import { type CargoItemDraft, type CargoPayload } from '@/schemas/cargo'
 import { orderFormSchema, type OrderFormValues } from '@/schemas/orders'
 import { parseCargoDraftsToPayloads, type CargoItemErrors } from '@/utils/cargo'
 import type { Client } from '@/hooks/clients/useClients'
+import type { WaypointOption } from '@/types/waypoints'
 
 export type OrderFormPayload = {
   clientId: number
@@ -26,7 +27,7 @@ export type OrderFormModalProps = {
   onSubmit: (payload: OrderFormPayload) => void
   isSubmitting: boolean
   errorMessage: string | null
-  waypoints?: { id: number; address: string; actionType: string }[]
+  waypoints?: WaypointOption[]
 }
 
 export function OrderFormModal({

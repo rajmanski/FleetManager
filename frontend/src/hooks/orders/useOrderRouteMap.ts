@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { calculateRoute, geocodeAddress } from '@/services/routes'
-import type { WaypointOption } from '@/hooks/orders/useOrderWaypoints'
+import type { WaypointOption } from '@/types/waypoints'
 import { buildOrderRouteMapPoints, validWaypointCoords } from '@/utils/orderRouteMap'
 
 type UseOrderRouteMapArgs = {

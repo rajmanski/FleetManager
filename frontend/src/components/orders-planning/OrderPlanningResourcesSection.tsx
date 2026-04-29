@@ -1,9 +1,7 @@
 import { Input } from '@/components/ui/Input'
-import { Select } from '@/components/ui/Select'
+import { Select, type SelectOption } from '@/components/ui/Select'
 import type { OrderPlanningFormValues } from '@/schemas/orderPlanning'
 import type { FieldErrors, UseFormRegister } from 'react-hook-form'
-
-type SelectOption = { value: string; label: string }
 
 type OrderPlanningResourcesSectionProps = {
   register: UseFormRegister<OrderPlanningFormValues>

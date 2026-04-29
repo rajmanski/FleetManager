@@ -4,12 +4,7 @@ import { Select } from '@/components/ui/Select'
 import { CARGO_TYPES, type CargoItemDraft, type CargoType } from '@/schemas/cargo'
 import { Trash2 } from 'lucide-react'
 import type { CargoItemErrors } from '@/utils/cargo'
-
-export type WaypointOption = {
-  id: number | string
-  address: string
-  actionType: string
-}
+import type { WaypointOption } from '@/types/waypoints'
 
 type CargoItemRowProps = {
   item: CargoItemDraft

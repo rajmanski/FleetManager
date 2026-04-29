@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/services/api'
+import type { PaginatedResponse } from '@/types/common'
 import { MAINTENANCE_STATUSES } from '@/constants/maintenanceStatuses'
 
 export type MaintenanceStatus = (typeof MAINTENANCE_STATUSES)[number]
@@ -19,12 +20,7 @@ export type Maintenance = {
   updatedAt?: string
 }
 
-export type ListMaintenanceResponse = {
-  data: Maintenance[]
-  page: number
-  limit: number
-  total: number
-}
+export type ListMaintenanceResponse = PaginatedResponse<Maintenance>
 
 export type UseMaintenanceListParams = {
   page: number

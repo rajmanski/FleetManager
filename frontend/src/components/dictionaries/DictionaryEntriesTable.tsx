@@ -1,4 +1,6 @@
+import { Hash, FileText, Calendar, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { ThWithIcon } from '@/components/ui/ThWithIcon'
 import type { DictionaryEntry } from '@/hooks/dictionaries/useDictionaries'
 import { formatDateTime } from '@/utils/date'
 
@@ -26,10 +28,10 @@ export function DictionaryEntriesTable({
       <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-4 py-3 font-medium text-gray-700">Key</th>
-            <th className="px-4 py-3 font-medium text-gray-700">Value</th>
-            <th className="px-4 py-3 font-medium text-gray-700">Created</th>
-            <th className="px-4 py-3 font-medium text-gray-700 w-40">Actions</th>
+            <ThWithIcon icon={Hash}>Key</ThWithIcon>
+            <ThWithIcon icon={FileText}>Value</ThWithIcon>
+            <ThWithIcon icon={Calendar}>Created</ThWithIcon>
+            <ThWithIcon icon={Wrench}>Actions</ThWithIcon>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200">

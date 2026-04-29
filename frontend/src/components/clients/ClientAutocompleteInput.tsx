@@ -10,6 +10,7 @@ import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { extractApiError } from '@/utils/api'
 import { formatNipDisplay } from '@/utils/nip'
 import type { Client } from '@/hooks/clients/useClients'
+import type { PaginatedResponse } from '@/types/common'
 
 const DEBOUNCE_MS = 300
 const LIMIT = 10
@@ -17,13 +18,6 @@ const LIMIT = 10
 function clientDisplay(client: Client) {
   const nipFormatted = formatNipDisplay(client.nip)
   return `${client.companyName} (NIP: ${nipFormatted})`
-}
-
-type ListClientsResponse = {
-  data: Client[]
-  page: number
-  limit: number
-  total: number
 }
 
 type ClientAutocompleteInputProps = {
@@ -65,7 +59,7 @@ export function ClientAutocompleteInput({
   const fetchClients = useCallback(async (query: string) => {
     setLoading(true)
     try {
-      const res = await api.get<ListClientsResponse>('/api/v1/clients', {
+      const res = await api.get<PaginatedResponse<Client>>('/api/v1/clients', {
         params: {
           q: query.trim(),
           limit: LIMIT,

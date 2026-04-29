@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
 import api from '@/services/api'
+import type { PaginatedResponse } from '@/types/common'
 
 export type Client = {
   id: number
@@ -19,12 +20,7 @@ export type ClientMutationPayload = {
   contactEmail?: string
 }
 
-type ListClientsResponse = {
-  data: Client[]
-  page: number
-  limit: number
-  total: number
-}
+type ListClientsResponse = PaginatedResponse<Client>
 
 type UseClientsParams = {
   page: number

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import api from '@/services/api'
+import type { PaginatedResponse } from '@/types/common'
 
 export type ChangelogEntry = {
   id: number
@@ -13,12 +14,7 @@ export type ChangelogEntry = {
   timestamp?: string
 }
 
-export type ChangelogListResponse = {
-  data: ChangelogEntry[]
-  page: number
-  limit: number
-  total: number
-}
+export type ChangelogListResponse = PaginatedResponse<ChangelogEntry>
 
 type UseChangelogParams = {
   endpoint?: '/api/v1/admin/changelog' | '/api/v1/changelog'

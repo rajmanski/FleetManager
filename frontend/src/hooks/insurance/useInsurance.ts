@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/services/api'
+import type { PaginatedResponse } from '@/types/common'
 
 export type InsurancePolicy = {
   id: number
@@ -14,12 +15,7 @@ export type InsurancePolicy = {
   updatedAt?: string
 }
 
-export type ListInsuranceResponse = {
-  data: InsurancePolicy[]
-  page: number
-  limit: number
-  total: number
-}
+export type ListInsuranceResponse = PaginatedResponse<InsurancePolicy>
 
 export type UseInsuranceListParams = {
   page: number

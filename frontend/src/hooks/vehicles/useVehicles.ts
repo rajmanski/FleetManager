@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
 import api from '@/services/api'
+import type { PaginatedResponse } from '@/types/common'
 
 export type Vehicle = {
   id: number
@@ -27,12 +28,7 @@ export type VehicleMutationPayload = {
   current_mileage_km: number
 }
 
-type ListVehiclesResponse = {
-  data: Vehicle[]
-  page: number
-  limit: number
-  total: number
-}
+type ListVehiclesResponse = PaginatedResponse<Vehicle>
 
 type UseVehiclesParams = {
   page: number

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/services/api'
+import type { PaginatedResponse } from '@/types/common'
 import type { CargoPayload } from '@/schemas/cargo'
 
 export type Order = {
@@ -17,12 +18,7 @@ export type Order = {
   routeEndLocation?: string
 }
 
-type ListOrdersResponse = {
-  data: Order[]
-  page: number
-  limit: number
-  total: number
-}
+type ListOrdersResponse = PaginatedResponse<Order>
 
 type UseOrdersParams = {
   page: number

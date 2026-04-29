@@ -1,4 +1,6 @@
+import { User, Mail, ShieldCheck, CircleDot, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { ThWithIcon } from '@/components/ui/ThWithIcon'
 import type { AdminUser } from '@/hooks/users/useUsers'
 import { formatRole } from '@/utils/role'
 
@@ -15,11 +17,11 @@ export function UsersTable({ users, onEdit, onDelete }: UsersTableProps) {
         <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 font-medium text-gray-700">Login</th>
-              <th className="px-4 py-3 font-medium text-gray-700">Email</th>
-              <th className="px-4 py-3 font-medium text-gray-700">Role</th>
-              <th className="px-4 py-3 font-medium text-gray-700">Status</th>
-              <th className="px-4 py-3 font-medium text-gray-700">Actions</th>
+            <ThWithIcon icon={User}>Login</ThWithIcon>
+                <ThWithIcon icon={Mail}>Email</ThWithIcon>
+                <ThWithIcon icon={ShieldCheck}>Role</ThWithIcon>
+                <ThWithIcon icon={CircleDot}>Status</ThWithIcon>
+                <ThWithIcon icon={Wrench}>Actions</ThWithIcon>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">

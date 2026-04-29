@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/services/api'
+import type { PaginatedResponse } from '@/types/common'
 
 export type Cost = {
   id: number
@@ -9,12 +10,7 @@ export type Cost = {
   date: string
 }
 
-export type ListCostsResponse = {
-  data: Cost[]
-  page: number
-  limit: number
-  total: number
-}
+export type ListCostsResponse = PaginatedResponse<Cost>
 
 export type UseCostsParams = {
   page: number

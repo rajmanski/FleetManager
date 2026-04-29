@@ -1,5 +1,5 @@
 import type { MapPoint } from '@/types/routes'
-import type { WaypointOption } from '@/hooks/orders/useOrderWaypoints'
+import type { WaypointOption } from '@/types/waypoints'
 
 type Endpoint = {
   lat: number

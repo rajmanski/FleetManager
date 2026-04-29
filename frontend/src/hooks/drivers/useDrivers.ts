@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/useAuth'
 import api from '@/services/api'
+import type { PaginatedResponse } from '@/types/common'
 
 export type Driver = {
   id: number
@@ -32,12 +33,7 @@ export type DriverMutationPayload = {
   adr_expiry_date?: string
 }
 
-type ListDriversResponse = {
-  data: Driver[]
-  page: number
-  limit: number
-  total: number
-}
+type ListDriversResponse = PaginatedResponse<Driver>
 
 type UseDriversParams = {
   page: number

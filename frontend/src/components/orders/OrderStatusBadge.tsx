@@ -4,13 +4,7 @@ import {
   Loader2,
   Clock,
 } from 'lucide-react'
-
-export type OrderStatus =
-  | 'New'
-  | 'Planned'
-  | 'InProgress'
-  | 'Completed'
-  | 'Cancelled'
+import type { OrderStatus } from '@/constants/orders'
 
 type OrderStatusBadgeProps = {
   status: OrderStatus | string

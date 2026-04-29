@@ -54,8 +54,8 @@ describe('CargoSection', () => {
         ]}
         onChange={onChange}
         waypoints={[
-          { id: 'wp-1', address: 'Drop A', actionType: 'Dropoff' },
-          { id: 'wp-2', address: 'Stop B', actionType: 'Stopover' },
+          { id: 1, address: 'Drop A', actionType: 'Dropoff', sequenceOrder: 1 },
+          { id: 2, address: 'Stop B', actionType: 'Stopover', sequenceOrder: 2 },
         ]}
       />,
     )
@@ -63,7 +63,7 @@ describe('CargoSection', () => {
     const selects = screen.getAllByRole('combobox')
     const dropoffSelect = selects[selects.length - 1]
     expect(dropoffSelect).toBeDefined()
-    await user.selectOptions(dropoffSelect!, 'wp-1')
+    await user.selectOptions(dropoffSelect!, '1')
     expect(onChange).toHaveBeenCalled()
     const lastCall = onChange.mock.calls.at(-1)?.[0]
     expect(lastCall?.[0]?.destinationWaypointTempId).toBe('wp-1')

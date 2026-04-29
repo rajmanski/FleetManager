@@ -1,15 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import api from '@/services/api'
 
-export type WaypointOption = {
-  id: number
-  address: string
-  actionType: string
-  sequenceOrder: number
-  latitude?: number
-  longitude?: number
-}
-
 export function useOrderWaypoints(routeId: number | null | undefined) {
   const effectiveRouteId = routeId ?? null
 

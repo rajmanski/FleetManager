@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/services/api'
+import type { PaginatedResponse } from '@/types/common'
 
 export type FuelLog = {
   id: number
@@ -18,12 +19,7 @@ export type FuelLog = {
   deviation_percent: number
 }
 
-export type ListFuelLogsResponse = {
-  data: FuelLog[]
-  page: number
-  limit: number
-  total: number
-}
+export type ListFuelLogsResponse = PaginatedResponse<FuelLog>
 
 export type UseFuelLogsParams = {
   page: number

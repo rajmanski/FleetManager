@@ -40,7 +40,7 @@ export function FuelTable({ rows, page, total, pagination, vehicleLabelsById }: 
                 <ThWithIcon icon={Droplets}>Liters</ThWithIcon>
                 <ThWithIcon icon={DollarSign}>Cost (PLN)</ThWithIcon>
                 <ThWithIcon icon={Gauge}>Mileage</ThWithIcon>
-                <ThWithIcon icon={Flame}>Spalanie</ThWithIcon>
+                <ThWithIcon icon={Flame}>Consumption</ThWithIcon>
                 <ThWithIcon icon={AlertTriangle}>Alert</ThWithIcon>
               </tr>
             </thead>
@@ -48,7 +48,7 @@ export function FuelTable({ rows, page, total, pagination, vehicleLabelsById }: 
               {rows.map((row) => (
                 <tr
                   key={row.id}
-                  className={row.is_anomaly ? 'bg-red-50' : 'bg-white'}
+                  className={`transition-colors ${row.is_anomaly ? 'bg-red-50 hover:bg-red-100' : 'bg-white hover:bg-gray-50'}`}
                 >
                   <td className="px-4 py-3">
                     <EntityCellLink to={`/vehicles/${row.vehicle_id}`}>
@@ -63,14 +63,18 @@ export function FuelTable({ rows, page, total, pagination, vehicleLabelsById }: 
                   <td className="px-4 py-3">
                     {row.is_anomaly ? (
                       <Tooltip
-                        content={`Spalanie: ${formatOneDecimal(row.consumption_per_100km)} l/100km (średnia: ${formatOneDecimal(row.avg_consumption_per_100km)} l/100km, odchylenie: +${formatOneDecimal(row.deviation_percent)}%)`}
+                        content={`Consumption: ${formatOneDecimal(row.consumption_per_100km)} l/100km (avg: ${formatOneDecimal(row.avg_consumption_per_100km)} l/100km, deviation: +${formatOneDecimal(row.deviation_percent)}%)`}
                       >
-                        <span aria-label="Fuel anomaly warning" className="inline-block">
-                          ⚠️
+                        <span
+                          aria-label="Fuel anomaly warning"
+                          className="inline-flex items-center gap-1 text-xs font-medium text-red-700"
+                        >
+                          <AlertTriangle className="h-4 w-4 text-red-500" aria-hidden="true" />
+                          Anomaly
                         </span>
                       </Tooltip>
                     ) : (
-                      '-'
+                      <span className="text-xs text-gray-400">—</span>
                     )}
                   </td>
                 </tr>
@@ -82,4 +86,3 @@ export function FuelTable({ rows, page, total, pagination, vehicleLabelsById }: 
     </DataTablePagination>
   )
 }
-

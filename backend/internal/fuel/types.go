@@ -8,7 +8,7 @@ type CreateFuelRequest struct {
 	Liters       float64 `json:"liters" binding:"required,gte=0"`
 	PricePerLiter float64 `json:"price_per_liter" binding:"required,gte=0"`
 	Mileage      int64   `json:"mileage" binding:"required,gte=0"`
-	Location     string  `json:"location" binding:"required,min=1"`
+	Location     string  `json:"location"`
 }
 
 type FuelLog struct {

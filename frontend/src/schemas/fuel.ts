@@ -13,7 +13,7 @@ export const fuelFormSchema = z.object({
   mileage: z
     .preprocess((v) => (v === '' || v == null ? NaN : Number(v)), z.number())
     .pipe(z.number().int('Mileage must be an integer.').min(0, 'Mileage must be non-negative.')),
-  location: z.string().trim().min(1, 'Location is required.'),
+  location: z.string().trim().optional(),
 })
 
 export type FuelFormInput = z.input<typeof fuelFormSchema>

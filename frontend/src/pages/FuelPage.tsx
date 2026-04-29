@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
@@ -112,7 +113,7 @@ function FuelPage() {
         liters: values.liters,
         price_per_liter: values.pricePerLiter,
         mileage: values.mileage,
-        location: values.location.trim(),
+        location: (values.location ?? '').trim(),
       },
       createCallbacks,
     )
@@ -124,7 +125,7 @@ function FuelPage() {
     <div className="space-y-6">
       <PageHeader
         title="Fuel logs"
-        description="Fuel refuels with mileage and anomaly warning marker"
+        description="Fuel refueling records with mileage tracking and anomaly detection"
         action={
           <div className="flex flex-wrap items-center gap-3">
             {canManageFuelLogs ? (
@@ -137,10 +138,11 @@ function FuelPage() {
               <FilterCheckbox
                 checked={onlyAnomalies}
                 onChange={setOnlyAnomalies}
-                label="Pokaż tylko anomalie"
+                label="Show only anomalies"
               />
-              <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
-                Anomalie: {anomaliesCount}
+              <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800">
+                <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                Anomalies: {anomaliesCount}
               </span>
             </div>
           </div>

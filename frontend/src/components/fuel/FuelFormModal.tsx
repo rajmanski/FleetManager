@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Modal } from '@/components/ui/Modal'
@@ -51,11 +51,18 @@ export function FuelFormModal({
   })
 
   const selectedVehicleId = watch('vehicleId')
+  const liters = watch('liters')
+  const pricePerLiter = watch('pricePerLiter')
+
+  const totalCost = useMemo(() => {
+    const l = parseFloat(liters as any) || 0
+    const p = parseFloat(pricePerLiter as any) || 0
+    return l * p
+  }, [liters, pricePerLiter])
 
   useEffect(() => {
     const selected = vehicleOptions.find((v) => v.value === selectedVehicleId)
     if (selected) {
-      // Auto-fill with latest known mileage; user can still edit.
       setValue('mileage', selected.currentMileageKm, { shouldDirty: true })
     }
   }, [selectedVehicleId, vehicleOptions, setValue])
@@ -96,26 +103,30 @@ export function FuelFormModal({
           />
         </div>
 
-        <Input
-          label="Mileage (km)"
-          type="number"
-          variant="numeric"
-          error={errors.mileage?.message}
-          min={0}
-          required
-          {...register('mileage')}
-        />
+        <div className="grid gap-4 md:grid-cols-2">
+          <Input
+            label="Mileage (km)"
+            type="number"
+            error={errors.mileage?.message}
+            min={0}
+            required
+            {...register('mileage')}
+          />
+          <Input
+            label="Location"
+            error={errors.location?.message}
+            {...register('location')}
+          />
+        </div>
 
-        <Input
-          label="Location"
-          error={errors.location?.message}
-          required
-          {...register('location')}
-        />
+        <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+          <span className="font-medium text-gray-800">Total cost:</span>{' '}
+          {totalCost.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
+          PLN
+        </div>
 
         <ModalFooter onCancel={onClose} submitLabel={submitLabel} isSubmitting={isSubmitting} />
       </form>
     </Modal>
   )
 }
-

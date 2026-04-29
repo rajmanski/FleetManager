@@ -19,9 +19,6 @@ func NewService(repo Repository) *Service {
 
 func (s *Service) CreateFuelLog(ctx context.Context, req CreateFuelRequest) (CreateFuelResponse, error) {
 	location := strings.TrimSpace(req.Location)
-	if location == "" {
-		return CreateFuelResponse{}, ErrInvalidInput
-	}
 
 	if req.VehicleID <= 0 || req.Mileage < 0 || req.Liters < 0 || req.PricePerLiter < 0 {
 		return CreateFuelResponse{}, ErrInvalidInput

@@ -8,5 +8,6 @@ type Repository interface {
 	CreateMaintenance(ctx context.Context, input CreateMaintenanceRequest) (int64, error)
 	UpdateMaintenance(ctx context.Context, maintenanceID int64, input UpdateMaintenanceRequest) error
 	UpdateMaintenanceStatus(ctx context.Context, maintenanceID int64, status string) error
+	UpdateVehicleStatus(ctx context.Context, vehicleID int64, status string) error
 }
 

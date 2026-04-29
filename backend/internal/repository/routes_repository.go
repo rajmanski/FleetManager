@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/waypoints"
@@ -19,7 +20,7 @@ func NewRoutesRepository(queries sqlc.Querier) *RoutesRepository {
 func (r *RoutesRepository) GetRouteByID(ctx context.Context, routeID int64) (waypoints.Route, error) {
 	row, err := r.queries.GetRouteByID(ctx, int32(routeID))
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return waypoints.Route{}, waypoints.ErrRouteIDNotFound
 		}
 		return waypoints.Route{}, err

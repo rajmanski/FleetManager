@@ -3,8 +3,6 @@ package maintenance
 import (
 	"context"
 	"strings"
-
-	sqlc "fleet-management/internal/db/sqlc"
 )
 
 const (
@@ -14,12 +12,11 @@ const (
 )
 
 type Service struct {
-	repo    Repository
-	queries sqlc.Querier
+	repo Repository
 }
 
-func NewService(repo Repository, queries sqlc.Querier) *Service {
-	return &Service{repo: repo, queries: queries}
+func NewService(repo Repository) *Service {
+	return &Service{repo: repo}
 }
 
 func (s *Service) ListMaintenance(ctx context.Context, query ListMaintenanceQuery) (ListMaintenanceResponse, error) {
@@ -154,27 +151,8 @@ func (s *Service) UpdateMaintenanceStatus(ctx context.Context, maintenanceID int
 		return Maintenance{}, err
 	}
 
-	switch status {
-	case "InProgress":
-		if _, err := s.queries.UpdateVehicleStatusByID(ctx, sqlc.UpdateVehicleStatusByIDParams{
-			VehicleID: int32(record.VehicleID),
-			Status: sqlc.NullVehiclesStatus{
-				VehiclesStatus: sqlc.VehiclesStatusService,
-				Valid:          true,
-			},
-		}); err != nil {
-			return Maintenance{}, err
-		}
-	case "Completed":
-		if _, err := s.queries.UpdateVehicleStatusByID(ctx, sqlc.UpdateVehicleStatusByIDParams{
-			VehicleID: int32(record.VehicleID),
-			Status: sqlc.NullVehiclesStatus{
-				VehiclesStatus: sqlc.VehiclesStatusAvailable,
-				Valid:          true,
-			},
-		}); err != nil {
-			return Maintenance{}, err
-		}
+	if err := s.repo.UpdateVehicleStatus(ctx, record.VehicleID, status); err != nil {
+		return Maintenance{}, err
 	}
 
 	return s.repo.GetMaintenanceByID(ctx, maintenanceID)

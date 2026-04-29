@@ -420,3 +420,4 @@ func mapGetTripRow(row sqlc.GetTripByIDRow) trips.Trip {
 	}
 	return t
 }
+var _ trips.Repository = (*TripsRepository)(nil)

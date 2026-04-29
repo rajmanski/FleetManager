@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"fleet-management/internal/httputil"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -127,9 +129,5 @@ func (h *Handler) DeleteCost(c *gin.Context) {
 }
 
 func parseCostIDParam(c *gin.Context) (int64, error) {
-	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil || id <= 0 {
-		return 0, ErrInvalidInput
-	}
-	return id, nil
+	return httputil.ParsePositiveInt64Param(c, "id")
 }

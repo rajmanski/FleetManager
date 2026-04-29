@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"fleet-management/internal/httputil"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -98,7 +100,7 @@ func (h *Handler) EndAssignment(c *gin.Context) {
 }
 
 func (h *Handler) GetVehicleAssignmentHistory(c *gin.Context) {
-	vehicleID, err := parseInt64Param(c, "id")
+	vehicleID, err := httputil.ParsePositiveInt64Param(c, "id")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle id"})
 		return
@@ -118,7 +120,7 @@ func (h *Handler) GetVehicleAssignmentHistory(c *gin.Context) {
 }
 
 func (h *Handler) GetDriverAssignmentHistory(c *gin.Context) {
-	driverID, err := parseInt64Param(c, "id")
+	driverID, err := httputil.ParsePositiveInt64Param(c, "id")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid driver id"})
 		return
@@ -138,14 +140,5 @@ func (h *Handler) GetDriverAssignmentHistory(c *gin.Context) {
 }
 
 func parseAssignmentIDParam(c *gin.Context) (int64, error) {
-	return parseInt64Param(c, "id")
-}
-
-func parseInt64Param(c *gin.Context, name string) (int64, error) {
-	value := c.Param(name)
-	id, err := strconv.ParseInt(value, 10, 64)
-	if err != nil || id <= 0 {
-		return 0, ErrInvalidInput
-	}
-	return id, nil
+	return httputil.ParsePositiveInt64Param(c, "id")
 }

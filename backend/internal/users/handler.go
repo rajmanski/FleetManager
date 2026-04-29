@@ -3,9 +3,9 @@ package users
 import (
 	"errors"
 	"net/http"
-	"strconv"
 
 	"fleet-management/internal/auth"
+	"fleet-management/internal/httputil"
 
 	"github.com/gin-gonic/gin"
 )
@@ -165,10 +165,5 @@ func (h *Handler) DeleteAdminUser(c *gin.Context) {
 }
 
 func parseUserIDParam(c *gin.Context) (int64, error) {
-	userIDParam := c.Param("id")
-	userID, err := strconv.ParseInt(userIDParam, 10, 64)
-	if err != nil || userID <= 0 {
-		return 0, ErrInvalidInput
-	}
-	return userID, nil
+	return httputil.ParsePositiveInt64Param(c, "id")
 }

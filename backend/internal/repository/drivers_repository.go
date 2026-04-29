@@ -466,3 +466,4 @@ func decryptDriverPESEL(pesel sql.NullString, encryptionKey []byte) string {
 	plain, _ := crypto.DecryptPESEL(pesel.String, encryptionKey)
 	return plain
 }
+var _ drivers.Repository = (*DriversRepository)(nil)

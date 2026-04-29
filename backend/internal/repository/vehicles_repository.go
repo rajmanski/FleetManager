@@ -10,8 +10,6 @@ import (
 
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/vehicles"
-
-	mysqlDriver "github.com/go-sql-driver/mysql"
 )
 
 type VehiclesRepository struct {
@@ -67,7 +65,7 @@ func (r *VehiclesRepository) ListVehicles(ctx context.Context, query vehicles.Li
 
 	result := make([]vehicles.Vehicle, 0, len(rows))
 	for _, row := range rows {
-		result = append(result, mapListVehicleRow(row))
+		result = append(result, mapVehicleRow(row))
 	}
 	return result, total, nil
 }
@@ -294,31 +292,6 @@ func (r *VehiclesRepository) ListVehicleMaintenanceHistory(ctx context.Context, 
 	return result, nil
 }
 
-func toNullString(value *string) sql.NullString {
-	if value == nil {
-		return sql.NullString{}
-	}
-	trimmed := strings.TrimSpace(*value)
-	if trimmed == "" {
-		return sql.NullString{}
-	}
-	return sql.NullString{String: trimmed, Valid: true}
-}
-
-func toNullInt32(value *int32) sql.NullInt32 {
-	if value == nil {
-		return sql.NullInt32{}
-	}
-	return sql.NullInt32{Int32: *value, Valid: true}
-}
-
-func toNullInt16(value *int16) sql.NullInt16 {
-	if value == nil {
-		return sql.NullInt16{}
-	}
-	return sql.NullInt16{Int16: *value, Valid: true}
-}
-
 func toNullStatus(status string) sqlc.NullVehiclesStatus {
 	if strings.TrimSpace(status) == "" {
 		return sqlc.NullVehiclesStatus{}
@@ -330,51 +303,6 @@ func toNullStatus(status string) sqlc.NullVehiclesStatus {
 }
 
 func mapVehicleRow(row sqlc.Vehicle) vehicles.Vehicle {
-	vehicle := vehicles.Vehicle{
-		ID:     int64(row.VehicleID),
-		VIN:    row.Vin,
-		Status: string(row.Status.VehiclesStatus),
-	}
-	if row.PlateNumber.Valid {
-		value := row.PlateNumber.String
-		vehicle.PlateNumber = &value
-	}
-	if row.Brand.Valid {
-		value := row.Brand.String
-		vehicle.Brand = &value
-	}
-	if row.Model.Valid {
-		value := row.Model.String
-		vehicle.Model = &value
-	}
-	if row.CapacityKg.Valid {
-		value := row.CapacityKg.Int32
-		vehicle.CapacityKg = &value
-	}
-	if row.ProductionYear.Valid {
-		value := row.ProductionYear.Int16
-		vehicle.ProductionYear = &value
-	}
-	if row.CurrentMileageKm.Valid {
-		value := row.CurrentMileageKm.Int32
-		vehicle.CurrentMileageKm = &value
-	}
-	if row.CreatedAt.Valid {
-		value := row.CreatedAt.Time
-		vehicle.CreatedAt = &value
-	}
-	if row.DeletedAt.Valid {
-		value := row.DeletedAt.Time
-		vehicle.DeletedAt = &value
-	}
-	if row.UpdatedAt.Valid {
-		value := row.UpdatedAt.Time
-		vehicle.UpdatedAt = &value
-	}
-	return vehicle
-}
-
-func mapListVehicleRow(row sqlc.Vehicle) vehicles.Vehicle {
 	vehicle := vehicles.Vehicle{
 		ID:     int64(row.VehicleID),
 		VIN:    row.Vin,
@@ -460,12 +388,7 @@ func mapGetVehicleRow(row sqlc.GetVehicleByIDRow) vehicles.Vehicle {
 	return vehicle
 }
 
-func isDuplicateEntryError(err error) bool {
-	var mysqlErr *mysqlDriver.MySQLError
-	return errors.As(err, &mysqlErr) && mysqlErr.Number == 1062
-}
 
-func isTableNotFoundError(err error) bool {
-	var mysqlErr *mysqlDriver.MySQLError
-	return errors.As(err, &mysqlErr) && mysqlErr.Number == 1146
-}
+
+
+var _ vehicles.Repository = (*VehiclesRepository)(nil)

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/maintenance"
@@ -88,11 +87,11 @@ func (r *MaintenanceRepository) CreateMaintenance(ctx context.Context, input mai
 
 	return r.queries.CreateMaintenance(ctx, sqlc.CreateMaintenanceParams{
 		VehicleID:    int32(input.VehicleID),
-		StartDate:    maintenanceToNullTimeFromString(input.StartDate),
-		EndDate:      maintenanceToNullTimeFromString(input.EndDate),
+		StartDate:    toNullTimeFromString(input.StartDate),
+		EndDate:      toNullTimeFromString(input.EndDate),
 		Type:         sqlc.MaintenanceType(strings.TrimSpace(input.Type)),
 		Status:       sqlc.MaintenanceStatus(status),
-		Description:  maintenanceToNullString(input.Description),
+		Description:  toNullString(input.Description),
 		LaborCostPln: fmt.Sprintf("%.2f", labor),
 		PartsCostPln: fmt.Sprintf("%.2f", parts),
 	})
@@ -109,11 +108,11 @@ func (r *MaintenanceRepository) UpdateMaintenance(ctx context.Context, maintenan
 
 	rows, err := r.queries.UpdateMaintenance(ctx, sqlc.UpdateMaintenanceParams{
 		VehicleID:     int32(input.VehicleID),
-		StartDate:     maintenanceToNullTimeFromString(input.StartDate),
-		EndDate:       maintenanceToNullTimeFromString(input.EndDate),
+		StartDate:     toNullTimeFromString(input.StartDate),
+		EndDate:       toNullTimeFromString(input.EndDate),
 		Type:          sqlc.MaintenanceType(strings.TrimSpace(input.Type)),
 		Status:        sqlc.MaintenanceStatus(status),
-		Description:   maintenanceToNullString(input.Description),
+		Description:   toNullString(input.Description),
 		LaborCostPln:  fmt.Sprintf("%.2f", labor),
 		PartsCostPln:  fmt.Sprintf("%.2f", parts),
 		MaintenanceID: int32(maintenanceID),
@@ -188,35 +187,23 @@ func mapMaintenanceRow(row sqlc.Maintenance) maintenance.Maintenance {
 	return m
 }
 
-func float64OrZero(v *float64) float64 {
-	if v == nil {
-		return 0
+
+
+func (r *MaintenanceRepository) UpdateVehicleStatus(ctx context.Context, vehicleID int64, status string) error {
+	vehicleStatus := sqlc.NullVehiclesStatus{Valid: true}
+	switch status {
+	case "InProgress":
+		vehicleStatus.VehiclesStatus = sqlc.VehiclesStatusService
+	case "Completed":
+		vehicleStatus.VehiclesStatus = sqlc.VehiclesStatusAvailable
+	default:
+		return maintenance.ErrInvalidStatus
 	}
-	return *v
+	_, err := r.queries.UpdateVehicleStatusByID(ctx, sqlc.UpdateVehicleStatusByIDParams{
+		VehicleID: int32(vehicleID),
+		Status:    vehicleStatus,
+	})
+	return err
 }
 
-func maintenanceToNullTimeFromString(s *string) sql.NullTime {
-	if s == nil || strings.TrimSpace(*s) == "" {
-		return sql.NullTime{}
-	}
-	t, err := time.Parse("2006-01-02", strings.TrimSpace(*s))
-	if err != nil {
-		t, err = time.Parse(time.RFC3339, strings.TrimSpace(*s))
-		if err != nil {
-			return sql.NullTime{}
-		}
-	}
-	return sql.NullTime{Time: t, Valid: true}
-}
-
-func maintenanceToNullString(value *string) sql.NullString {
-	if value == nil {
-		return sql.NullString{}
-	}
-	trimmed := strings.TrimSpace(*value)
-	if trimmed == "" {
-		return sql.NullString{}
-	}
-	return sql.NullString{String: trimmed, Valid: true}
-}
-
+var _ maintenance.Repository = (*MaintenanceRepository)(nil)

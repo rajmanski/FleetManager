@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strconv"
 
 	sqlc "fleet-management/internal/db/sqlc"
@@ -32,7 +33,7 @@ func (r *WaypointsRepository) ListWaypointsByRouteID(ctx context.Context, routeI
 func (r *WaypointsRepository) GetWaypointByID(ctx context.Context, waypointID int64) (waypoints.Waypoint, error) {
 	row, err := r.queries.GetWaypointByID(ctx, int32(waypointID))
 	if err != nil {
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 			return waypoints.Waypoint{}, waypoints.ErrWaypointNotFound
 		}
 		return waypoints.Waypoint{}, err

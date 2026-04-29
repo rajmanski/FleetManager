@@ -3,7 +3,8 @@ package cargo
 import (
 	"errors"
 	"net/http"
-	"strconv"
+
+	"fleet-management/internal/httputil"
 
 	"github.com/gin-gonic/gin"
 )
@@ -168,25 +169,9 @@ func (h *Handler) AssignWaypoint(c *gin.Context) {
 }
 
 func parseOrderIDParam(c *gin.Context) (int64, error) {
-	value := c.Param("id")
-	if value == "" {
-		return 0, ErrInvalidInput
-	}
-	id, err := strconv.ParseInt(value, 10, 64)
-	if err != nil || id <= 0 {
-		return 0, ErrInvalidInput
-	}
-	return id, nil
+	return httputil.ParsePositiveInt64Param(c, "id")
 }
 
 func parseCargoIDParam(c *gin.Context) (int64, error) {
-	value := c.Param("id")
-	if value == "" {
-		return 0, ErrInvalidInput
-	}
-	id, err := strconv.ParseInt(value, 10, 64)
-	if err != nil || id <= 0 {
-		return 0, ErrInvalidInput
-	}
-	return id, nil
+	return httputil.ParsePositiveInt64Param(c, "id")
 }

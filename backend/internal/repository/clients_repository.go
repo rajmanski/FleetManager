@@ -173,3 +173,4 @@ func mapClientRow(row sqlc.Client) clients.Client {
 	return client
 }
 
+var _ clients.Repository = (*ClientsRepository)(nil)

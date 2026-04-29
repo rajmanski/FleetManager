@@ -49,7 +49,7 @@ func (r *CargoRepository) GetCargoByID(ctx context.Context, cargoID int64) (carg
 func (r *CargoRepository) CreateCargo(ctx context.Context, orderID int64, description string, weightKg, volumeM3 float64, cargoType string) (int64, error) {
 	return r.queries.CreateCargo(ctx, sqlc.CreateCargoParams{
 		OrderID:     int32(orderID),
-		Description: toNullStringCargo(description),
+		Description: toNullStringFromValue(description),
 		WeightKg:    sql.NullString{String: fmt.Sprintf("%.2f", weightKg), Valid: true},
 		VolumeM3:    sql.NullString{String: fmt.Sprintf("%.2f", volumeM3), Valid: true},
 		CargoType:   toNullCargoType(cargoType),
@@ -58,7 +58,7 @@ func (r *CargoRepository) CreateCargo(ctx context.Context, orderID int64, descri
 
 func (r *CargoRepository) UpdateCargo(ctx context.Context, cargoID int64, description string, weightKg, volumeM3 float64, cargoType string) (int64, error) {
 	return r.queries.UpdateCargo(ctx, sqlc.UpdateCargoParams{
-		Description: toNullStringCargo(description),
+		Description: toNullStringFromValue(description),
 		WeightKg:    sql.NullString{String: fmt.Sprintf("%.2f", weightKg), Valid: true},
 		VolumeM3:    sql.NullString{String: fmt.Sprintf("%.2f", volumeM3), Valid: true},
 		CargoType:   toNullCargoType(cargoType),
@@ -170,13 +170,6 @@ func cargoRowFromFields(
 	return row
 }
 
-func toNullStringCargo(s string) sql.NullString {
-	if s == "" {
-		return sql.NullString{}
-	}
-	return sql.NullString{String: s, Valid: true}
-}
-
 func toNullCargoType(s string) sqlc.NullCargoCargoType {
 	switch s {
 	case "General", "Refrigerated", "Hazardous":
@@ -184,3 +177,4 @@ func toNullCargoType(s string) sqlc.NullCargoCargoType {
 	}
 	return sqlc.NullCargoCargoType{CargoCargoType: sqlc.CargoCargoTypeGeneral, Valid: true}
 }
+var _ cargo.Repository = (*CargoRepository)(nil)

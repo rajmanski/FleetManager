@@ -237,3 +237,4 @@ func mapFuelLogRow(row sqlc.ListFuelLogsRow) fuel.FuelLog {
 	}
 }
 
+var _ fuel.Repository = (*FuelRepository)(nil)

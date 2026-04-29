@@ -208,3 +208,4 @@ func mapGetAssignmentByIDRow(row sqlc.GetAssignmentByIDRow) assignments.Assignme
 	}
 	return a
 }
+var _ assignments.Repository = (*AssignmentsRepository)(nil)

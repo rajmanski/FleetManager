@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"fleet-management/internal/httputil"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -183,11 +185,6 @@ func (h *Handler) AbortTrip(c *gin.Context) {
 }
 
 func parseTripIDParam(c *gin.Context) (int64, error) {
-	value := c.Param("id")
-	tripID, err := strconv.ParseInt(value, 10, 64)
-	if err != nil || tripID <= 0 {
-		return 0, ErrInvalidInput
-	}
-	return tripID, nil
+	return httputil.ParsePositiveInt64Param(c, "id")
 }
 

@@ -88,8 +88,8 @@ func (r *CostsRepository) CreateCost(ctx context.Context, input costs.CreateCost
 		Category:      sqlc.CostsCategory(strings.TrimSpace(input.Category)),
 		Amount:        fmt.Sprintf("%.2f", input.Amount),
 		Date:          date,
-		Description:   nullableString(input.Description),
-		InvoiceNumber: nullableString(input.InvoiceNumber),
+		Description:   toNullStringFromValue(input.Description),
+		InvoiceNumber: toNullStringFromValue(input.InvoiceNumber),
 	})
 }
 
@@ -104,8 +104,8 @@ func (r *CostsRepository) UpdateCost(ctx context.Context, id int64, input costs.
 		Category:      sqlc.CostsCategory(strings.TrimSpace(input.Category)),
 		Amount:        fmt.Sprintf("%.2f", input.Amount),
 		Date:          date,
-		Description:   nullableString(input.Description),
-		InvoiceNumber: nullableString(input.InvoiceNumber),
+		Description:   toNullStringFromValue(input.Description),
+		InvoiceNumber: toNullStringFromValue(input.InvoiceNumber),
 		ID:            int32(id),
 	})
 	if err != nil {
@@ -150,18 +150,5 @@ func mapCostRow(row sqlc.Cost) costs.Cost {
 	}
 }
 
-func nullableString(value string) sql.NullString {
-	trimmed := strings.TrimSpace(value)
-	if trimmed == "" {
-		return sql.NullString{}
-	}
-	return sql.NullString{String: trimmed, Valid: true}
-}
 
-func nullStringToPtr(value sql.NullString) *string {
-	if !value.Valid {
-		return nil
-	}
-	v := value.String
-	return &v
-}
+var _ costs.Repository = (*CostsRepository)(nil)

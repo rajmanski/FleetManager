@@ -60,3 +60,4 @@ func (r *AuthRepository) UpdateLoginState(ctx context.Context, userID int64, fai
 		UserID:      int32(userID),
 	})
 }
+var _ auth.Repository = (*AuthRepository)(nil)

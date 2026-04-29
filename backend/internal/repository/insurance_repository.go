@@ -177,3 +177,4 @@ func insurancePolicyDateFromPtr(s *string) (time.Time, error) {
 	}
 	return t, nil
 }
+var _ insurance.Repository = (*InsuranceRepository)(nil)

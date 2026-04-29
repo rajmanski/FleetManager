@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	sqlc "fleet-management/internal/db/sqlc"
 	"fleet-management/internal/orders"
@@ -205,23 +204,5 @@ func mapGetOrderByIDRow(row sqlc.GetOrderByIDRow) orders.Order {
 	return o
 }
 
-func toNullTimeFromString(s *string) sql.NullTime {
-	if s == nil || strings.TrimSpace(*s) == "" {
-		return sql.NullTime{}
-	}
-	t, err := time.Parse("2006-01-02", strings.TrimSpace(*s))
-	if err != nil {
-		t, err = time.Parse(time.RFC3339, strings.TrimSpace(*s))
-		if err != nil {
-			return sql.NullTime{}
-		}
-	}
-	return sql.NullTime{Time: t, Valid: true}
-}
 
-func toNullStringFromFloat64(f *float64) sql.NullString {
-	if f == nil {
-		return sql.NullString{}
-	}
-	return sql.NullString{String: fmt.Sprintf("%.2f", *f), Valid: true}
-}
+var _ orders.Repository = (*OrdersRepository)(nil)

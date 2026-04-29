@@ -3,8 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"strconv"
 	"time"
 
 	sqlc "fleet-management/internal/db/sqlc"
@@ -199,23 +197,3 @@ func (r *ReportsRepository) GetGlobalCostsInRange(
 }
 
 var _ reports.Repository = (*ReportsRepository)(nil)
-
-func parseDecimalAny(value interface{}) (float64, error) {
-	switch v := value.(type) {
-	case float64:
-		return v, nil
-	case int64:
-		return float64(v), nil
-	case []byte:
-		return strconv.ParseFloat(string(v), 64)
-	case string:
-		return strconv.ParseFloat(v, 64)
-	default:
-		var parsed float64
-		_, err := fmt.Sscanf(fmt.Sprint(v), "%f", &parsed)
-		if err != nil {
-			return 0, err
-		}
-		return parsed, nil
-	}
-}

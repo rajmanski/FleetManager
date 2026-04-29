@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"fleet-management/internal/auth"
+	"fleet-management/internal/httputil"
 
 	"github.com/gin-gonic/gin"
 )
@@ -294,10 +295,5 @@ func (h *Handler) CanDriverTransportHazardous(c *gin.Context) {
 }
 
 func parseDriverIDParam(c *gin.Context) (int64, error) {
-	value := c.Param("id")
-	driverID, err := strconv.ParseInt(value, 10, 64)
-	if err != nil || driverID <= 0 {
-		return 0, ErrInvalidInput
-	}
-	return driverID, nil
+	return httputil.ParsePositiveInt64Param(c, "id")
 }

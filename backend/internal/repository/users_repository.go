@@ -130,3 +130,4 @@ func (r *UsersRepository) SoftDeleteAdminUser(ctx context.Context, userID int64)
 	}
 	return nil
 }
+var _ users.Repository = (*UsersRepository)(nil)

@@ -161,3 +161,4 @@ func isValidChangelogOperation(op string) bool {
 		return false
 	}
 }
+var _ changelog.Repository = (*ChangelogRepository)(nil)

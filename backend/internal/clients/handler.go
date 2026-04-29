@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"fleet-management/internal/auth"
+	"fleet-management/internal/httputil"
 
 	"github.com/gin-gonic/gin"
 )
@@ -199,11 +200,6 @@ func (h *Handler) RestoreClient(c *gin.Context) {
 }
 
 func parseClientIDParam(c *gin.Context) (int64, error) {
-	value := c.Param("id")
-	clientID, err := strconv.ParseInt(value, 10, 64)
-	if err != nil || clientID <= 0 {
-		return 0, ErrInvalidInput
-	}
-	return clientID, nil
+	return httputil.ParsePositiveInt64Param(c, "id")
 }
 

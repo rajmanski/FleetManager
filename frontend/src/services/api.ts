@@ -6,7 +6,7 @@ import {
   saveAccessToken,
 } from '@/services/authStorage'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+const API_BASE_URL = import.meta.env.VITE_API_URL || ''
 const SESSION_EXPIRED_MESSAGE_KEY = 'session_expired_message'
 const PROACTIVE_REFRESH_BUFFER_SECONDS = 5 * 60
 

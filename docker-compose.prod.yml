@@ -23,17 +23,11 @@ services:
   migrate:
     image: migrate/migrate:v4.19.1
     env_file: .env
-    environment:
-      - DB_HOST=${DB_HOST:-mysql}
-      - DB_PORT=${DB_PORT:-3306}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
-    entrypoint:
+    command:
       [
-        "sh",
-        "-c",
-        "migrate -path=/migrations -database 'mysql://$DB_USER:$DB_PASSWORD@tcp($DB_HOST:$DB_PORT)/$DB_NAME?multiStatements=true' up",
+        "-path=/migrations",
+        "-database=mysql://${DB_USER}:${DB_PASSWORD}@tcp(${DB_HOST}:${DB_PORT})/${DB_NAME}?multiStatements=true",
+        "up",
       ]
     volumes:
       - ./backend/migrations:/migrations

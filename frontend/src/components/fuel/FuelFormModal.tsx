@@ -80,7 +80,7 @@ export function FuelFormModal({
 
         <Input label="Date" type="date" error={errors.date?.message} required {...register('date')} />
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label="Liters"
             type="number"
@@ -103,7 +103,7 @@ export function FuelFormModal({
           />
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label="Mileage (km)"
             type="number"

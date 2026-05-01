@@ -45,7 +45,7 @@ function OrdersPage() {
             <div className="flex flex-wrap items-center gap-2">
               <Button
                 onClick={() => navigate('/orders/new/planning')}
-                className="inline-flex items-center whitespace-nowrap"
+                className="inline-flex items-center"
               >
                 <Plus className="mr-2 h-4 w-4 shrink-0" />
                 New order (integrated flow)

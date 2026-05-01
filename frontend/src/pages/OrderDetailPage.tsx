@@ -112,7 +112,7 @@ export default function OrderDetailPage() {
         title={`Order #${order.id}`}
         description={order.orderNumber}
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {canCreateTrip && (
               <Button
                 variant="primary"
@@ -221,7 +221,7 @@ export default function OrderDetailPage() {
               zoom={6}
               points={routeMapQuery.data.points}
               polyline={routeMapQuery.data.polyline}
-              className="h-[420px] rounded-md"
+              className="h-[250px] rounded-md sm:h-[350px] md:h-[420px]"
             />
           )}
           {!waypointsLoading && routeMapQuery.data && (

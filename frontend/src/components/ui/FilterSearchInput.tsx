@@ -14,7 +14,7 @@ export function FilterSearchInput({
   placeholder,
 }: FilterSearchInputProps) {
   return (
-    <div className="min-w-56 flex-1">
+    <div className="min-w-0 flex-1 sm:min-w-56">
       <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
         {label}
       </label>

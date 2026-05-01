@@ -26,7 +26,7 @@ export function FilterSelect({
         }))
 
   return (
-    <div className="min-w-44">
+    <div className="min-w-0 sm:min-w-44">
       <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
         {label}
       </label>

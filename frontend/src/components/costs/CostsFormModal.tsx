@@ -65,7 +65,7 @@ export function CostsFormModal({
           {...register('category')}
         />
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label="Amount (PLN)"
             type="number"

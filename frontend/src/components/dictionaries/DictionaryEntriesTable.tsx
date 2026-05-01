@@ -25,7 +25,7 @@ export function DictionaryEntriesTable({
 
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-      <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
+      <table className="min-w-full divide-y divide-gray-200 text-left text-sm table-sticky-last-col">
         <thead className="bg-gray-50">
           <tr>
             <ThWithIcon icon={Hash}>Key</ThWithIcon>

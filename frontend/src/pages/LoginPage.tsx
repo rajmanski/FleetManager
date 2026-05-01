@@ -45,10 +45,10 @@ function LoginPage() {
   const displayError = errors.root?.message
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="mx-auto mt-16 max-w-4xl overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+      <div className="mx-auto mt-4 max-w-4xl overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm md:mt-16">
         <div className="grid grid-cols-1 md:grid-cols-2">
-          <div className="bg-slate-700 p-8 text-white">
+          <div className="bg-slate-700 p-6 text-white md:p-8">
             <div className="mb-6 inline-flex rounded-lg bg-white/15 p-3">
               <Truck className="size-8" />
             </div>
@@ -61,7 +61,7 @@ function LoginPage() {
             </div>
           </div>
 
-          <div className="p-8">
+          <div className="p-6 md:p-8">
             <h2 className="text-2xl font-semibold text-gray-900">Sign in</h2>
             <p className="mt-1 text-sm text-gray-600">Fleet Manager access panel</p>
 

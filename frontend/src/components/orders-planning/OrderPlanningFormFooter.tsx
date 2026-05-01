@@ -59,7 +59,7 @@ export function OrderPlanningFormFooter({
             type="submit"
             variant="primary"
             disabled={!canSubmit}
-            className="min-w-[10rem]"
+            className="min-w-0 sm:min-w-[10rem]"
           >
             {isPending ? 'Saving…' : 'Create planned order'}
           </Button>

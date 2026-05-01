@@ -66,10 +66,10 @@ export function OrderPlanningRouteSection({
             points={points}
             polyline={polyline}
             onMapClick={handleMapClick}
-            className="h-[420px] rounded-md"
+            className="h-[250px] rounded-md sm:h-[350px] md:h-[420px]"
           />
         ) : (
-          <div className="flex h-[420px] flex-col items-center justify-center gap-2 rounded-md bg-gray-50 text-gray-500">
+          <div className="flex h-[250px] flex-col items-center justify-center gap-2 rounded-md bg-gray-50 text-gray-500 sm:h-[350px] md:h-[420px]">
             <span>
               Enter load and drop-off addresses, optionally add waypoints, then
               calculate the route.

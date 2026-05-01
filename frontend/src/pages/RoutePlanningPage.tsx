@@ -64,10 +64,10 @@ export default function RoutePlanningPage() {
             points={points}
             polyline={polyline}
             onMapClick={handleMapClick}
-            className="h-[500px] rounded-md"
+            className="h-[250px] rounded-md sm:h-[400px] md:h-[500px]"
           />
         ) : (
-          <div className="flex h-[500px] flex-col items-center justify-center gap-2 rounded-md bg-gray-50 text-gray-500">
+          <div className="flex h-[250px] flex-col items-center justify-center gap-2 rounded-md bg-gray-50 text-gray-500 sm:h-[400px] md:h-[500px]">
             <span>Enter addresses and click "Calculate route" to see the map</span>
             <span className="text-sm">
               You can then click on the map to add intermediate points

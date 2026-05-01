@@ -43,7 +43,7 @@ export function RecordChangelogModal({
 
   return (
     <Modal title={title} contentClassName="max-w-5xl">
-      <div className="mt-4 space-y-4">
+      <div className="mt-4 flex flex-col" style={{ maxHeight: 'calc(100vh - 12rem)' }}>
         {changelogQuery.isLoading && <LoadingMessage message="Loading record history..." />}
         {changelogQuery.isError && <ErrorMessage message="Failed to load record history." />}
 
@@ -52,7 +52,7 @@ export function RecordChangelogModal({
         )}
 
         {changelogQuery.isSuccess && rows.length > 0 && (
-          <ol className="space-y-3">
+          <ol className="scrollbar-styled flex-1 space-y-3 overflow-y-auto pr-1">
             {rows.map((entry) => (
               <li key={entry.id} className="rounded-lg border border-gray-200 bg-white p-3">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -70,7 +70,7 @@ export function RecordChangelogModal({
           </ol>
         )}
 
-        <div className="flex justify-end">
+        <div className="flex justify-start border-t border-gray-100 pt-3 sm:justify-end">
           <Button variant="secondary" onClick={onClose}>
             Close
           </Button>

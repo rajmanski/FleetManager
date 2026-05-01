@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@layer utilities {
+  .table-sticky-last-col th:last-child {
+    @apply sticky right-0 z-10 bg-gray-50;
+    box-shadow: -2px 0 4px -2px rgba(0, 0, 0, 0.1);
+  }
+  .table-sticky-last-col td:last-child {
+    @apply sticky right-0 z-10 bg-white;
+    box-shadow: -2px 0 4px -2px rgba(0, 0, 0, 0.1);
+  }
+}
+
 @layer base {
   * {
     border-color: var(--border);

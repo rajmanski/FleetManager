@@ -58,7 +58,7 @@ export function ChangelogFiltersBar({
         options={CHANGELOG_OPERATIONS}
       />
 
-      <div className="min-w-40">
+      <div className="min-w-0 sm:min-w-40">
         <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
           Date from
         </label>
@@ -70,7 +70,7 @@ export function ChangelogFiltersBar({
         />
       </div>
 
-      <div className="min-w-40">
+      <div className="min-w-0 sm:min-w-40">
         <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
           Date to
         </label>

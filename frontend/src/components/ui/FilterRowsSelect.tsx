@@ -8,7 +8,7 @@ type FilterRowsSelectProps = {
 
 export function FilterRowsSelect({ value, onChange }: FilterRowsSelectProps) {
   return (
-    <div className="min-w-32">
+    <div className="min-w-0 sm:min-w-32">
       <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-gray-500">
         Rows
       </label>

@@ -214,7 +214,7 @@ export function CreateTripModal({
             update drivers.
           </p>
         )}
-        <div className="mt-4 flex justify-end gap-2">
+        <div className="mt-4 flex justify-start gap-2 sm:justify-end">
           <Button
             variant="secondary"
             type="button"

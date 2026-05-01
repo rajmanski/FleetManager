@@ -73,7 +73,7 @@ export function DictionaryEntryFormModal({
           error={errors.value?.message}
           {...register('value')}
         />
-        <div className="flex justify-end gap-2 pt-2">
+        <div className="flex justify-start gap-2 pt-2 sm:justify-end">
           <Button type="button" variant="secondary" onClick={onClose}>
             Cancel
           </Button>

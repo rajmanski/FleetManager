@@ -21,7 +21,7 @@ export function DeleteDictionaryEntryModal({
         Remove entry with key <strong className="font-mono">{entry.key}</strong>? This cannot be
         undone.
       </p>
-      <div className="mt-6 flex justify-end gap-2">
+      <div className="mt-6 flex justify-start gap-2 sm:justify-end">
         <Button variant="secondary" onClick={onClose}>
           Cancel
         </Button>

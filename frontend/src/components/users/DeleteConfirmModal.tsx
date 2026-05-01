@@ -21,7 +21,7 @@ export function DeleteConfirmModal({
         Are you sure you want to delete user <strong>{user.login}</strong>? This
         action cannot be undone.
       </p>
-      <div className="mt-6 flex justify-end gap-2">
+      <div className="mt-6 flex justify-start gap-2 sm:justify-end">
         <Button variant="secondary" onClick={onClose}>
           Cancel
         </Button>

@@ -22,7 +22,7 @@ export function TableActionsCell({
   isSoftDeleting,
 }: TableActionsCellProps) {
   return (
-    <div className="flex items-center gap-2" onClick={(event) => event.stopPropagation()}>
+    <div className="flex flex-wrap items-center gap-2" onClick={(event) => event.stopPropagation()}>
       {isAdmin && isDeleted && (
         <Button
           variant="secondary"

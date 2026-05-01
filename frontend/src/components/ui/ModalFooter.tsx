@@ -14,7 +14,7 @@ export function ModalFooter({
   isSubmitting = false,
 }: ModalFooterProps) {
   return (
-    <div className="mt-5 flex justify-end gap-2">
+    <div className="mt-5 flex flex-wrap justify-start gap-2 sm:justify-end">
       <Button variant="secondary" onClick={onCancel}>
         {cancelLabel}
       </Button>

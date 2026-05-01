@@ -39,7 +39,7 @@ export function ClientsTable({
     <DataTablePagination page={page} total={total} pagination={pagination}>
       <div className="rounded-lg border border-gray-200 bg-white">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
+          <table className="min-w-full divide-y divide-gray-200 text-left text-sm table-sticky-last-col">
             <thead className="bg-gray-50">
               <tr>
                 <ThWithIcon icon={Building2}>Company name</ThWithIcon>

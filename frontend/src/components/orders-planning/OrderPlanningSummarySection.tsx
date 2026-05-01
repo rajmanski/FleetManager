@@ -19,7 +19,7 @@ export function OrderPlanningSummarySection({
   return (
     <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
       <h2 className="mb-3 text-sm font-semibold text-slate-800">Summary</h2>
-      <dl className="grid gap-2 text-sm text-gray-700 md:grid-cols-2">
+      <dl className="grid gap-2 text-sm text-gray-700 sm:grid-cols-2">
         <div>
           <dt className="font-medium text-gray-500">Client</dt>
           <dd>{selectedClient?.companyName ?? '—'}</dd>

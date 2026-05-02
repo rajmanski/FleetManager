@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"log"
 	"strings"
 	"time"
 
@@ -463,7 +464,10 @@ func decryptDriverPESEL(pesel sql.NullString, encryptionKey []byte) string {
 	if !pesel.Valid {
 		return "***"
 	}
-	plain, _ := crypto.DecryptPESEL(pesel.String, encryptionKey)
+	plain, err := crypto.DecryptPESEL(pesel.String, encryptionKey)
+	if err != nil {
+		log.Printf("decryptDriverPESEL: failed to decrypt: %v", err)
+	}
 	return plain
 }
 var _ drivers.Repository = (*DriversRepository)(nil)

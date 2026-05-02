@@ -77,6 +77,12 @@ function DriversPage() {
     [pagination]
   )
 
+  const softDeleteCallbacks = useMutationCallbacks({
+    successMessage: 'Driver soft deleted',
+    errorFallback: 'Failed to soft delete driver',
+    onSuccess: () => setSoftDeletingId(null),
+  })
+
   const handleSoftDelete = useCallback(
     (driver: Driver) => {
       if (!isAdmin) return
@@ -87,17 +93,11 @@ function DriversPage() {
 
       setSoftDeletingId(driver.id)
       softDeleteMutation.mutate(driver.id, {
-        onSuccess: () => {
-          setSoftDeletingId(null)
-          window.alert('Driver soft deleted.')
-        },
-        onError: () => {
-          setSoftDeletingId(null)
-          window.alert('Failed to soft delete driver.')
-        },
+        onSuccess: softDeleteCallbacks.onSuccess,
+        onError: softDeleteCallbacks.onError,
       })
     },
-    [isAdmin, softDeleteMutation]
+    [isAdmin, softDeleteMutation, softDeleteCallbacks]
   )
 
   return (

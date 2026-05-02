@@ -1,8 +1,9 @@
-import { useMemo } from 'react'
-import { getStoredRole } from '@/services/authStorage'
+import { useMemo, useSyncExternalStore } from 'react'
+import { getStoredRole, subscribeToTokenChange } from '@/services/authStorage'
 
 export function useAuth() {
-  const role = getStoredRole()
+  const role = useSyncExternalStore(subscribeToTokenChange, getStoredRole, () => null)
+
   return useMemo(
     () => ({
       role,

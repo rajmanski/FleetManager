@@ -55,8 +55,8 @@ export function FuelFormModal({
   const pricePerLiter = watch('pricePerLiter')
 
   const totalCost = useMemo(() => {
-    const l = parseFloat(liters as any) || 0
-    const p = parseFloat(pricePerLiter as any) || 0
+    const l = Number(liters as number | string) || 0
+    const p = Number(pricePerLiter as number | string) || 0
     return l * p
   }, [liters, pricePerLiter])
 
@@ -69,7 +69,7 @@ export function FuelFormModal({
 
   return (
     <Modal title={title} error={errorMessage} contentClassName="max-w-lg">
-      <form className="mt-4 space-y-4" onSubmit={handleSubmit((v) => onSubmit(fuelFormSchema.parse(v)))}>
+      <form className="mt-4 space-y-4" onSubmit={handleSubmit((v) => onSubmit(v as FuelFormValues))}>
         <Select
           label="Vehicle"
           error={errors.vehicleId?.message}

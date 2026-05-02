@@ -55,7 +55,7 @@ func Load() (*Config, error) {
 func loadEncryptionKey() ([]byte, error) {
 	raw := os.Getenv("ENCRYPTION_KEY")
 	if raw == "" {
-		panic("ENCRYPTION_KEY environment variable is required")
+		return nil, fmt.Errorf("ENCRYPTION_KEY environment variable is required")
 	}
 	key := []byte(raw)
 	if len(key) == aes256KeyLen {
@@ -63,10 +63,10 @@ func loadEncryptionKey() ([]byte, error) {
 	}
 	decoded, err := base64.StdEncoding.DecodeString(raw)
 	if err != nil {
-		panic(fmt.Sprintf("ENCRYPTION_KEY: invalid base64 or must be 32 raw bytes: %v", err))
+		return nil, fmt.Errorf("ENCRYPTION_KEY: invalid base64 or must be 32 raw bytes: %w", err)
 	}
 	if len(decoded) != aes256KeyLen {
-		panic(fmt.Sprintf("ENCRYPTION_KEY must be 32 bytes, got %d", len(decoded)))
+		return nil, fmt.Errorf("ENCRYPTION_KEY must be 32 bytes, got %d", len(decoded))
 	}
 	return decoded, nil
 }

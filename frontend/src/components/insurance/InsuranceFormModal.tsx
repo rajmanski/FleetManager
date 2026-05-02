@@ -61,7 +61,7 @@ export function InsuranceFormModal({
     <Modal title={title} error={errorMessage} contentClassName="max-w-lg">
       <form
         className="mt-4 space-y-4"
-        onSubmit={handleSubmit((values) => onSubmit(insuranceFormSchema.parse(values)))}
+        onSubmit={handleSubmit((v) => onSubmit(v as InsuranceFormValues))}
       >
         <Select
           label="Vehicle"

@@ -3,6 +3,7 @@ package drivers
 import (
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -194,7 +195,11 @@ func (s *Service) GetDriverAvailabilityByDate(ctx context.Context, driverID int6
 		reason := fmt.Sprintf("Driver status is %s", driver.Status)
 		resp.Available = false
 		resp.Reason = &reason
-		resp.CurrentAssignment, _ = s.getCurrentAssignment(ctx, driverID)
+		if assignment, err := s.getCurrentAssignment(ctx, driverID); err != nil {
+			log.Printf("getCurrentAssignment error for driver %d: %v", driverID, err)
+		} else {
+			resp.CurrentAssignment = assignment
+		}
 		return resp, nil
 	}
 
@@ -209,7 +214,11 @@ func (s *Service) GetDriverAvailabilityByDate(ctx context.Context, driverID int6
 		resp.Reason = &reason
 	}
 
-	resp.CurrentAssignment, _ = s.getCurrentAssignment(ctx, driverID)
+	if assignment, err := s.getCurrentAssignment(ctx, driverID); err != nil {
+		log.Printf("getCurrentAssignment error for driver %d: %v", driverID, err)
+	} else {
+		resp.CurrentAssignment = assignment
+	}
 	return resp, nil
 }
 

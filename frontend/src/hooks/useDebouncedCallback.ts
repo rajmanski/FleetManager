@@ -11,6 +11,14 @@ export function useDebouncedCallback<Args extends unknown[]>(
     callbackRef.current = callback
   }, [callback])
 
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current)
+      }
+    }
+  }, [])
+
   const debounced = useCallback(
     (...args: Args) => {
       if (timeoutRef.current) {

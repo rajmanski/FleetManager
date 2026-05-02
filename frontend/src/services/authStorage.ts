@@ -1,6 +1,21 @@
 const ACCESS_TOKEN_STORAGE_KEY = 'token'
 const LOGOUT_BROADCAST_KEY = 'logout_broadcast'
 
+const tokenChangeListeners = new Set<() => void>()
+
+export const subscribeToTokenChange = (listener: () => void) => {
+  tokenChangeListeners.add(listener)
+  return () => {
+    tokenChangeListeners.delete(listener)
+  }
+}
+
+const notifyTokenChange = () => {
+  tokenChangeListeners.forEach((fn) => {
+    try { fn() } catch { /* ignore */ }
+  })
+}
+
 const getPrimaryStorage = (): Storage | null => {
   try {
     localStorage.setItem('__storage_probe__', 'ok')
@@ -29,6 +44,7 @@ export const saveAccessToken = (token: string): boolean => {
 
   try {
     storage.setItem(ACCESS_TOKEN_STORAGE_KEY, token)
+    notifyTokenChange()
     return true
   } catch {
     return false

@@ -89,7 +89,7 @@ func (h *Handler) CreateDriver(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput), errors.Is(err, ErrInvalidPESEL), errors.Is(err, ErrInvalidStatus):
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 			return
 		case errors.Is(err, ErrDriverPESELConflict):
 			c.JSON(http.StatusConflict, gin.H{"error": "pesel already exists"})
@@ -120,7 +120,7 @@ func (h *Handler) UpdateDriver(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput), errors.Is(err, ErrInvalidPESEL), errors.Is(err, ErrInvalidStatus), errors.Is(err, ErrInvalidCertificates):
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
 			return
 		case errors.Is(err, ErrDriverNotFound):
 			c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})

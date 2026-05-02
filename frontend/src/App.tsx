@@ -45,13 +45,13 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-dvh bg-gray-50">
       <AppHeader onLogout={handleLogout} onToggleSidebar={handleToggleSidebar} />
 
-      <div className="flex">
+      <div className="flex overflow-x-hidden">
         <AppSidebar open={sidebarOpen} onClose={handleCloseSidebar} />
 
-        <main className="flex-1 p-4 md:p-6">
+        <main className="min-w-0 flex-1 p-4 md:p-6 overflow-x-hidden">
           {sessionMessage && (
             <div className="mb-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
               {sessionMessage}

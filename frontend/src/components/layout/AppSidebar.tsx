@@ -46,7 +46,7 @@ export function AppSidebar({ open, onClose }: AppSidebarProps) {
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-40 h-full w-64 border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out lg:static lg:z-auto lg:min-h-[calc(100vh-73px)] lg:translate-x-0 ${
+        className={`fixed top-0 left-0 z-40 h-full w-64 border-r border-gray-200 bg-white transition-transform duration-300 ease-in-out lg:static lg:z-auto lg:min-h-[calc(100dvh-73px)] lg:translate-x-0 ${
           open ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

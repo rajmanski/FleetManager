@@ -14,11 +14,11 @@ export function ModalFooter({
   isSubmitting = false,
 }: ModalFooterProps) {
   return (
-    <div className="mt-5 flex flex-wrap justify-start gap-2 sm:justify-end">
-      <Button variant="secondary" onClick={onCancel}>
+    <div className="mt-5 grid grid-cols-1 gap-2 sm:flex sm:justify-end">
+      <Button variant="secondary" className="w-full sm:w-auto" onClick={onCancel}>
         {cancelLabel}
       </Button>
-      <Button type="submit" variant="primary" disabled={isSubmitting}>
+      <Button variant="primary" type="submit" className="w-full sm:w-auto" disabled={isSubmitting}>
         {submitLabel}
       </Button>
     </div>

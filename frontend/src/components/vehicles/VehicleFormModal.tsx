@@ -90,7 +90,7 @@ export function VehicleFormModal({
   return (
     <Modal title={title} error={errorMessage} onClose={onClose}>
       <form
-        className="scrollbar-styled mt-4 max-h-[75vh] space-y-3 overflow-y-auto pr-1"
+        className="scrollbar-styled mt-4 max-h-[75vh] space-y-3 overflow-y-auto overflow-x-hidden pr-1"
         onSubmit={handleSubmit(onFormSubmit)}
       >
         <Input

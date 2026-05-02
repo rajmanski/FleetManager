@@ -44,7 +44,7 @@ export function TableActionsCell({
           </Button>
           {isAdmin && onSoftDelete && (
             <Button
-              variant="danger"
+              variant="danger-outline"
               onClick={onSoftDelete}
               disabled={isSoftDeleting}
               className="px-3 py-1.5 text-xs"

@@ -167,7 +167,7 @@ function TripDetailPage() {
             )}
             {canAbort && (
               <Button
-                variant="danger"
+                variant="danger-outline"
                 onClick={handleAbort}
                 disabled={abortTripMutation.isPending}
               >

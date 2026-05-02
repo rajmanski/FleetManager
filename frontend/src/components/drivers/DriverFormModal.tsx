@@ -77,7 +77,7 @@ export function DriverFormModal({
   return (
     <Modal title={title} contentClassName="max-w-xl" error={errorMessage}>
       <form onSubmit={handleSubmit(onFormSubmit)}>
-        <div className="scrollbar-styled mt-4 max-h-[min(70vh,500px)] overflow-y-auto pr-1">
+        <div className="scrollbar-styled mt-4 max-h-[min(70vh,500px)] overflow-y-auto overflow-x-hidden pr-1">
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
               <Input

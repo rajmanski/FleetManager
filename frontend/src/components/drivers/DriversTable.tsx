@@ -5,6 +5,7 @@ import { CertificateStatusTooltip } from '@/components/drivers/CertificateStatus
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { TableActionsCell } from '@/components/ui/TableActionsCell'
+import { Button } from '@/components/ui/Button'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
 
 const DRIVER_STATUS_CONFIG: Record<
@@ -98,13 +99,13 @@ export function DriversTable({
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap items-center gap-2">
                         {isAdmin && (
-                          <button
-                            type="button"
-                            className="text-xs font-medium text-slate-700 underline"
+                          <Button
+                            variant="secondary"
                             onClick={() => onHistory(driver)}
+                            className="px-3 py-1.5 text-xs"
                           >
                             History
-                          </button>
+                          </Button>
                         )}
                         <TableActionsCell
                           isDeleted={isDeleted}

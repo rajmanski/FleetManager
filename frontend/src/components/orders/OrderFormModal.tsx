@@ -98,7 +98,7 @@ export function OrderFormModal({
   return (
     <Modal title={title} contentClassName="max-w-4xl" error={errorMessage}>
       <form onSubmit={handleSubmit(onFormSubmit)}>
-        <div className="scrollbar-styled mt-4 max-h-[min(70vh,600px)] overflow-y-auto pr-1">
+        <div className="scrollbar-styled mt-4 max-h-[min(70vh,600px)] overflow-y-auto overflow-x-hidden pr-1">
           <div className="space-y-4">
             <div className="grid grid-cols-1 gap-x-4 gap-y-3 sm:grid-cols-2">
               <div className="sm:col-span-2">

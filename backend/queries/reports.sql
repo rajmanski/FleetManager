@@ -9,14 +9,14 @@ WHERE o.order_id IN (
     AND COALESCE(t.end_time, t.start_time) < ?
 );
 
--- name: GetVehicleFuelCostsForMonth :one
+-- name: GetVehicleFuelCostForMonth :one
 SELECT COALESCE(SUM(fl.total_cost), 0) AS fuel_cost
-FROM fuel_logs fl
+FROM FuelLog fl
 WHERE fl.vehicle_id = ?
   AND fl.date >= ?
   AND fl.date < ?;
 
--- name: GetVehicleMaintenanceCostsForMonth :one
+-- name: GetVehicleMaintenanceCostForMonth :one
 SELECT COALESCE(SUM(m.total_cost_pln), 0) AS maintenance_cost
 FROM Maintenance m
 WHERE m.vehicle_id = ?
@@ -26,14 +26,14 @@ WHERE m.vehicle_id = ?
 
 -- name: GetVehicleInsuranceMonthlyCost :one
 SELECT COALESCE(SUM(ip.cost / 12), 0) AS insurance_cost
-FROM insurance_policies ip
+FROM InsurancePolicy ip
 WHERE ip.vehicle_id = ?
   AND ip.start_date <= ?
   AND ip.end_date >= ?;
 
 -- name: GetVehicleTollsForMonth :one
 SELECT COALESCE(SUM(c.amount), 0) AS tolls_cost
-FROM costs c
+FROM Cost c
 WHERE c.vehicle_id = ?
   AND c.category = 'Tolls'
   AND c.date >= ?
@@ -55,13 +55,13 @@ WHERE t.driver_id = ?
   AND DATE(t.end_time) >= ?
   AND DATE(t.end_time) <= ?;
 
--- name: GetGlobalFuelCostsInRange :one
+-- name: GetGlobalFuelCostInRange :one
 SELECT COALESCE(SUM(fl.total_cost), 0) AS total
-FROM fuel_logs fl
+FROM FuelLog fl
 WHERE fl.date >= ?
   AND fl.date <= ?;
 
--- name: GetGlobalMaintenanceCostsInRange :one
+-- name: GetGlobalMaintenanceCostInRange :one
 SELECT COALESCE(SUM(m.total_cost_pln), 0) AS total
 FROM Maintenance m
 WHERE m.start_date IS NOT NULL
@@ -69,7 +69,7 @@ WHERE m.start_date IS NOT NULL
   AND DATE(m.start_date) <= ?;
 
 -- Insurance: prorate policy cost by overlap days with the report period.
--- name: GetGlobalInsuranceCostsInRange :one
+-- name: GetGlobalInsuranceCostInRange :one
 SELECT COALESCE(SUM(
   ip.cost * (
     DATEDIFF(
@@ -78,19 +78,19 @@ SELECT COALESCE(SUM(
     ) + 1
   ) / NULLIF(DATEDIFF(ip.end_date, ip.start_date) + 1, 0)
 ), 0) AS total
-FROM insurance_policies ip
+FROM InsurancePolicy ip
 WHERE LEAST(ip.end_date, sqlc.arg(period_end)) >= GREATEST(ip.start_date, sqlc.arg(period_start));
 
--- name: GetGlobalTollsCostsInRange :one
+-- name: GetGlobalTollsCostInRange :one
 SELECT COALESCE(SUM(c.amount), 0) AS total
-FROM costs c
+FROM Cost c
 WHERE c.category = 'Tolls'
   AND c.date >= ?
   AND c.date <= ?;
 
--- name: GetGlobalOtherCostsInRange :one
+-- name: GetGlobalOtherCostInRange :one
 SELECT COALESCE(SUM(c.amount), 0) AS total
-FROM costs c
+FROM Cost c
 WHERE c.category = 'Other'
   AND c.date >= ?
   AND c.date <= ?;

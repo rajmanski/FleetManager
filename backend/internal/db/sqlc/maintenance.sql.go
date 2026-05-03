@@ -246,11 +246,12 @@ WHERE maintenance_id = ?
 
 type UpdateMaintenanceStatusParams struct {
 	Status        MaintenanceStatus `json:"status"`
+	Column2       interface{}       `json:"column_2"`
 	MaintenanceID int32             `json:"maintenance_id"`
 }
 
 func (q *Queries) UpdateMaintenanceStatus(ctx context.Context, arg UpdateMaintenanceStatusParams) (int64, error) {
-	result, err := q.db.ExecContext(ctx, updateMaintenanceStatus, arg.Status, arg.Status, arg.MaintenanceID)
+	result, err := q.db.ExecContext(ctx, updateMaintenanceStatus, arg.Status, arg.Column2, arg.MaintenanceID)
 	if err != nil {
 		return 0, err
 	}

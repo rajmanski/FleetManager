@@ -11,14 +11,14 @@ import (
 )
 
 const createNotification = `-- name: CreateNotification :execlastid
-INSERT INTO notifications (user_id, ` + "`" + `type` + "`" + `, message, is_read)
+INSERT INTO Notification (user_id, ` + "`" + `type` + "`" + `, message, is_read)
 VALUES (?, ?, ?, 0)
 `
 
 type CreateNotificationParams struct {
-	UserID  int32             `json:"user_id"`
-	Type    NotificationsType `json:"type"`
-	Message sql.NullString    `json:"message"`
+	UserID  int32            `json:"user_id"`
+	Type    NotificationType `json:"type"`
+	Message sql.NullString   `json:"message"`
 }
 
 func (q *Queries) CreateNotification(ctx context.Context, arg CreateNotificationParams) (int64, error) {
@@ -29,7 +29,7 @@ func (q *Queries) CreateNotification(ctx context.Context, arg CreateNotification
 	return result.LastInsertId()
 }
 
-const listNotificationsForUser = `-- name: ListNotificationsForUser :many
+const listNotificationForUser = `-- name: ListNotificationForUser :many
 SELECT
   id,
   user_id,
@@ -37,35 +37,35 @@ SELECT
   message,
   is_read,
   created_at
-FROM notifications
+FROM Notification
 WHERE user_id = ?
 ORDER BY created_at DESC
 LIMIT ?
 `
 
-type ListNotificationsForUserParams struct {
+type ListNotificationForUserParams struct {
 	UserID int32 `json:"user_id"`
 	Limit  int32 `json:"limit"`
 }
 
-type ListNotificationsForUserRow struct {
-	ID        int32             `json:"id"`
-	UserID    int32             `json:"user_id"`
-	Type      NotificationsType `json:"type"`
-	Message   sql.NullString    `json:"message"`
-	IsRead    sql.NullBool      `json:"is_read"`
-	CreatedAt sql.NullTime      `json:"created_at"`
+type ListNotificationForUserRow struct {
+	ID        int32            `json:"id"`
+	UserID    int32            `json:"user_id"`
+	Type      NotificationType `json:"type"`
+	Message   sql.NullString   `json:"message"`
+	IsRead    sql.NullBool     `json:"is_read"`
+	CreatedAt sql.NullTime     `json:"created_at"`
 }
 
-func (q *Queries) ListNotificationsForUser(ctx context.Context, arg ListNotificationsForUserParams) ([]ListNotificationsForUserRow, error) {
-	rows, err := q.db.QueryContext(ctx, listNotificationsForUser, arg.UserID, arg.Limit)
+func (q *Queries) ListNotificationForUser(ctx context.Context, arg ListNotificationForUserParams) ([]ListNotificationForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, listNotificationForUser, arg.UserID, arg.Limit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListNotificationsForUserRow
+	var items []ListNotificationForUserRow
 	for rows.Next() {
-		var i ListNotificationsForUserRow
+		var i ListNotificationForUserRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.UserID,
@@ -88,7 +88,7 @@ func (q *Queries) ListNotificationsForUser(ctx context.Context, arg ListNotifica
 }
 
 const markNotificationReadForUser = `-- name: MarkNotificationReadForUser :execrows
-UPDATE notifications
+UPDATE Notification
 SET is_read = 1
 WHERE id = ?
   AND user_id = ?

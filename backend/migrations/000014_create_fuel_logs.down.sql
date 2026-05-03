@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS fuel_logs;
+DROP TABLE IF EXISTS FuelLog;

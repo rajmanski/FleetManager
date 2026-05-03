@@ -10,6 +10,27 @@ import (
 	"database/sql"
 )
 
+const anonymizeNotificationForDriver = `-- name: AnonymizeNotificationForDriver :execrows
+UPDATE Notification
+SET message = 'Notification content anonymized (GDPR)'
+WHERE message LIKE CONCAT('%', ?, '%', ?)
+   OR message LIKE CONCAT('%', ?, '%')
+`
+
+type AnonymizeNotificationForDriverParams struct {
+	CONCAT   interface{} `json:"CONCAT"`
+	CONCAT_2 interface{} `json:"CONCAT_2"`
+	CONCAT_3 interface{} `json:"CONCAT_3"`
+}
+
+func (q *Queries) AnonymizeNotificationForDriver(ctx context.Context, arg AnonymizeNotificationForDriverParams) (int64, error) {
+	result, err := q.db.ExecContext(ctx, anonymizeNotificationForDriver, arg.CONCAT, arg.CONCAT_2, arg.CONCAT_3)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected()
+}
+
 const countDrivers = `-- name: CountDrivers :one
 SELECT COUNT(*)
 FROM Drivers
@@ -247,6 +268,7 @@ const listActiveDriverPESELs = `-- name: ListActiveDriverPESELs :many
 SELECT driver_id, pesel
 FROM Drivers
 WHERE deleted_at IS NULL
+LIMIT 2000
 `
 
 type ListActiveDriverPESELsRow struct {

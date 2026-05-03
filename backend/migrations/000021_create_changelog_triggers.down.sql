@@ -1,14 +1,14 @@
-DROP TRIGGER IF EXISTS trg_costs_changelog_delete;
-DROP TRIGGER IF EXISTS trg_costs_changelog_update;
-DROP TRIGGER IF EXISTS trg_costs_changelog_insert;
+DROP TRIGGER IF EXISTS trg_Cost_changelog_delete;
+DROP TRIGGER IF EXISTS trg_Cost_changelog_update;
+DROP TRIGGER IF EXISTS trg_Cost_changelog_insert;
 
-DROP TRIGGER IF EXISTS trg_insurance_policies_changelog_delete;
-DROP TRIGGER IF EXISTS trg_insurance_policies_changelog_update;
-DROP TRIGGER IF EXISTS trg_insurance_policies_changelog_insert;
+DROP TRIGGER IF EXISTS trg_InsurancePolicy_changelog_delete;
+DROP TRIGGER IF EXISTS trg_InsurancePolicy_changelog_update;
+DROP TRIGGER IF EXISTS trg_InsurancePolicy_changelog_insert;
 
-DROP TRIGGER IF EXISTS trg_fuel_logs_changelog_delete;
-DROP TRIGGER IF EXISTS trg_fuel_logs_changelog_update;
-DROP TRIGGER IF EXISTS trg_fuel_logs_changelog_insert;
+DROP TRIGGER IF EXISTS trg_FuelLog_changelog_delete;
+DROP TRIGGER IF EXISTS trg_FuelLog_changelog_update;
+DROP TRIGGER IF EXISTS trg_FuelLog_changelog_insert;
 
 DROP TRIGGER IF EXISTS trg_maintenance_changelog_delete;
 DROP TRIGGER IF EXISTS trg_maintenance_changelog_update;

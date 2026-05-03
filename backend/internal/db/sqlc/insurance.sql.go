@@ -10,26 +10,26 @@ import (
 	"time"
 )
 
-const countInsurancePolicies = `-- name: CountInsurancePolicies :one
+const countInsurancePolicy = `-- name: CountInsurancePolicy :one
 SELECT COUNT(*)
-FROM insurance_policies
+FROM InsurancePolicy
 WHERE (? = 0 OR vehicle_id = ?)
 `
 
-type CountInsurancePoliciesParams struct {
+type CountInsurancePolicyParams struct {
 	Column1   interface{} `json:"column_1"`
 	VehicleID int32       `json:"vehicle_id"`
 }
 
-func (q *Queries) CountInsurancePolicies(ctx context.Context, arg CountInsurancePoliciesParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countInsurancePolicies, arg.Column1, arg.VehicleID)
+func (q *Queries) CountInsurancePolicy(ctx context.Context, arg CountInsurancePolicyParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countInsurancePolicy, arg.Column1, arg.VehicleID)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
 }
 
 const createInsurancePolicy = `-- name: CreateInsurancePolicy :execlastid
-INSERT INTO insurance_policies (
+INSERT INTO InsurancePolicy (
   vehicle_id,
   type,
   policy_number,
@@ -42,13 +42,13 @@ VALUES (?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateInsurancePolicyParams struct {
-	VehicleID    int32                 `json:"vehicle_id"`
-	Type         InsurancePoliciesType `json:"type"`
-	PolicyNumber string                `json:"policy_number"`
-	Insurer      string                `json:"insurer"`
-	StartDate    time.Time             `json:"start_date"`
-	EndDate      time.Time             `json:"end_date"`
-	Cost         string                `json:"cost"`
+	VehicleID    int32               `json:"vehicle_id"`
+	Type         InsurancepolicyType `json:"type"`
+	PolicyNumber string              `json:"policy_number"`
+	Insurer      string              `json:"insurer"`
+	StartDate    time.Time           `json:"start_date"`
+	EndDate      time.Time           `json:"end_date"`
+	Cost         string              `json:"cost"`
 }
 
 func (q *Queries) CreateInsurancePolicy(ctx context.Context, arg CreateInsurancePolicyParams) (int64, error) {
@@ -68,7 +68,7 @@ func (q *Queries) CreateInsurancePolicy(ctx context.Context, arg CreateInsurance
 }
 
 const deleteInsurancePolicy = `-- name: DeleteInsurancePolicy :execrows
-DELETE FROM insurance_policies
+DELETE FROM InsurancePolicy
 WHERE id = ?
 `
 
@@ -92,14 +92,14 @@ SELECT
   cost,
   created_at,
   updated_at
-FROM insurance_policies
+FROM InsurancePolicy
 WHERE id = ?
 LIMIT 1
 `
 
-func (q *Queries) GetInsurancePolicyByID(ctx context.Context, id int32) (InsurancePolicy, error) {
+func (q *Queries) GetInsurancePolicyByID(ctx context.Context, id int32) (Insurancepolicy, error) {
 	row := q.db.QueryRowContext(ctx, getInsurancePolicyByID, id)
-	var i InsurancePolicy
+	var i Insurancepolicy
 	err := row.Scan(
 		&i.ID,
 		&i.VehicleID,
@@ -115,7 +115,7 @@ func (q *Queries) GetInsurancePolicyByID(ctx context.Context, id int32) (Insuran
 	return i, err
 }
 
-const listInsurancePolicies = `-- name: ListInsurancePolicies :many
+const listInsurancePolicy = `-- name: ListInsurancePolicy :many
 SELECT
   id,
   vehicle_id,
@@ -127,21 +127,21 @@ SELECT
   cost,
   created_at,
   updated_at
-FROM insurance_policies
+FROM InsurancePolicy
 WHERE (? = 0 OR vehicle_id = ?)
 ORDER BY id DESC
 LIMIT ? OFFSET ?
 `
 
-type ListInsurancePoliciesParams struct {
+type ListInsurancePolicyParams struct {
 	Column1   interface{} `json:"column_1"`
 	VehicleID int32       `json:"vehicle_id"`
 	Limit     int32       `json:"limit"`
 	Offset    int32       `json:"offset"`
 }
 
-func (q *Queries) ListInsurancePolicies(ctx context.Context, arg ListInsurancePoliciesParams) ([]InsurancePolicy, error) {
-	rows, err := q.db.QueryContext(ctx, listInsurancePolicies,
+func (q *Queries) ListInsurancePolicy(ctx context.Context, arg ListInsurancePolicyParams) ([]Insurancepolicy, error) {
+	rows, err := q.db.QueryContext(ctx, listInsurancePolicy,
 		arg.Column1,
 		arg.VehicleID,
 		arg.Limit,
@@ -151,9 +151,9 @@ func (q *Queries) ListInsurancePolicies(ctx context.Context, arg ListInsurancePo
 		return nil, err
 	}
 	defer rows.Close()
-	var items []InsurancePolicy
+	var items []Insurancepolicy
 	for rows.Next() {
-		var i InsurancePolicy
+		var i Insurancepolicy
 		if err := rows.Scan(
 			&i.ID,
 			&i.VehicleID,
@@ -180,7 +180,7 @@ func (q *Queries) ListInsurancePolicies(ctx context.Context, arg ListInsurancePo
 }
 
 const updateInsurancePolicy = `-- name: UpdateInsurancePolicy :execrows
-UPDATE insurance_policies
+UPDATE InsurancePolicy
 SET
   vehicle_id = ?,
   type = ?,
@@ -194,14 +194,14 @@ WHERE id = ?
 `
 
 type UpdateInsurancePolicyParams struct {
-	VehicleID    int32                 `json:"vehicle_id"`
-	Type         InsurancePoliciesType `json:"type"`
-	PolicyNumber string                `json:"policy_number"`
-	Insurer      string                `json:"insurer"`
-	StartDate    time.Time             `json:"start_date"`
-	EndDate      time.Time             `json:"end_date"`
-	Cost         string                `json:"cost"`
-	ID           int32                 `json:"id"`
+	VehicleID    int32               `json:"vehicle_id"`
+	Type         InsurancepolicyType `json:"type"`
+	PolicyNumber string              `json:"policy_number"`
+	Insurer      string              `json:"insurer"`
+	StartDate    time.Time           `json:"start_date"`
+	EndDate      time.Time           `json:"end_date"`
+	Cost         string              `json:"cost"`
+	ID           int32               `json:"id"`
 }
 
 func (q *Queries) UpdateInsurancePolicy(ctx context.Context, arg UpdateInsurancePolicyParams) (int64, error) {

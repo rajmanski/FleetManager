@@ -24,9 +24,9 @@ func (r *ReportsRepository) GetVehicleRevenueForMonth(
 	monthEnd time.Time,
 ) (float64, error) {
 	value, err := r.queries.GetVehicleRevenueForMonth(ctx, sqlc.GetVehicleRevenueForMonthParams{
-		VehicleID:      int32(vehicleID),
-		CreationDate:   sql.NullTime{Time: monthStart, Valid: true},
-		CreationDate_2: sql.NullTime{Time: monthEnd, Valid: true},
+		VehicleID: int32(vehicleID),
+		EndTime:   sql.NullTime{Time: monthStart, Valid: true},
+		EndTime_2: sql.NullTime{Time: monthEnd, Valid: true},
 	})
 	if err != nil {
 		return 0, err
@@ -40,10 +40,10 @@ func (r *ReportsRepository) GetVehicleFuelCostsForMonth(
 	monthStart time.Time,
 	monthEnd time.Time,
 ) (float64, error) {
-	value, err := r.queries.GetVehicleFuelCostsForMonth(ctx, sqlc.GetVehicleFuelCostsForMonthParams{
+	value, err := r.queries.GetVehicleFuelCostForMonth(ctx, sqlc.GetVehicleFuelCostForMonthParams{
 		VehicleID: int32(vehicleID),
-		DateStart: monthStart,
-		DateEnd:   monthEnd,
+		Date:      monthStart,
+		Date_2:    monthEnd,
 	})
 	if err != nil {
 		return 0, err
@@ -57,10 +57,10 @@ func (r *ReportsRepository) GetVehicleMaintenanceCostsForMonth(
 	monthStart time.Time,
 	monthEnd time.Time,
 ) (float64, error) {
-	value, err := r.queries.GetVehicleMaintenanceCostsForMonth(ctx, sqlc.GetVehicleMaintenanceCostsForMonthParams{
-		VehicleID: int32(vehicleID),
-		StartDate: sql.NullTime{Time: monthStart, Valid: true},
-		EndDate:   sql.NullTime{Time: monthEnd, Valid: true},
+	value, err := r.queries.GetVehicleMaintenanceCostForMonth(ctx, sqlc.GetVehicleMaintenanceCostForMonthParams{
+		VehicleID:   int32(vehicleID),
+		StartDate:   sql.NullTime{Time: monthStart, Valid: true},
+		StartDate_2: sql.NullTime{Time: monthEnd, Valid: true},
 	})
 	if err != nil {
 		return 0, err
@@ -93,8 +93,8 @@ func (r *ReportsRepository) GetVehicleTollsForMonth(
 ) (float64, error) {
 	value, err := r.queries.GetVehicleTollsForMonth(ctx, sqlc.GetVehicleTollsForMonthParams{
 		VehicleID: int32(vehicleID),
-		DateStart: monthStart,
-		DateEnd:   monthEnd,
+		Date:      monthStart,
+		Date_2:    monthEnd,
 	})
 	if err != nil {
 		return 0, err
@@ -127,7 +127,7 @@ func (r *ReportsRepository) GetGlobalCostsInRange(
 	ctx context.Context,
 	from, to time.Time,
 ) (reports.GlobalCostsByCategory, error) {
-	fuelRaw, err := r.queries.GetGlobalFuelCostsInRange(ctx, sqlc.GetGlobalFuelCostsInRangeParams{
+	fuelRaw, err := r.queries.GetGlobalFuelCostInRange(ctx, sqlc.GetGlobalFuelCostInRangeParams{
 		Date:   from,
 		Date_2: to,
 	})
@@ -139,7 +139,7 @@ func (r *ReportsRepository) GetGlobalCostsInRange(
 		return reports.GlobalCostsByCategory{}, err
 	}
 
-	maintRaw, err := r.queries.GetGlobalMaintenanceCostsInRange(ctx, sqlc.GetGlobalMaintenanceCostsInRangeParams{
+	maintRaw, err := r.queries.GetGlobalMaintenanceCostInRange(ctx, sqlc.GetGlobalMaintenanceCostInRangeParams{
 		StartDate:   sql.NullTime{Time: from, Valid: true},
 		StartDate_2: sql.NullTime{Time: to, Valid: true},
 	})
@@ -151,7 +151,7 @@ func (r *ReportsRepository) GetGlobalCostsInRange(
 		return reports.GlobalCostsByCategory{}, err
 	}
 
-	insRaw, err := r.queries.GetGlobalInsuranceCostsInRange(ctx, sqlc.GetGlobalInsuranceCostsInRangeParams{
+	insRaw, err := r.queries.GetGlobalInsuranceCostInRange(ctx, sqlc.GetGlobalInsuranceCostInRangeParams{
 		PeriodEnd:   to,
 		PeriodStart: from,
 	})
@@ -163,7 +163,7 @@ func (r *ReportsRepository) GetGlobalCostsInRange(
 		return reports.GlobalCostsByCategory{}, err
 	}
 
-	tollsRaw, err := r.queries.GetGlobalTollsCostsInRange(ctx, sqlc.GetGlobalTollsCostsInRangeParams{
+	tollsRaw, err := r.queries.GetGlobalTollsCostInRange(ctx, sqlc.GetGlobalTollsCostInRangeParams{
 		Date:   from,
 		Date_2: to,
 	})
@@ -175,7 +175,7 @@ func (r *ReportsRepository) GetGlobalCostsInRange(
 		return reports.GlobalCostsByCategory{}, err
 	}
 
-	otherRaw, err := r.queries.GetGlobalOtherCostsInRange(ctx, sqlc.GetGlobalOtherCostsInRangeParams{
+	otherRaw, err := r.queries.GetGlobalOtherCostInRange(ctx, sqlc.GetGlobalOtherCostInRangeParams{
 		Date:   from,
 		Date_2: to,
 	})

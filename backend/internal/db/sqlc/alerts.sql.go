@@ -71,6 +71,7 @@ WHERE deleted_at IS NULL
     (license_expiry_date IS NOT NULL AND license_expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY))
     OR (adr_certified = 1 AND adr_expiry_date IS NOT NULL AND adr_expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY))
   )
+LIMIT 500
 `
 
 type ListDriversWithExpiringCertificatesRow struct {

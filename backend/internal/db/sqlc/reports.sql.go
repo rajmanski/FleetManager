@@ -46,26 +46,26 @@ func (q *Queries) GetDriverMileageReport(ctx context.Context, arg GetDriverMilea
 	return i, err
 }
 
-const getGlobalFuelCostsInRange = `-- name: GetGlobalFuelCostsInRange :one
+const getGlobalFuelCostInRange = `-- name: GetGlobalFuelCostInRange :one
 SELECT COALESCE(SUM(fl.total_cost), 0) AS total
-FROM fuel_logs fl
+FROM FuelLog fl
 WHERE fl.date >= ?
   AND fl.date <= ?
 `
 
-type GetGlobalFuelCostsInRangeParams struct {
+type GetGlobalFuelCostInRangeParams struct {
 	Date   time.Time `json:"date"`
 	Date_2 time.Time `json:"date_2"`
 }
 
-func (q *Queries) GetGlobalFuelCostsInRange(ctx context.Context, arg GetGlobalFuelCostsInRangeParams) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, getGlobalFuelCostsInRange, arg.Date, arg.Date_2)
+func (q *Queries) GetGlobalFuelCostInRange(ctx context.Context, arg GetGlobalFuelCostInRangeParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getGlobalFuelCostInRange, arg.Date, arg.Date_2)
 	var total interface{}
 	err := row.Scan(&total)
 	return total, err
 }
 
-const getGlobalInsuranceCostsInRange = `-- name: GetGlobalInsuranceCostsInRange :one
+const getGlobalInsuranceCostInRange = `-- name: GetGlobalInsuranceCostInRange :one
 SELECT COALESCE(SUM(
   ip.cost * (
     DATEDIFF(
@@ -74,18 +74,18 @@ SELECT COALESCE(SUM(
     ) + 1
   ) / NULLIF(DATEDIFF(ip.end_date, ip.start_date) + 1, 0)
 ), 0) AS total
-FROM insurance_policies ip
+FROM InsurancePolicy ip
 WHERE LEAST(ip.end_date, ?) >= GREATEST(ip.start_date, ?)
 `
 
-type GetGlobalInsuranceCostsInRangeParams struct {
+type GetGlobalInsuranceCostInRangeParams struct {
 	PeriodEnd   interface{} `json:"period_end"`
 	PeriodStart interface{} `json:"period_start"`
 }
 
 // Insurance: prorate policy cost by overlap days with the report period.
-func (q *Queries) GetGlobalInsuranceCostsInRange(ctx context.Context, arg GetGlobalInsuranceCostsInRangeParams) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, getGlobalInsuranceCostsInRange,
+func (q *Queries) GetGlobalInsuranceCostInRange(ctx context.Context, arg GetGlobalInsuranceCostInRangeParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getGlobalInsuranceCostInRange,
 		arg.PeriodEnd,
 		arg.PeriodStart,
 		arg.PeriodEnd,
@@ -96,7 +96,7 @@ func (q *Queries) GetGlobalInsuranceCostsInRange(ctx context.Context, arg GetGlo
 	return total, err
 }
 
-const getGlobalMaintenanceCostsInRange = `-- name: GetGlobalMaintenanceCostsInRange :one
+const getGlobalMaintenanceCostInRange = `-- name: GetGlobalMaintenanceCostInRange :one
 SELECT COALESCE(SUM(m.total_cost_pln), 0) AS total
 FROM Maintenance m
 WHERE m.start_date IS NOT NULL
@@ -104,74 +104,74 @@ WHERE m.start_date IS NOT NULL
   AND DATE(m.start_date) <= ?
 `
 
-type GetGlobalMaintenanceCostsInRangeParams struct {
+type GetGlobalMaintenanceCostInRangeParams struct {
 	StartDate   sql.NullTime `json:"start_date"`
 	StartDate_2 sql.NullTime `json:"start_date_2"`
 }
 
-func (q *Queries) GetGlobalMaintenanceCostsInRange(ctx context.Context, arg GetGlobalMaintenanceCostsInRangeParams) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, getGlobalMaintenanceCostsInRange, arg.StartDate, arg.StartDate_2)
+func (q *Queries) GetGlobalMaintenanceCostInRange(ctx context.Context, arg GetGlobalMaintenanceCostInRangeParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getGlobalMaintenanceCostInRange, arg.StartDate, arg.StartDate_2)
 	var total interface{}
 	err := row.Scan(&total)
 	return total, err
 }
 
-const getGlobalOtherCostsInRange = `-- name: GetGlobalOtherCostsInRange :one
+const getGlobalOtherCostInRange = `-- name: GetGlobalOtherCostInRange :one
 SELECT COALESCE(SUM(c.amount), 0) AS total
-FROM costs c
+FROM Cost c
 WHERE c.category = 'Other'
   AND c.date >= ?
   AND c.date <= ?
 `
 
-type GetGlobalOtherCostsInRangeParams struct {
+type GetGlobalOtherCostInRangeParams struct {
 	Date   time.Time `json:"date"`
 	Date_2 time.Time `json:"date_2"`
 }
 
-func (q *Queries) GetGlobalOtherCostsInRange(ctx context.Context, arg GetGlobalOtherCostsInRangeParams) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, getGlobalOtherCostsInRange, arg.Date, arg.Date_2)
+func (q *Queries) GetGlobalOtherCostInRange(ctx context.Context, arg GetGlobalOtherCostInRangeParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getGlobalOtherCostInRange, arg.Date, arg.Date_2)
 	var total interface{}
 	err := row.Scan(&total)
 	return total, err
 }
 
-const getGlobalTollsCostsInRange = `-- name: GetGlobalTollsCostsInRange :one
+const getGlobalTollsCostInRange = `-- name: GetGlobalTollsCostInRange :one
 SELECT COALESCE(SUM(c.amount), 0) AS total
-FROM costs c
+FROM Cost c
 WHERE c.category = 'Tolls'
   AND c.date >= ?
   AND c.date <= ?
 `
 
-type GetGlobalTollsCostsInRangeParams struct {
+type GetGlobalTollsCostInRangeParams struct {
 	Date   time.Time `json:"date"`
 	Date_2 time.Time `json:"date_2"`
 }
 
-func (q *Queries) GetGlobalTollsCostsInRange(ctx context.Context, arg GetGlobalTollsCostsInRangeParams) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, getGlobalTollsCostsInRange, arg.Date, arg.Date_2)
+func (q *Queries) GetGlobalTollsCostInRange(ctx context.Context, arg GetGlobalTollsCostInRangeParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getGlobalTollsCostInRange, arg.Date, arg.Date_2)
 	var total interface{}
 	err := row.Scan(&total)
 	return total, err
 }
 
-const getVehicleFuelCostsForMonth = `-- name: GetVehicleFuelCostsForMonth :one
+const getVehicleFuelCostForMonth = `-- name: GetVehicleFuelCostForMonth :one
 SELECT COALESCE(SUM(fl.total_cost), 0) AS fuel_cost
-FROM fuel_logs fl
+FROM FuelLog fl
 WHERE fl.vehicle_id = ?
   AND fl.date >= ?
   AND fl.date < ?
 `
 
-type GetVehicleFuelCostsForMonthParams struct {
+type GetVehicleFuelCostForMonthParams struct {
 	VehicleID int32     `json:"vehicle_id"`
-	DateStart time.Time `json:"date_start"`
-	DateEnd   time.Time `json:"date_end"`
+	Date      time.Time `json:"date"`
+	Date_2    time.Time `json:"date_2"`
 }
 
-func (q *Queries) GetVehicleFuelCostsForMonth(ctx context.Context, arg GetVehicleFuelCostsForMonthParams) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, getVehicleFuelCostsForMonth, arg.VehicleID, arg.DateStart, arg.DateEnd)
+func (q *Queries) GetVehicleFuelCostForMonth(ctx context.Context, arg GetVehicleFuelCostForMonthParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getVehicleFuelCostForMonth, arg.VehicleID, arg.Date, arg.Date_2)
 	var fuel_cost interface{}
 	err := row.Scan(&fuel_cost)
 	return fuel_cost, err
@@ -179,7 +179,7 @@ func (q *Queries) GetVehicleFuelCostsForMonth(ctx context.Context, arg GetVehicl
 
 const getVehicleInsuranceMonthlyCost = `-- name: GetVehicleInsuranceMonthlyCost :one
 SELECT COALESCE(SUM(ip.cost / 12), 0) AS insurance_cost
-FROM insurance_policies ip
+FROM InsurancePolicy ip
 WHERE ip.vehicle_id = ?
   AND ip.start_date <= ?
   AND ip.end_date >= ?
@@ -198,7 +198,7 @@ func (q *Queries) GetVehicleInsuranceMonthlyCost(ctx context.Context, arg GetVeh
 	return insurance_cost, err
 }
 
-const getVehicleMaintenanceCostsForMonth = `-- name: GetVehicleMaintenanceCostsForMonth :one
+const getVehicleMaintenanceCostForMonth = `-- name: GetVehicleMaintenanceCostForMonth :one
 SELECT COALESCE(SUM(m.total_cost_pln), 0) AS maintenance_cost
 FROM Maintenance m
 WHERE m.vehicle_id = ?
@@ -207,14 +207,14 @@ WHERE m.vehicle_id = ?
   AND m.start_date < ?
 `
 
-type GetVehicleMaintenanceCostsForMonthParams struct {
-	VehicleID int32        `json:"vehicle_id"`
-	StartDate sql.NullTime `json:"start_date"`
-	EndDate   sql.NullTime `json:"end_date"`
+type GetVehicleMaintenanceCostForMonthParams struct {
+	VehicleID   int32        `json:"vehicle_id"`
+	StartDate   sql.NullTime `json:"start_date"`
+	StartDate_2 sql.NullTime `json:"start_date_2"`
 }
 
-func (q *Queries) GetVehicleMaintenanceCostsForMonth(ctx context.Context, arg GetVehicleMaintenanceCostsForMonthParams) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, getVehicleMaintenanceCostsForMonth, arg.VehicleID, arg.StartDate, arg.EndDate)
+func (q *Queries) GetVehicleMaintenanceCostForMonth(ctx context.Context, arg GetVehicleMaintenanceCostForMonthParams) (interface{}, error) {
+	row := q.db.QueryRowContext(ctx, getVehicleMaintenanceCostForMonth, arg.VehicleID, arg.StartDate, arg.StartDate_2)
 	var maintenance_cost interface{}
 	err := row.Scan(&maintenance_cost)
 	return maintenance_cost, err
@@ -229,16 +229,17 @@ WHERE o.order_id IN (
   WHERE t.vehicle_id = ?
     AND COALESCE(t.end_time, t.start_time) >= ?
     AND COALESCE(t.end_time, t.start_time) < ?
-)`
+)
+`
 
 type GetVehicleRevenueForMonthParams struct {
-	VehicleID      int32        `json:"vehicle_id"`
-	CreationDate   sql.NullTime `json:"creation_date"`
-	CreationDate_2 sql.NullTime `json:"creation_date_2"`
+	VehicleID int32        `json:"vehicle_id"`
+	EndTime   sql.NullTime `json:"end_time"`
+	EndTime_2 sql.NullTime `json:"end_time_2"`
 }
 
 func (q *Queries) GetVehicleRevenueForMonth(ctx context.Context, arg GetVehicleRevenueForMonthParams) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, getVehicleRevenueForMonth, arg.VehicleID, arg.CreationDate, arg.CreationDate_2)
+	row := q.db.QueryRowContext(ctx, getVehicleRevenueForMonth, arg.VehicleID, arg.EndTime, arg.EndTime_2)
 	var revenue interface{}
 	err := row.Scan(&revenue)
 	return revenue, err
@@ -246,7 +247,7 @@ func (q *Queries) GetVehicleRevenueForMonth(ctx context.Context, arg GetVehicleR
 
 const getVehicleTollsForMonth = `-- name: GetVehicleTollsForMonth :one
 SELECT COALESCE(SUM(c.amount), 0) AS tolls_cost
-FROM costs c
+FROM Cost c
 WHERE c.vehicle_id = ?
   AND c.category = 'Tolls'
   AND c.date >= ?
@@ -255,12 +256,12 @@ WHERE c.vehicle_id = ?
 
 type GetVehicleTollsForMonthParams struct {
 	VehicleID int32     `json:"vehicle_id"`
-	DateStart time.Time `json:"date_start"`
-	DateEnd   time.Time `json:"date_end"`
+	Date      time.Time `json:"date"`
+	Date_2    time.Time `json:"date_2"`
 }
 
 func (q *Queries) GetVehicleTollsForMonth(ctx context.Context, arg GetVehicleTollsForMonthParams) (interface{}, error) {
-	row := q.db.QueryRowContext(ctx, getVehicleTollsForMonth, arg.VehicleID, arg.DateStart, arg.DateEnd)
+	row := q.db.QueryRowContext(ctx, getVehicleTollsForMonth, arg.VehicleID, arg.Date, arg.Date_2)
 	var tolls_cost interface{}
 	err := row.Scan(&tolls_cost)
 	return tolls_cost, err

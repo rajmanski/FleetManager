@@ -7,8 +7,9 @@ SELECT
   u.failed_login_attempts,
   u.locked_until
 FROM Users u
-JOIN Roles r ON r.role_id = u.role_id
+LEFT JOIN Roles r ON r.role_id = u.role_id
 WHERE u.username = ?
+  AND u.is_active = 1
 LIMIT 1;
 
 -- name: UpdateUserLoginState :exec

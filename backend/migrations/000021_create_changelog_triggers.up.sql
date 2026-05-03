@@ -58,38 +58,38 @@ CREATE TRIGGER trg_maintenance_changelog_delete AFTER DELETE ON Maintenance FOR 
 INSERT INTO Changelog (user_id, table_name, record_id, operation, old_data, new_data, timestamp)
 VALUES (@current_user_id, 'maintenance', OLD.maintenance_id, 'DELETE', JSON_OBJECT('maintenance_id', OLD.maintenance_id, 'vehicle_id', OLD.vehicle_id, 'status', OLD.status), NULL, NOW());
 
-CREATE TRIGGER trg_fuel_logs_changelog_insert AFTER INSERT ON fuel_logs FOR EACH ROW
+CREATE TRIGGER trg_FuelLog_changelog_insert AFTER INSERT ON FuelLog FOR EACH ROW
 INSERT INTO Changelog (user_id, table_name, record_id, operation, old_data, new_data, timestamp)
-VALUES (@current_user_id, 'fuel_logs', NEW.id, 'INSERT', NULL, JSON_OBJECT('id', NEW.id, 'vehicle_id', NEW.vehicle_id, 'total_cost', NEW.total_cost), NOW());
+VALUES (@current_user_id, 'FuelLog', NEW.id, 'INSERT', NULL, JSON_OBJECT('id', NEW.id, 'vehicle_id', NEW.vehicle_id, 'total_cost', NEW.total_cost), NOW());
 
-CREATE TRIGGER trg_fuel_logs_changelog_update AFTER UPDATE ON fuel_logs FOR EACH ROW
+CREATE TRIGGER trg_FuelLog_changelog_update AFTER UPDATE ON FuelLog FOR EACH ROW
 INSERT INTO Changelog (user_id, table_name, record_id, operation, old_data, new_data, timestamp)
-VALUES (@current_user_id, 'fuel_logs', NEW.id, 'UPDATE', JSON_OBJECT('id', OLD.id, 'vehicle_id', OLD.vehicle_id, 'total_cost', OLD.total_cost), JSON_OBJECT('id', NEW.id, 'vehicle_id', NEW.vehicle_id, 'total_cost', NEW.total_cost), NOW());
+VALUES (@current_user_id, 'FuelLog', NEW.id, 'UPDATE', JSON_OBJECT('id', OLD.id, 'vehicle_id', OLD.vehicle_id, 'total_cost', OLD.total_cost), JSON_OBJECT('id', NEW.id, 'vehicle_id', NEW.vehicle_id, 'total_cost', NEW.total_cost), NOW());
 
-CREATE TRIGGER trg_fuel_logs_changelog_delete AFTER DELETE ON fuel_logs FOR EACH ROW
+CREATE TRIGGER trg_FuelLog_changelog_delete AFTER DELETE ON FuelLog FOR EACH ROW
 INSERT INTO Changelog (user_id, table_name, record_id, operation, old_data, new_data, timestamp)
-VALUES (@current_user_id, 'fuel_logs', OLD.id, 'DELETE', JSON_OBJECT('id', OLD.id, 'vehicle_id', OLD.vehicle_id, 'total_cost', OLD.total_cost), NULL, NOW());
+VALUES (@current_user_id, 'FuelLog', OLD.id, 'DELETE', JSON_OBJECT('id', OLD.id, 'vehicle_id', OLD.vehicle_id, 'total_cost', OLD.total_cost), NULL, NOW());
 
-CREATE TRIGGER trg_insurance_policies_changelog_insert AFTER INSERT ON insurance_policies FOR EACH ROW
+CREATE TRIGGER trg_InsurancePolicy_changelog_insert AFTER INSERT ON InsurancePolicy FOR EACH ROW
 INSERT INTO Changelog (user_id, table_name, record_id, operation, old_data, new_data, timestamp)
-VALUES (@current_user_id, 'insurance_policies', NEW.id, 'INSERT', NULL, JSON_OBJECT('id', NEW.id, 'vehicle_id', NEW.vehicle_id, 'type', NEW.type), NOW());
+VALUES (@current_user_id, 'InsurancePolicy', NEW.id, 'INSERT', NULL, JSON_OBJECT('id', NEW.id, 'vehicle_id', NEW.vehicle_id, 'type', NEW.type), NOW());
 
-CREATE TRIGGER trg_insurance_policies_changelog_update AFTER UPDATE ON insurance_policies FOR EACH ROW
+CREATE TRIGGER trg_InsurancePolicy_changelog_update AFTER UPDATE ON InsurancePolicy FOR EACH ROW
 INSERT INTO Changelog (user_id, table_name, record_id, operation, old_data, new_data, timestamp)
-VALUES (@current_user_id, 'insurance_policies', NEW.id, 'UPDATE', JSON_OBJECT('id', OLD.id, 'vehicle_id', OLD.vehicle_id, 'type', OLD.type), JSON_OBJECT('id', NEW.id, 'vehicle_id', NEW.vehicle_id, 'type', NEW.type), NOW());
+VALUES (@current_user_id, 'InsurancePolicy', NEW.id, 'UPDATE', JSON_OBJECT('id', OLD.id, 'vehicle_id', OLD.vehicle_id, 'type', OLD.type), JSON_OBJECT('id', NEW.id, 'vehicle_id', NEW.vehicle_id, 'type', NEW.type), NOW());
 
-CREATE TRIGGER trg_insurance_policies_changelog_delete AFTER DELETE ON insurance_policies FOR EACH ROW
+CREATE TRIGGER trg_InsurancePolicy_changelog_delete AFTER DELETE ON InsurancePolicy FOR EACH ROW
 INSERT INTO Changelog (user_id, table_name, record_id, operation, old_data, new_data, timestamp)
-VALUES (@current_user_id, 'insurance_policies', OLD.id, 'DELETE', JSON_OBJECT('id', OLD.id, 'vehicle_id', OLD.vehicle_id, 'type', OLD.type), NULL, NOW());
+VALUES (@current_user_id, 'InsurancePolicy', OLD.id, 'DELETE', JSON_OBJECT('id', OLD.id, 'vehicle_id', OLD.vehicle_id, 'type', OLD.type), NULL, NOW());
 
-CREATE TRIGGER trg_costs_changelog_insert AFTER INSERT ON costs FOR EACH ROW
+CREATE TRIGGER trg_Cost_changelog_insert AFTER INSERT ON Cost FOR EACH ROW
 INSERT INTO Changelog (user_id, table_name, record_id, operation, old_data, new_data, timestamp)
-VALUES (@current_user_id, 'costs', NEW.id, 'INSERT', NULL, JSON_OBJECT('id', NEW.id, 'vehicle_id', NEW.vehicle_id, 'category', NEW.category, 'amount', NEW.amount), NOW());
+VALUES (@current_user_id, 'Cost', NEW.id, 'INSERT', NULL, JSON_OBJECT('id', NEW.id, 'vehicle_id', NEW.vehicle_id, 'category', NEW.category, 'amount', NEW.amount), NOW());
 
-CREATE TRIGGER trg_costs_changelog_update AFTER UPDATE ON costs FOR EACH ROW
+CREATE TRIGGER trg_Cost_changelog_update AFTER UPDATE ON Cost FOR EACH ROW
 INSERT INTO Changelog (user_id, table_name, record_id, operation, old_data, new_data, timestamp)
-VALUES (@current_user_id, 'costs', NEW.id, 'UPDATE', JSON_OBJECT('id', OLD.id, 'vehicle_id', OLD.vehicle_id, 'category', OLD.category, 'amount', OLD.amount), JSON_OBJECT('id', NEW.id, 'vehicle_id', NEW.vehicle_id, 'category', NEW.category, 'amount', NEW.amount), NOW());
+VALUES (@current_user_id, 'Cost', NEW.id, 'UPDATE', JSON_OBJECT('id', OLD.id, 'vehicle_id', OLD.vehicle_id, 'category', OLD.category, 'amount', OLD.amount), JSON_OBJECT('id', NEW.id, 'vehicle_id', NEW.vehicle_id, 'category', NEW.category, 'amount', NEW.amount), NOW());
 
-CREATE TRIGGER trg_costs_changelog_delete AFTER DELETE ON costs FOR EACH ROW
+CREATE TRIGGER trg_Cost_changelog_delete AFTER DELETE ON Cost FOR EACH ROW
 INSERT INTO Changelog (user_id, table_name, record_id, operation, old_data, new_data, timestamp)
-VALUES (@current_user_id, 'costs', OLD.id, 'DELETE', JSON_OBJECT('id', OLD.id, 'vehicle_id', OLD.vehicle_id, 'category', OLD.category, 'amount', OLD.amount), NULL, NOW());
+VALUES (@current_user_id, 'Cost', OLD.id, 'DELETE', JSON_OBJECT('id', OLD.id, 'vehicle_id', OLD.vehicle_id, 'category', OLD.category, 'amount', OLD.amount), NULL, NOW());

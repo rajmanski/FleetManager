@@ -24,7 +24,7 @@ func (r *DashboardRepository) CountVehiclesInService(ctx context.Context) (int64
 }
 
 func (r *DashboardRepository) GetCurrentMonthCosts(ctx context.Context) (float64, error) {
-	value, err := r.queries.GetCurrentMonthCosts(ctx)
+	value, err := r.queries.GetCurrentMonthCost(ctx)
 	if err != nil {
 		return 0, err
 	}

@@ -1,4 +1,4 @@
--- name: ListInsurancePolicies :many
+-- name: ListInsurancePolicy :many
 SELECT
   id,
   vehicle_id,
@@ -10,14 +10,14 @@ SELECT
   cost,
   created_at,
   updated_at
-FROM insurance_policies
+FROM InsurancePolicy
 WHERE (? = 0 OR vehicle_id = ?)
 ORDER BY id DESC
 LIMIT ? OFFSET ?;
 
--- name: CountInsurancePolicies :one
+-- name: CountInsurancePolicy :one
 SELECT COUNT(*)
-FROM insurance_policies
+FROM InsurancePolicy
 WHERE (? = 0 OR vehicle_id = ?);
 
 -- name: GetInsurancePolicyByID :one
@@ -32,12 +32,12 @@ SELECT
   cost,
   created_at,
   updated_at
-FROM insurance_policies
+FROM InsurancePolicy
 WHERE id = ?
 LIMIT 1;
 
 -- name: CreateInsurancePolicy :execlastid
-INSERT INTO insurance_policies (
+INSERT INTO InsurancePolicy (
   vehicle_id,
   type,
   policy_number,
@@ -49,7 +49,7 @@ INSERT INTO insurance_policies (
 VALUES (?, ?, ?, ?, ?, ?, ?);
 
 -- name: UpdateInsurancePolicy :execrows
-UPDATE insurance_policies
+UPDATE InsurancePolicy
 SET
   vehicle_id = ?,
   type = ?,
@@ -62,5 +62,5 @@ SET
 WHERE id = ?;
 
 -- name: DeleteInsurancePolicy :execrows
-DELETE FROM insurance_policies
+DELETE FROM InsurancePolicy
 WHERE id = ?;

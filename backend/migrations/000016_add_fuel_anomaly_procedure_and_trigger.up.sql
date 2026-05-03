@@ -11,7 +11,7 @@ proc: BEGIN
 
   SELECT vehicle_id, liters, mileage
   INTO v_vehicle_id, v_liters, v_mileage
-  FROM fuel_logs
+  FROM FuelLog
   WHERE id = p_log_id
   LIMIT 1;
 
@@ -21,12 +21,12 @@ proc: BEGIN
 
   SELECT mileage
   INTO v_prev_mileage
-  FROM fuel_logs
+  FROM FuelLog
   WHERE vehicle_id = v_vehicle_id
     AND id <> p_log_id
     AND (
-      date < (SELECT date FROM fuel_logs WHERE id = p_log_id)
-      OR (date = (SELECT date FROM fuel_logs WHERE id = p_log_id) AND id < p_log_id)
+      date < (SELECT date FROM FuelLog WHERE id = p_log_id)
+      OR (date = (SELECT date FROM FuelLog WHERE id = p_log_id) AND id < p_log_id)
     )
   ORDER BY date DESC, id DESC
   LIMIT 1;
@@ -42,13 +42,13 @@ proc: BEGIN
   FROM (
     SELECT
       (f.liters / (f.mileage - p.prev_mileage)) * 100 AS consumption
-    FROM fuel_logs f
+    FROM FuelLog f
     JOIN (
       SELECT
         fl.id,
         (
           SELECT fl2.mileage
-          FROM fuel_logs fl2
+          FROM FuelLog fl2
           WHERE fl2.vehicle_id = fl.vehicle_id
             AND (
               fl2.date < fl.date
@@ -57,7 +57,7 @@ proc: BEGIN
           ORDER BY fl2.date DESC, fl2.id DESC
           LIMIT 1
         ) AS prev_mileage
-      FROM fuel_logs fl
+      FROM FuelLog fl
       WHERE fl.vehicle_id = v_vehicle_id
     ) p ON p.id = f.id
     WHERE p.prev_mileage IS NOT NULL
@@ -87,9 +87,9 @@ proc: BEGIN
   END IF;
 END;
 
-DROP TRIGGER IF EXISTS trg_fuel_logs_detect_anomaly;
-CREATE TRIGGER trg_fuel_logs_detect_anomaly
-AFTER INSERT ON fuel_logs
+DROP TRIGGER IF EXISTS trg_FuelLog_detect_anomaly;
+CREATE TRIGGER trg_FuelLog_detect_anomaly
+AFTER INSERT ON FuelLog
 FOR EACH ROW
 BEGIN
   CALL sp_detect_fuel_anomaly(NEW.id);

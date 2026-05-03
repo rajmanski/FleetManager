@@ -168,7 +168,7 @@ func (r *FuelRepository) ListFuelLogs(ctx context.Context, query fuel.ListFuelLo
 		dateToColumn = dateToStr
 	}
 
-	rows, err := r.queries.ListFuelLogs(ctx, sqlc.ListFuelLogsParams{
+	rows, err := r.queries.ListFuelLog(ctx, sqlc.ListFuelLogParams{
 		Column1: vehicleFilter,
 		VehicleID: vehicleID,
 		Column3: dateFromColumn,
@@ -182,7 +182,7 @@ func (r *FuelRepository) ListFuelLogs(ctx context.Context, query fuel.ListFuelLo
 		return nil, 0, err
 	}
 
-	total, err := r.queries.CountFuelLogs(ctx, sqlc.CountFuelLogsParams{
+	total, err := r.queries.CountFuelLog(ctx, sqlc.CountFuelLogParams{
 		Column1: vehicleFilter,
 		VehicleID: vehicleID,
 		Column3: dateFromColumn,
@@ -201,7 +201,7 @@ func (r *FuelRepository) ListFuelLogs(ctx context.Context, query fuel.ListFuelLo
 	return out, total, nil
 }
 
-func mapFuelLogRow(row sqlc.ListFuelLogsRow) fuel.FuelLog {
+func mapFuelLogRow(row sqlc.ListFuelLogRow) fuel.FuelLog {
 	var liters float64
 	_, _ = fmt.Sscanf(row.Liters, "%f", &liters)
 

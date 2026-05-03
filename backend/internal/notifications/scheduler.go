@@ -38,7 +38,7 @@ func (s *Service) CheckExpiringInsurance(ctx context.Context, lookaheadDays int6
 		log.Printf("scheduler job CheckExpiringInsurance: query error: %v", err)
 		return err
 	}
-	insType := string(sqlc.NotificationsTypeInsuranceExpiry)
+	insType := string(sqlc.NotificationTypeInsuranceExpiry)
 	created, err := s.fanOutMechanicNotifications(ctx, mechanics, insType, msgs)
 	if err != nil {
 		log.Printf("scheduler job CheckExpiringInsurance: create notifications error: %v", err)
@@ -72,7 +72,7 @@ func (s *Service) CheckExpiringCertificates(ctx context.Context, lookaheadDays i
 		log.Printf("scheduler job CheckExpiringCertificates: ADR query error: %v", err)
 		return err
 	}
-	certType := string(sqlc.NotificationsTypeCertificateExpiry)
+	certType := string(sqlc.NotificationTypeCertificateExpiry)
 	created, err := s.fanOutMechanicBatches(ctx, mechanics, []fanOutBatch{
 		{notifType: certType, messages: licenseMsgs},
 		{notifType: certType, messages: adrMsgs},
@@ -112,8 +112,8 @@ func (s *Service) CheckMaintenanceDue(ctx context.Context, lookaheadDays int64) 
 		log.Printf("scheduler job CheckMaintenanceDue: maintenance query error: %v", err)
 		return err
 	}
-	inspType := string(sqlc.NotificationsTypeInspectionDue)
-	maintType := string(sqlc.NotificationsTypeMaintenanceDue)
+	inspType := string(sqlc.NotificationTypeInspectionDue)
+	maintType := string(sqlc.NotificationTypeMaintenanceDue)
 	created, err := s.fanOutMechanicBatches(ctx, mechanics, []fanOutBatch{
 		{notifType: inspType, messages: inspectionMsgs},
 		{notifType: maintType, messages: maintenanceMsgs},

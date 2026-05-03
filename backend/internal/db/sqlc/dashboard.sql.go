@@ -36,11 +36,11 @@ func (q *Queries) CountVehiclesInService(ctx context.Context) (int64, error) {
 	return count, err
 }
 
-const getCurrentMonthCosts = `-- name: GetCurrentMonthCosts :one
+const getCurrentMonthCost = `-- name: GetCurrentMonthCost :one
 SELECT CAST((
   COALESCE((
     SELECT SUM(fl.total_cost)
-    FROM fuel_logs fl
+    FROM FuelLog fl
     WHERE DATE_FORMAT(fl.date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
   ), 0) +
   COALESCE((
@@ -51,17 +51,17 @@ SELECT CAST((
   ), 0) +
   COALESCE((
     SELECT SUM(c.amount)
-    FROM costs c
+    FROM Cost c
     WHERE DATE_FORMAT(c.date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
   ), 0)
-) AS SIGNED) AS total_costs
+) AS SIGNED) AS total_Cost
 `
 
-func (q *Queries) GetCurrentMonthCosts(ctx context.Context) (int64, error) {
-	row := q.db.QueryRowContext(ctx, getCurrentMonthCosts)
-	var total_costs int64
-	err := row.Scan(&total_costs)
-	return total_costs, err
+func (q *Queries) GetCurrentMonthCost(ctx context.Context) (int64, error) {
+	row := q.db.QueryRowContext(ctx, getCurrentMonthCost)
+	var total_cost int64
+	err := row.Scan(&total_cost)
+	return total_cost, err
 }
 
 const getCurrentMonthRevenue = `-- name: GetCurrentMonthRevenue :one
@@ -77,11 +77,52 @@ func (q *Queries) GetCurrentMonthRevenue(ctx context.Context) (interface{}, erro
 	return total_revenue, err
 }
 
+const listExpiringAdrAlerts = `-- name: ListExpiringAdrAlerts :many
+SELECT
+  'adr_expiry' AS type,
+  CONCAT('ADR certificate for ', d.first_name, ' ', d.last_name, ' expires on ', DATE_FORMAT(d.adr_expiry_date, '%Y-%m-%d')) AS message
+FROM Drivers d
+WHERE d.deleted_at IS NULL
+  AND d.adr_certified = 1
+  AND d.adr_expiry_date IS NOT NULL
+  AND d.adr_expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+ORDER BY d.adr_expiry_date ASC
+LIMIT 50
+`
+
+type ListExpiringAdrAlertsRow struct {
+	Type    string `json:"type"`
+	Message string `json:"message"`
+}
+
+func (q *Queries) ListExpiringAdrAlerts(ctx context.Context) ([]ListExpiringAdrAlertsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listExpiringAdrAlerts)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListExpiringAdrAlertsRow
+	for rows.Next() {
+		var i ListExpiringAdrAlertsRow
+		if err := rows.Scan(&i.Type, &i.Message); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listExpiringInsuranceAlerts = `-- name: ListExpiringInsuranceAlerts :many
 SELECT
   'insurance_expiry' AS type,
   CONCAT('Insurance policy for vehicle ', v.vin, ' expires on ', DATE_FORMAT(ip.end_date, '%Y-%m-%d')) AS message
-FROM insurance_policies ip
+FROM InsurancePolicy ip
 JOIN Vehicles v ON v.vehicle_id = ip.vehicle_id
 WHERE ip.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
   AND v.deleted_at IS NULL
@@ -103,46 +144,6 @@ func (q *Queries) ListExpiringInsuranceAlerts(ctx context.Context) ([]ListExpiri
 	var items []ListExpiringInsuranceAlertsRow
 	for rows.Next() {
 		var i ListExpiringInsuranceAlertsRow
-		if err := rows.Scan(&i.Type, &i.Message); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listUpcomingInspectionAlerts = `-- name: ListUpcomingInspectionAlerts :many
-SELECT
-  'inspection_due' AS type,
-  CONCAT('Vehicle inspection for ', v.vin, ' scheduled on ', DATE_FORMAT(v.next_inspection_date, '%Y-%m-%d')) AS message
-FROM Vehicles v
-WHERE v.next_inspection_date IS NOT NULL
-  AND v.next_inspection_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
-  AND v.deleted_at IS NULL
-ORDER BY v.next_inspection_date ASC
-LIMIT 50
-`
-
-type ListUpcomingInspectionAlertsRow struct {
-	Type    string `json:"type"`
-	Message string `json:"message"`
-}
-
-func (q *Queries) ListUpcomingInspectionAlerts(ctx context.Context) ([]ListUpcomingInspectionAlertsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listUpcomingInspectionAlerts)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ListUpcomingInspectionAlertsRow
-	for rows.Next() {
-		var i ListUpcomingInspectionAlertsRow
 		if err := rows.Scan(&i.Type, &i.Message); err != nil {
 			return nil, err
 		}
@@ -197,33 +198,32 @@ func (q *Queries) ListExpiringLicenseAlerts(ctx context.Context) ([]ListExpiring
 	return items, nil
 }
 
-const listExpiringAdrAlerts = `-- name: ListExpiringAdrAlerts :many
+const listUpcomingInspectionAlerts = `-- name: ListUpcomingInspectionAlerts :many
 SELECT
-  'adr_expiry' AS type,
-  CONCAT('ADR certificate for ', d.first_name, ' ', d.last_name, ' expires on ', DATE_FORMAT(d.adr_expiry_date, '%Y-%m-%d')) AS message
-FROM Drivers d
-WHERE d.deleted_at IS NULL
-  AND d.adr_certified = 1
-  AND d.adr_expiry_date IS NOT NULL
-  AND d.adr_expiry_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
-ORDER BY d.adr_expiry_date ASC
+  'inspection_due' AS type,
+  CONCAT('Vehicle inspection for ', v.vin, ' scheduled on ', DATE_FORMAT(v.next_inspection_date, '%Y-%m-%d')) AS message
+FROM Vehicles v
+WHERE v.next_inspection_date IS NOT NULL
+  AND v.next_inspection_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+  AND v.deleted_at IS NULL
+ORDER BY v.next_inspection_date ASC
 LIMIT 50
 `
 
-type ListExpiringAdrAlertsRow struct {
+type ListUpcomingInspectionAlertsRow struct {
 	Type    string `json:"type"`
 	Message string `json:"message"`
 }
 
-func (q *Queries) ListExpiringAdrAlerts(ctx context.Context) ([]ListExpiringAdrAlertsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listExpiringAdrAlerts)
+func (q *Queries) ListUpcomingInspectionAlerts(ctx context.Context) ([]ListUpcomingInspectionAlertsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listUpcomingInspectionAlerts)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListExpiringAdrAlertsRow
+	var items []ListUpcomingInspectionAlertsRow
 	for rows.Next() {
-		var i ListExpiringAdrAlertsRow
+		var i ListUpcomingInspectionAlertsRow
 		if err := rows.Scan(&i.Type, &i.Message); err != nil {
 			return nil, err
 		}

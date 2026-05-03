@@ -210,7 +210,7 @@ SELECT EXISTS(
   SELECT 1
   FROM Trips
   WHERE vehicle_id = ?
-    AND status = 'Active'
+    AND status IN ('Active', 'Scheduled')
 )
 `
 

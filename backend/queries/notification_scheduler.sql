@@ -1,7 +1,7 @@
 -- name: ListSchedulerInsuranceNotifications :many
 SELECT
   CONCAT('Vehicle insurance policy for VIN ', v.vin, ' expires on ', DATE_FORMAT(ip.end_date, '%Y-%m-%d')) AS message
-FROM insurance_policies ip
+FROM InsurancePolicy ip
 JOIN Vehicles v ON v.vehicle_id = ip.vehicle_id
 WHERE ip.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL CAST(? AS SIGNED) DAY)
   AND v.deleted_at IS NULL

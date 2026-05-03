@@ -9,11 +9,11 @@ FROM Vehicles
 WHERE status = 'Service'
   AND deleted_at IS NULL;
 
--- name: GetCurrentMonthCosts :one
+-- name: GetCurrentMonthCost :one
 SELECT CAST((
   COALESCE((
     SELECT SUM(fl.total_cost)
-    FROM fuel_logs fl
+    FROM FuelLog fl
     WHERE DATE_FORMAT(fl.date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
   ), 0) +
   COALESCE((
@@ -24,10 +24,10 @@ SELECT CAST((
   ), 0) +
   COALESCE((
     SELECT SUM(c.amount)
-    FROM costs c
+    FROM Cost c
     WHERE DATE_FORMAT(c.date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m')
   ), 0)
-) AS SIGNED) AS total_costs;
+) AS SIGNED) AS total_Cost;
 
 -- name: GetCurrentMonthRevenue :one
 SELECT COALESCE(SUM(o.total_price_pln), 0) AS total_revenue
@@ -38,7 +38,7 @@ WHERE DATE_FORMAT(o.creation_date, '%Y-%m') = DATE_FORMAT(CURDATE(), '%Y-%m');
 SELECT
   'insurance_expiry' AS type,
   CONCAT('Insurance policy for vehicle ', v.vin, ' expires on ', DATE_FORMAT(ip.end_date, '%Y-%m-%d')) AS message
-FROM insurance_policies ip
+FROM InsurancePolicy ip
 JOIN Vehicles v ON v.vehicle_id = ip.vehicle_id
 WHERE ip.end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
   AND v.deleted_at IS NULL

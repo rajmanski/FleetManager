@@ -31,13 +31,13 @@ func (r *CostsRepository) ListCosts(ctx context.Context, query costs.ListCostsQu
 	}
 
 	categoryColumnValue := interface{}("")
-	categoryEnum := sqlc.CostsCategory("Tolls")
+	categoryEnum := sqlc.CostCategory("Tolls")
 	if strings.TrimSpace(query.Category) != "" {
-		categoryEnum = sqlc.CostsCategory(strings.TrimSpace(query.Category))
+		categoryEnum = sqlc.CostCategory(strings.TrimSpace(query.Category))
 		categoryColumnValue = strings.TrimSpace(query.Category)
 	}
 
-	rows, err := r.queries.ListCosts(ctx, sqlc.ListCostsParams{
+	rows, err := r.queries.ListCost(ctx, sqlc.ListCostParams{
 		Column1:   vehicleFilter,
 		VehicleID: vehicleID,
 		Column3:   categoryColumnValue,
@@ -49,7 +49,7 @@ func (r *CostsRepository) ListCosts(ctx context.Context, query costs.ListCostsQu
 		return nil, 0, err
 	}
 
-	total, err := r.queries.CountCosts(ctx, sqlc.CountCostsParams{
+	total, err := r.queries.CountCost(ctx, sqlc.CountCostParams{
 		Column1:   vehicleFilter,
 		VehicleID: vehicleID,
 		Column3:   categoryColumnValue,
@@ -85,7 +85,7 @@ func (r *CostsRepository) CreateCost(ctx context.Context, input costs.CreateCost
 
 	return r.queries.CreateCost(ctx, sqlc.CreateCostParams{
 		VehicleID:     int32(input.VehicleID),
-		Category:      sqlc.CostsCategory(strings.TrimSpace(input.Category)),
+		Category:      sqlc.CostCategory(strings.TrimSpace(input.Category)),
 		Amount:        fmt.Sprintf("%.2f", input.Amount),
 		Date:          date,
 		Description:   toNullStringFromValue(input.Description),
@@ -101,7 +101,7 @@ func (r *CostsRepository) UpdateCost(ctx context.Context, id int64, input costs.
 
 	rows, err := r.queries.UpdateCost(ctx, sqlc.UpdateCostParams{
 		VehicleID:     int32(input.VehicleID),
-		Category:      sqlc.CostsCategory(strings.TrimSpace(input.Category)),
+		Category:      sqlc.CostCategory(strings.TrimSpace(input.Category)),
 		Amount:        fmt.Sprintf("%.2f", input.Amount),
 		Date:          date,
 		Description:   toNullStringFromValue(input.Description),

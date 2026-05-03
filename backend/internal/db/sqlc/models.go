@@ -97,46 +97,46 @@ func (ns NullChangelogOperation) Value() (driver.Value, error) {
 	return string(ns.ChangelogOperation), nil
 }
 
-type CostsCategory string
+type CostCategory string
 
 const (
-	CostsCategoryTolls CostsCategory = "Tolls"
-	CostsCategoryOther CostsCategory = "Other"
+	CostCategoryTolls CostCategory = "Tolls"
+	CostCategoryOther CostCategory = "Other"
 )
 
-func (e *CostsCategory) Scan(src interface{}) error {
+func (e *CostCategory) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = CostsCategory(s)
+		*e = CostCategory(s)
 	case string:
-		*e = CostsCategory(s)
+		*e = CostCategory(s)
 	default:
-		return fmt.Errorf("unsupported scan type for CostsCategory: %T", src)
+		return fmt.Errorf("unsupported scan type for CostCategory: %T", src)
 	}
 	return nil
 }
 
-type NullCostsCategory struct {
-	CostsCategory CostsCategory `json:"costs_category"`
-	Valid         bool          `json:"valid"` // Valid is true if CostsCategory is not NULL
+type NullCostCategory struct {
+	CostCategory CostCategory `json:"cost_category"`
+	Valid        bool         `json:"valid"` // Valid is true if CostCategory is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullCostsCategory) Scan(value interface{}) error {
+func (ns *NullCostCategory) Scan(value interface{}) error {
 	if value == nil {
-		ns.CostsCategory, ns.Valid = "", false
+		ns.CostCategory, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.CostsCategory.Scan(value)
+	return ns.CostCategory.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullCostsCategory) Value() (driver.Value, error) {
+func (ns NullCostCategory) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.CostsCategory), nil
+	return string(ns.CostCategory), nil
 }
 
 type DriversStatus string
@@ -182,46 +182,46 @@ func (ns NullDriversStatus) Value() (driver.Value, error) {
 	return string(ns.DriversStatus), nil
 }
 
-type InsurancePoliciesType string
+type InsurancepolicyType string
 
 const (
-	InsurancePoliciesTypeOC InsurancePoliciesType = "OC"
-	InsurancePoliciesTypeAC InsurancePoliciesType = "AC"
+	InsurancepolicyTypeOC InsurancepolicyType = "OC"
+	InsurancepolicyTypeAC InsurancepolicyType = "AC"
 )
 
-func (e *InsurancePoliciesType) Scan(src interface{}) error {
+func (e *InsurancepolicyType) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = InsurancePoliciesType(s)
+		*e = InsurancepolicyType(s)
 	case string:
-		*e = InsurancePoliciesType(s)
+		*e = InsurancepolicyType(s)
 	default:
-		return fmt.Errorf("unsupported scan type for InsurancePoliciesType: %T", src)
+		return fmt.Errorf("unsupported scan type for InsurancepolicyType: %T", src)
 	}
 	return nil
 }
 
-type NullInsurancePoliciesType struct {
-	InsurancePoliciesType InsurancePoliciesType `json:"insurance_policies_type"`
-	Valid                 bool                  `json:"valid"` // Valid is true if InsurancePoliciesType is not NULL
+type NullInsurancepolicyType struct {
+	InsurancepolicyType InsurancepolicyType `json:"insurancepolicy_type"`
+	Valid               bool                `json:"valid"` // Valid is true if InsurancepolicyType is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullInsurancePoliciesType) Scan(value interface{}) error {
+func (ns *NullInsurancepolicyType) Scan(value interface{}) error {
 	if value == nil {
-		ns.InsurancePoliciesType, ns.Valid = "", false
+		ns.InsurancepolicyType, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.InsurancePoliciesType.Scan(value)
+	return ns.InsurancepolicyType.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullInsurancePoliciesType) Value() (driver.Value, error) {
+func (ns NullInsurancepolicyType) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.InsurancePoliciesType), nil
+	return string(ns.InsurancepolicyType), nil
 }
 
 type MaintenanceStatus string
@@ -310,49 +310,49 @@ func (ns NullMaintenanceType) Value() (driver.Value, error) {
 	return string(ns.MaintenanceType), nil
 }
 
-type NotificationsType string
+type NotificationType string
 
 const (
-	NotificationsTypeInsuranceExpiry   NotificationsType = "Insurance_Expiry"
-	NotificationsTypeInspectionDue     NotificationsType = "Inspection_Due"
-	NotificationsTypeCertificateExpiry NotificationsType = "Certificate_Expiry"
-	NotificationsTypeFuelAnomaly       NotificationsType = "Fuel_Anomaly"
-	NotificationsTypeMaintenanceDue    NotificationsType = "Maintenance_Due"
+	NotificationTypeInsuranceExpiry   NotificationType = "Insurance_Expiry"
+	NotificationTypeInspectionDue     NotificationType = "Inspection_Due"
+	NotificationTypeCertificateExpiry NotificationType = "Certificate_Expiry"
+	NotificationTypeFuelAnomaly       NotificationType = "Fuel_Anomaly"
+	NotificationTypeMaintenanceDue    NotificationType = "Maintenance_Due"
 )
 
-func (e *NotificationsType) Scan(src interface{}) error {
+func (e *NotificationType) Scan(src interface{}) error {
 	switch s := src.(type) {
 	case []byte:
-		*e = NotificationsType(s)
+		*e = NotificationType(s)
 	case string:
-		*e = NotificationsType(s)
+		*e = NotificationType(s)
 	default:
-		return fmt.Errorf("unsupported scan type for NotificationsType: %T", src)
+		return fmt.Errorf("unsupported scan type for NotificationType: %T", src)
 	}
 	return nil
 }
 
-type NullNotificationsType struct {
-	NotificationsType NotificationsType `json:"notifications_type"`
-	Valid             bool              `json:"valid"` // Valid is true if NotificationsType is not NULL
+type NullNotificationType struct {
+	NotificationType NotificationType `json:"notification_type"`
+	Valid            bool             `json:"valid"` // Valid is true if NotificationType is not NULL
 }
 
 // Scan implements the Scanner interface.
-func (ns *NullNotificationsType) Scan(value interface{}) error {
+func (ns *NullNotificationType) Scan(value interface{}) error {
 	if value == nil {
-		ns.NotificationsType, ns.Valid = "", false
+		ns.NotificationType, ns.Valid = "", false
 		return nil
 	}
 	ns.Valid = true
-	return ns.NotificationsType.Scan(value)
+	return ns.NotificationType.Scan(value)
 }
 
 // Value implements the driver Valuer interface.
-func (ns NullNotificationsType) Value() (driver.Value, error) {
+func (ns NullNotificationType) Value() (driver.Value, error) {
 	if !ns.Valid {
 		return nil, nil
 	}
-	return string(ns.NotificationsType), nil
+	return string(ns.NotificationType), nil
 }
 
 type OrdersStatus string
@@ -583,7 +583,7 @@ type Client struct {
 type Cost struct {
 	ID            int32          `json:"id"`
 	VehicleID     int32          `json:"vehicle_id"`
-	Category      CostsCategory  `json:"category"`
+	Category      CostCategory   `json:"category"`
 	Amount        string         `json:"amount"`
 	Date          time.Time      `json:"date"`
 	Description   sql.NullString `json:"description"`
@@ -617,7 +617,7 @@ type Driver struct {
 	Pesel             sql.NullString    `json:"pesel"`
 }
 
-type FuelLog struct {
+type Fuellog struct {
 	ID            int32        `json:"id"`
 	VehicleID     int32        `json:"vehicle_id"`
 	Date          time.Time    `json:"date"`
@@ -629,17 +629,17 @@ type FuelLog struct {
 	CreatedAt     sql.NullTime `json:"created_at"`
 }
 
-type InsurancePolicy struct {
-	ID           int32                 `json:"id"`
-	VehicleID    int32                 `json:"vehicle_id"`
-	Type         InsurancePoliciesType `json:"type"`
-	PolicyNumber string                `json:"policy_number"`
-	Insurer      string                `json:"insurer"`
-	StartDate    time.Time             `json:"start_date"`
-	EndDate      time.Time             `json:"end_date"`
-	Cost         string                `json:"cost"`
-	CreatedAt    sql.NullTime          `json:"created_at"`
-	UpdatedAt    sql.NullTime          `json:"updated_at"`
+type Insurancepolicy struct {
+	ID           int32               `json:"id"`
+	VehicleID    int32               `json:"vehicle_id"`
+	Type         InsurancepolicyType `json:"type"`
+	PolicyNumber string              `json:"policy_number"`
+	Insurer      string              `json:"insurer"`
+	StartDate    time.Time           `json:"start_date"`
+	EndDate      time.Time           `json:"end_date"`
+	Cost         string              `json:"cost"`
+	CreatedAt    sql.NullTime        `json:"created_at"`
+	UpdatedAt    sql.NullTime        `json:"updated_at"`
 }
 
 type Maintenance struct {
@@ -658,12 +658,12 @@ type Maintenance struct {
 }
 
 type Notification struct {
-	ID        int32             `json:"id"`
-	UserID    int32             `json:"user_id"`
-	Message   sql.NullString    `json:"message"`
-	IsRead    sql.NullBool      `json:"is_read"`
-	CreatedAt sql.NullTime      `json:"created_at"`
-	Type      NotificationsType `json:"type"`
+	ID        int32            `json:"id"`
+	UserID    int32            `json:"user_id"`
+	Message   sql.NullString   `json:"message"`
+	IsRead    sql.NullBool     `json:"is_read"`
+	CreatedAt sql.NullTime     `json:"created_at"`
+	Type      NotificationType `json:"type"`
 }
 
 type Order struct {
@@ -722,6 +722,7 @@ type User struct {
 	IsActive            sql.NullBool  `json:"is_active"`
 	FailedLoginAttempts sql.NullInt32 `json:"failed_login_attempts"`
 	LockedUntil         sql.NullTime  `json:"locked_until"`
+	UpdatedAt           sql.NullTime  `json:"updated_at"`
 }
 
 type Vehicle struct {

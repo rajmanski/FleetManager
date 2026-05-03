@@ -86,7 +86,8 @@ FROM Assignments a
 JOIN Vehicles v ON v.vehicle_id = a.vehicle_id
 JOIN Drivers d ON d.driver_id = a.driver_id
 WHERE a.vehicle_id = ?
-ORDER BY a.assigned_from DESC;
+ORDER BY a.assigned_from DESC
+LIMIT 200;
 
 -- name: ListAssignmentsByDriverID :many
 SELECT
@@ -104,4 +105,5 @@ FROM Assignments a
 JOIN Vehicles v ON v.vehicle_id = a.vehicle_id
 JOIN Drivers d ON d.driver_id = a.driver_id
 WHERE a.driver_id = ?
-ORDER BY a.assigned_from DESC;
+ORDER BY a.assigned_from DESC
+LIMIT 200;

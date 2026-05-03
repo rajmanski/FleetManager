@@ -34,18 +34,18 @@ func (s *Service) createNotification(ctx context.Context, userID int32, notifTyp
 		return 0, ErrInvalidNotificationType
 	}
 
-	var dbType sqlc.NotificationsType
+	var dbType sqlc.NotificationType
 	switch t {
-	case string(sqlc.NotificationsTypeInsuranceExpiry):
-		dbType = sqlc.NotificationsTypeInsuranceExpiry
-	case string(sqlc.NotificationsTypeInspectionDue):
-		dbType = sqlc.NotificationsTypeInspectionDue
-	case string(sqlc.NotificationsTypeCertificateExpiry):
-		dbType = sqlc.NotificationsTypeCertificateExpiry
-	case string(sqlc.NotificationsTypeFuelAnomaly):
-		dbType = sqlc.NotificationsTypeFuelAnomaly
-	case string(sqlc.NotificationsTypeMaintenanceDue):
-		dbType = sqlc.NotificationsTypeMaintenanceDue
+	case string(sqlc.NotificationTypeInsuranceExpiry):
+		dbType = sqlc.NotificationTypeInsuranceExpiry
+	case string(sqlc.NotificationTypeInspectionDue):
+		dbType = sqlc.NotificationTypeInspectionDue
+	case string(sqlc.NotificationTypeCertificateExpiry):
+		dbType = sqlc.NotificationTypeCertificateExpiry
+	case string(sqlc.NotificationTypeFuelAnomaly):
+		dbType = sqlc.NotificationTypeFuelAnomaly
+	case string(sqlc.NotificationTypeMaintenanceDue):
+		dbType = sqlc.NotificationTypeMaintenanceDue
 	default:
 		return 0, ErrInvalidNotificationType
 	}
@@ -68,7 +68,7 @@ func (s *Service) ListForUser(ctx context.Context, userID int32) ([]sqlc.Notific
 	if userID <= 0 {
 		return nil, ErrInvalidUserID
 	}
-	rows, err := s.queries.ListNotificationsForUser(ctx, sqlc.ListNotificationsForUserParams{
+	rows, err := s.queries.ListNotificationForUser(ctx, sqlc.ListNotificationForUserParams{
 		UserID: userID,
 		Limit:  maxNotificationsListLimit,
 	})

@@ -160,6 +160,7 @@ JOIN Drivers d ON d.driver_id = t.driver_id
 LEFT JOIN Routes r ON r.order_id = o.order_id
 WHERE (? = '' OR t.status = ?)
 ORDER BY t.trip_id DESC
+LIMIT 500
 `
 
 type ListTripsParams struct {
@@ -246,6 +247,7 @@ JOIN Drivers d ON d.driver_id = t.driver_id
 LEFT JOIN Routes r ON r.order_id = o.order_id
 WHERE t.order_id = ?
 ORDER BY t.trip_id DESC
+LIMIT 200
 `
 
 type ListTripsByOrderIDRow struct {

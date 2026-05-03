@@ -27,10 +27,15 @@ func (r *AuthRepository) GetUserByLogin(ctx context.Context, login string) (auth
 		return auth.User{}, err
 	}
 
+	role := row.RoleName.String
+	if !row.RoleName.Valid {
+		role = "Unknown"
+	}
+
 	user := auth.User{
 		ID:                 int64(row.UserID),
 		Login:              row.Username,
-		Role:               row.RoleName,
+		Role:               role,
 		PasswordHash:       row.PasswordHash,
 		FailedLoginAttempt: int(row.FailedLoginAttempts.Int32),
 	}

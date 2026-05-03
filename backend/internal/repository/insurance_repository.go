@@ -30,7 +30,7 @@ func (r *InsuranceRepository) ListInsurancePolicies(ctx context.Context, query i
 		vehicleID = int32(query.VehicleID)
 	}
 
-	rows, err := r.queries.ListInsurancePolicies(ctx, sqlc.ListInsurancePoliciesParams{
+	rows, err := r.queries.ListInsurancePolicy(ctx, sqlc.ListInsurancePolicyParams{
 		Column1:   vehicleFilter,
 		VehicleID: vehicleID,
 		Limit:     query.Limit,
@@ -40,7 +40,7 @@ func (r *InsuranceRepository) ListInsurancePolicies(ctx context.Context, query i
 		return nil, 0, err
 	}
 
-	total, err := r.queries.CountInsurancePolicies(ctx, sqlc.CountInsurancePoliciesParams{
+	total, err := r.queries.CountInsurancePolicy(ctx, sqlc.CountInsurancePolicyParams{
 		Column1:   vehicleFilter,
 		VehicleID: vehicleID,
 	})
@@ -83,7 +83,7 @@ func (r *InsuranceRepository) CreateInsurancePolicy(ctx context.Context, input i
 
 	return r.queries.CreateInsurancePolicy(ctx, sqlc.CreateInsurancePolicyParams{
 		VehicleID:    int32(input.VehicleID),
-		Type:         sqlc.InsurancePoliciesType(policyType),
+		Type:         sqlc.InsurancepolicyType(policyType),
 		PolicyNumber: strings.TrimSpace(input.PolicyNumber),
 		Insurer:      strings.TrimSpace(input.Insurer),
 		StartDate:    start,
@@ -109,7 +109,7 @@ func (r *InsuranceRepository) UpdateInsurancePolicy(ctx context.Context, id int6
 
 	rows, err := r.queries.UpdateInsurancePolicy(ctx, sqlc.UpdateInsurancePolicyParams{
 		VehicleID:    int32(input.VehicleID),
-		Type:         sqlc.InsurancePoliciesType(policyType),
+		Type:         sqlc.InsurancepolicyType(policyType),
 		PolicyNumber: strings.TrimSpace(input.PolicyNumber),
 		Insurer:      strings.TrimSpace(input.Insurer),
 		StartDate:    start,
@@ -137,7 +137,7 @@ func (r *InsuranceRepository) DeleteInsurancePolicy(ctx context.Context, id int6
 	return nil
 }
 
-func mapInsurancePolicyRow(row sqlc.InsurancePolicy) insurance.Policy {
+func mapInsurancePolicyRow(row sqlc.Insurancepolicy) insurance.Policy {
 	var created, updated *time.Time
 	if row.CreatedAt.Valid {
 		t := row.CreatedAt.Time

@@ -1,4 +1,4 @@
--- name: ListCosts :many
+-- name: ListCost :many
 SELECT
   id,
   vehicle_id,
@@ -8,15 +8,15 @@ SELECT
   description,
   invoice_number,
   created_at
-FROM costs
+FROM Cost
 WHERE (? = 0 OR vehicle_id = ?)
   AND (? = '' OR category = ?)
 ORDER BY id DESC
 LIMIT ? OFFSET ?;
 
--- name: CountCosts :one
+-- name: CountCost :one
 SELECT COUNT(*)
-FROM costs
+FROM Cost
 WHERE (? = 0 OR vehicle_id = ?)
   AND (? = '' OR category = ?);
 
@@ -30,12 +30,12 @@ SELECT
   description,
   invoice_number,
   created_at
-FROM costs
+FROM Cost
 WHERE id = ?
 LIMIT 1;
 
 -- name: CreateCost :execlastid
-INSERT INTO costs (
+INSERT INTO Cost (
   vehicle_id,
   category,
   amount,
@@ -46,7 +46,7 @@ INSERT INTO costs (
 VALUES (?, ?, ?, ?, ?, ?);
 
 -- name: UpdateCost :execrows
-UPDATE costs
+UPDATE Cost
 SET
   vehicle_id = ?,
   category = ?,
@@ -57,5 +57,5 @@ SET
 WHERE id = ?;
 
 -- name: DeleteCost :execrows
-DELETE FROM costs
+DELETE FROM Cost
 WHERE id = ?;

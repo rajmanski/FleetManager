@@ -23,6 +23,7 @@ sql:
       - "migrations/000020_create_changelog.up.sql"
       - "migrations/000023_create_dictionaries.up.sql"
       - "migrations/000025_make_drivers_pesel_nullable.up.sql"
+      - "migrations/000028_add_users_updated_at.up.sql"
     gen:
       go:
         package: "sqlc"

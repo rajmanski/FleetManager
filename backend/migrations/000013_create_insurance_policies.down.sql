@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS insurance_policies;
+DROP TABLE IF EXISTS InsurancePolicy;

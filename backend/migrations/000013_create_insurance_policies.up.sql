@@ -1,4 +1,4 @@
-CREATE TABLE insurance_policies (
+CREATE TABLE InsurancePolicy (
   id INT AUTO_INCREMENT PRIMARY KEY,
   vehicle_id INT NOT NULL,
   type ENUM('OC', 'AC') NOT NULL,

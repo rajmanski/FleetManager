@@ -11,22 +11,22 @@ import (
 	"time"
 )
 
-const countCosts = `-- name: CountCosts :one
+const countCost = `-- name: CountCost :one
 SELECT COUNT(*)
-FROM costs
+FROM Cost
 WHERE (? = 0 OR vehicle_id = ?)
   AND (? = '' OR category = ?)
 `
 
-type CountCostsParams struct {
-	Column1   interface{}   `json:"column_1"`
-	VehicleID int32         `json:"vehicle_id"`
-	Column3   interface{}   `json:"column_3"`
-	Category  CostsCategory `json:"category"`
+type CountCostParams struct {
+	Column1   interface{}  `json:"column_1"`
+	VehicleID int32        `json:"vehicle_id"`
+	Column3   interface{}  `json:"column_3"`
+	Category  CostCategory `json:"category"`
 }
 
-func (q *Queries) CountCosts(ctx context.Context, arg CountCostsParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countCosts,
+func (q *Queries) CountCost(ctx context.Context, arg CountCostParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countCost,
 		arg.Column1,
 		arg.VehicleID,
 		arg.Column3,
@@ -38,7 +38,7 @@ func (q *Queries) CountCosts(ctx context.Context, arg CountCostsParams) (int64, 
 }
 
 const createCost = `-- name: CreateCost :execlastid
-INSERT INTO costs (
+INSERT INTO Cost (
   vehicle_id,
   category,
   amount,
@@ -51,7 +51,7 @@ VALUES (?, ?, ?, ?, ?, ?)
 
 type CreateCostParams struct {
 	VehicleID     int32          `json:"vehicle_id"`
-	Category      CostsCategory  `json:"category"`
+	Category      CostCategory   `json:"category"`
 	Amount        string         `json:"amount"`
 	Date          time.Time      `json:"date"`
 	Description   sql.NullString `json:"description"`
@@ -74,7 +74,7 @@ func (q *Queries) CreateCost(ctx context.Context, arg CreateCostParams) (int64, 
 }
 
 const deleteCost = `-- name: DeleteCost :execrows
-DELETE FROM costs
+DELETE FROM Cost
 WHERE id = ?
 `
 
@@ -96,7 +96,7 @@ SELECT
   description,
   invoice_number,
   created_at
-FROM costs
+FROM Cost
 WHERE id = ?
 LIMIT 1
 `
@@ -117,7 +117,7 @@ func (q *Queries) GetCostByID(ctx context.Context, id int32) (Cost, error) {
 	return i, err
 }
 
-const listCosts = `-- name: ListCosts :many
+const listCost = `-- name: ListCost :many
 SELECT
   id,
   vehicle_id,
@@ -127,24 +127,24 @@ SELECT
   description,
   invoice_number,
   created_at
-FROM costs
+FROM Cost
 WHERE (? = 0 OR vehicle_id = ?)
   AND (? = '' OR category = ?)
 ORDER BY id DESC
 LIMIT ? OFFSET ?
 `
 
-type ListCostsParams struct {
-	Column1   interface{}   `json:"column_1"`
-	VehicleID int32         `json:"vehicle_id"`
-	Column3   interface{}   `json:"column_3"`
-	Category  CostsCategory `json:"category"`
-	Limit     int32         `json:"limit"`
-	Offset    int32         `json:"offset"`
+type ListCostParams struct {
+	Column1   interface{}  `json:"column_1"`
+	VehicleID int32        `json:"vehicle_id"`
+	Column3   interface{}  `json:"column_3"`
+	Category  CostCategory `json:"category"`
+	Limit     int32        `json:"limit"`
+	Offset    int32        `json:"offset"`
 }
 
-func (q *Queries) ListCosts(ctx context.Context, arg ListCostsParams) ([]Cost, error) {
-	rows, err := q.db.QueryContext(ctx, listCosts,
+func (q *Queries) ListCost(ctx context.Context, arg ListCostParams) ([]Cost, error) {
+	rows, err := q.db.QueryContext(ctx, listCost,
 		arg.Column1,
 		arg.VehicleID,
 		arg.Column3,
@@ -183,7 +183,7 @@ func (q *Queries) ListCosts(ctx context.Context, arg ListCostsParams) ([]Cost, e
 }
 
 const updateCost = `-- name: UpdateCost :execrows
-UPDATE costs
+UPDATE Cost
 SET
   vehicle_id = ?,
   category = ?,
@@ -196,7 +196,7 @@ WHERE id = ?
 
 type UpdateCostParams struct {
 	VehicleID     int32          `json:"vehicle_id"`
-	Category      CostsCategory  `json:"category"`
+	Category      CostCategory   `json:"category"`
 	Amount        string         `json:"amount"`
 	Date          time.Time      `json:"date"`
 	Description   sql.NullString `json:"description"`

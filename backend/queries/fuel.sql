@@ -14,7 +14,7 @@ WHERE vehicle_id = ?
   AND deleted_at IS NULL;
 
 -- name: CreateFuelLog :execlastid
-INSERT INTO fuel_logs (
+INSERT INTO FuelLog (
   vehicle_id,
   date,
   liters,
@@ -40,26 +40,26 @@ FROM (
     liters,
     mileage,
     LAG(mileage) OVER (PARTITION BY vehicle_id ORDER BY date, id) AS prev_mileage
-  FROM fuel_logs
+  FROM FuelLog
   WHERE vehicle_id = ?
 ) AS x;
 
--- name: ListFuelLogs :many
+-- name: ListFuelLog :many
 WITH annotated AS (
   SELECT
-    fuel_logs.*,
-    LAG(fuel_logs.mileage) OVER (
-      PARTITION BY fuel_logs.vehicle_id
-      ORDER BY fuel_logs.date, fuel_logs.id
+    FuelLog.*,
+    LAG(FuelLog.mileage) OVER (
+      PARTITION BY FuelLog.vehicle_id
+      ORDER BY FuelLog.date, FuelLog.id
     ) AS prev_mileage,
     EXISTS(
       SELECT 1
       FROM Alerts a
-      WHERE a.fuel_log_id = fuel_logs.id
+      WHERE a.fuel_log_id = FuelLog.id
         AND a.alert_type = 'fuel_anomaly'
     ) AS has_alert
-  FROM fuel_logs
-  WHERE (? = 0 OR fuel_logs.vehicle_id = ?)
+  FROM FuelLog
+  WHERE (? = 0 OR FuelLog.vehicle_id = ?)
 ),
 computed AS (
   SELECT
@@ -106,9 +106,9 @@ WHERE (? = '' OR date >= ?)
 ORDER BY id DESC
 LIMIT ? OFFSET ?;
 
--- name: CountFuelLogs :one
+-- name: CountFuelLog :one
 SELECT COUNT(*)
-FROM fuel_logs
+FROM FuelLog
 WHERE (? = 0 OR vehicle_id = ?)
   AND (? = '' OR date >= ?)
   AND (? = '' OR date <= ?);

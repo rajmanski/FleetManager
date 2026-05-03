@@ -1,4 +1,4 @@
-ALTER TABLE notifications
+ALTER TABLE Notification
 MODIFY COLUMN type ENUM(
   'Insurance_Expiry',
   'Inspection_Due',

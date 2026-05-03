@@ -1,4 +1,4 @@
-CREATE TABLE fuel_logs (
+CREATE TABLE FuelLog (
   id INT AUTO_INCREMENT PRIMARY KEY,
   vehicle_id INT NOT NULL,
   date DATE NOT NULL,
@@ -11,4 +11,4 @@ CREATE TABLE fuel_logs (
   FOREIGN KEY (vehicle_id) REFERENCES Vehicles(vehicle_id)
 );
 
-CREATE INDEX idx_fuel_logs_vehicle_id_date ON fuel_logs(vehicle_id, date);
+CREATE INDEX idx_FuelLog_vehicle_id_date ON FuelLog(vehicle_id, date);

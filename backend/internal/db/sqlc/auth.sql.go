@@ -19,18 +19,19 @@ SELECT
   u.failed_login_attempts,
   u.locked_until
 FROM Users u
-JOIN Roles r ON r.role_id = u.role_id
+LEFT JOIN Roles r ON r.role_id = u.role_id
 WHERE u.username = ?
+  AND u.is_active = 1
 LIMIT 1
 `
 
 type GetUserByLoginRow struct {
-	UserID              int32         `json:"user_id"`
-	Username            string        `json:"username"`
-	RoleName            string        `json:"role_name"`
-	PasswordHash        string        `json:"password_hash"`
-	FailedLoginAttempts sql.NullInt32 `json:"failed_login_attempts"`
-	LockedUntil         sql.NullTime  `json:"locked_until"`
+	UserID              int32          `json:"user_id"`
+	Username            string         `json:"username"`
+	RoleName            sql.NullString `json:"role_name"`
+	PasswordHash        string         `json:"password_hash"`
+	FailedLoginAttempts sql.NullInt32  `json:"failed_login_attempts"`
+	LockedUntil         sql.NullTime   `json:"locked_until"`
 }
 
 func (q *Queries) GetUserByLogin(ctx context.Context, username string) (GetUserByLoginRow, error) {

@@ -133,10 +133,17 @@ SET
 WHERE driver_id = ?
   AND deleted_at IS NULL;
 
+-- name: AnonymizeNotificationForDriver :execrows
+UPDATE Notification
+SET message = 'Notification content anonymized (GDPR)'
+WHERE message LIKE CONCAT('%', ?, '%', ?)
+   OR message LIKE CONCAT('%', ?, '%');
+
 -- name: ListActiveDriverPESELs :many
 SELECT driver_id, pesel
 FROM Drivers
-WHERE deleted_at IS NULL;
+WHERE deleted_at IS NULL
+LIMIT 2000;
 
 -- name: ListDriversForPESELSearch :many
 SELECT

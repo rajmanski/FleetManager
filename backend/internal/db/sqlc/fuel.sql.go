@@ -11,15 +11,15 @@ import (
 	"time"
 )
 
-const countFuelLogs = `-- name: CountFuelLogs :one
+const countFuelLog = `-- name: CountFuelLog :one
 SELECT COUNT(*)
-FROM fuel_logs
+FROM FuelLog
 WHERE (? = 0 OR vehicle_id = ?)
   AND (? = '' OR date >= ?)
   AND (? = '' OR date <= ?)
 `
 
-type CountFuelLogsParams struct {
+type CountFuelLogParams struct {
 	Column1   interface{} `json:"column_1"`
 	VehicleID int32       `json:"vehicle_id"`
 	Column3   interface{} `json:"column_3"`
@@ -28,8 +28,8 @@ type CountFuelLogsParams struct {
 	Date_2    time.Time   `json:"date_2"`
 }
 
-func (q *Queries) CountFuelLogs(ctx context.Context, arg CountFuelLogsParams) (int64, error) {
-	row := q.db.QueryRowContext(ctx, countFuelLogs,
+func (q *Queries) CountFuelLog(ctx context.Context, arg CountFuelLogParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countFuelLog,
 		arg.Column1,
 		arg.VehicleID,
 		arg.Column3,
@@ -43,7 +43,7 @@ func (q *Queries) CountFuelLogs(ctx context.Context, arg CountFuelLogsParams) (i
 }
 
 const createFuelLog = `-- name: CreateFuelLog :execlastid
-INSERT INTO fuel_logs (
+INSERT INTO FuelLog (
   vehicle_id,
   date,
   liters,
@@ -94,7 +94,7 @@ FROM (
     liters,
     mileage,
     LAG(mileage) OVER (PARTITION BY vehicle_id ORDER BY date, id) AS prev_mileage
-  FROM fuel_logs
+  FROM FuelLog
   WHERE vehicle_id = ?
 ) AS x
 `
@@ -123,22 +123,22 @@ func (q *Queries) GetVehicleCurrentMileage(ctx context.Context, vehicleID int32)
 	return current_mileage_km, err
 }
 
-const listFuelLogs = `-- name: ListFuelLogs :many
+const listFuelLog = `-- name: ListFuelLog :many
 WITH annotated AS (
   SELECT
-    fuel_logs.id, fuel_logs.vehicle_id, fuel_logs.date, fuel_logs.liters, fuel_logs.price_per_liter, fuel_logs.total_cost, fuel_logs.mileage, fuel_logs.location, fuel_logs.created_at,
-    LAG(fuel_logs.mileage) OVER (
-      PARTITION BY fuel_logs.vehicle_id
-      ORDER BY fuel_logs.date, fuel_logs.id
+    fuellog.id, fuellog.vehicle_id, fuellog.date, fuellog.liters, fuellog.price_per_liter, fuellog.total_cost, fuellog.mileage, fuellog.location, fuellog.created_at,
+    LAG(FuelLog.mileage) OVER (
+      PARTITION BY FuelLog.vehicle_id
+      ORDER BY FuelLog.date, FuelLog.id
     ) AS prev_mileage,
     EXISTS(
       SELECT 1
       FROM Alerts a
-      WHERE a.fuel_log_id = fuel_logs.id
+      WHERE a.fuel_log_id = FuelLog.id
         AND a.alert_type = 'fuel_anomaly'
     ) AS has_alert
-  FROM fuel_logs
-  WHERE (? = 0 OR fuel_logs.vehicle_id = ?)
+  FROM FuelLog
+  WHERE (? = 0 OR FuelLog.vehicle_id = ?)
 ),
 computed AS (
   SELECT
@@ -186,7 +186,7 @@ ORDER BY id DESC
 LIMIT ? OFFSET ?
 `
 
-type ListFuelLogsParams struct {
+type ListFuelLogParams struct {
 	Column1   interface{} `json:"column_1"`
 	VehicleID int32       `json:"vehicle_id"`
 	Column3   interface{} `json:"column_3"`
@@ -197,7 +197,7 @@ type ListFuelLogsParams struct {
 	Offset    int32       `json:"offset"`
 }
 
-type ListFuelLogsRow struct {
+type ListFuelLogRow struct {
 	ID                     int32        `json:"id"`
 	VehicleID              int32        `json:"vehicle_id"`
 	Date                   time.Time    `json:"date"`
@@ -214,8 +214,8 @@ type ListFuelLogsRow struct {
 	DeviationPercent       float64      `json:"deviation_percent"`
 }
 
-func (q *Queries) ListFuelLogs(ctx context.Context, arg ListFuelLogsParams) ([]ListFuelLogsRow, error) {
-	rows, err := q.db.QueryContext(ctx, listFuelLogs,
+func (q *Queries) ListFuelLog(ctx context.Context, arg ListFuelLogParams) ([]ListFuelLogRow, error) {
+	rows, err := q.db.QueryContext(ctx, listFuelLog,
 		arg.Column1,
 		arg.VehicleID,
 		arg.Column3,
@@ -229,9 +229,9 @@ func (q *Queries) ListFuelLogs(ctx context.Context, arg ListFuelLogsParams) ([]L
 		return nil, err
 	}
 	defer rows.Close()
-	var items []ListFuelLogsRow
+	var items []ListFuelLogRow
 	for rows.Next() {
-		var i ListFuelLogsRow
+		var i ListFuelLogRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.VehicleID,

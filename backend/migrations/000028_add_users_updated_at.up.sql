@@ -1,0 +1,1 @@
+ALTER TABLE Users ADD COLUMN updated_at DATETIME DEFAULT NOW() ON UPDATE NOW() AFTER locked_until;

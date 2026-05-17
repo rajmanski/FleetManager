@@ -117,7 +117,8 @@ api.interceptors.response.use(
     }) | null
 
     const status = error.response?.status as number | undefined
-    if (status !== 401 || !originalRequest || originalRequest._retry) {
+    const isLoginEndpoint = originalRequest?.url?.includes('/auth/login')
+    if (status !== 401 || !originalRequest || originalRequest._retry || isLoginEndpoint) {
       return Promise.reject(error)
     }
 

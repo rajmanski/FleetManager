@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import api from '@/services/api'
-import { initAuthSessionManagement } from '@/services/api'
+import { clearSessionExpiredMessage, initAuthSessionManagement } from '@/services/api'
 import { saveAccessToken } from '@/services/authStorage'
 import { extractApiError } from '@/utils/api'
 import type { LoginFormValues } from '@/schemas/auth'
@@ -39,6 +39,7 @@ export function useLogin() {
           }
         }
         initAuthSessionManagement()
+        clearSessionExpiredMessage()
         return { success: true }
       } catch (error) {
         return { success: false, error: extractApiError(error) ?? 'Login failed.' }

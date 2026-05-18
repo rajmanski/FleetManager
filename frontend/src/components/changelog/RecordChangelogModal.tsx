@@ -42,7 +42,7 @@ export function RecordChangelogModal({
   }
 
   return (
-    <Modal title={title} contentClassName="max-w-5xl">
+    <Modal title={title} contentClassName="max-w-5xl" onClose={onClose}>
       <div className="mt-4 flex flex-col" style={{ maxHeight: 'calc(100vh - 12rem)' }}>
         {changelogQuery.isLoading && <LoadingMessage message="Loading record history..." />}
         {changelogQuery.isError && <ErrorMessage message="Failed to load record history." />}

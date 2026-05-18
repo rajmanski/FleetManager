@@ -23,10 +23,10 @@ func (h *Handler) ListTrips(c *gin.Context) {
 	rows, err := h.service.ListTrips(c.Request.Context(), ListTripsQuery{Status: status})
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid query params")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 	c.JSON(http.StatusOK, rows)
@@ -35,17 +35,17 @@ func (h *Handler) ListTrips(c *gin.Context) {
 func (h *Handler) ListTripsByOrder(c *gin.Context) {
 	orderID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || orderID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid order id")
 		return
 	}
 
 	rows, err := h.service.ListTripsByOrderID(c.Request.Context(), orderID)
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order id"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid order id")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 	c.JSON(http.StatusOK, rows)
@@ -54,21 +54,21 @@ func (h *Handler) ListTripsByOrder(c *gin.Context) {
 func (h *Handler) GetTrip(c *gin.Context) {
 	tripID, err := parseTripIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trip id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid trip id")
 		return
 	}
 
 	trip, err := h.service.GetTripByID(c.Request.Context(), tripID)
 	if err != nil {
 		if errors.Is(err, ErrTripNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "trip not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "trip not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 	c.JSON(http.StatusOK, trip)
@@ -77,7 +77,7 @@ func (h *Handler) GetTrip(c *gin.Context) {
 func (h *Handler) CreateTrip(c *gin.Context) {
 	var req CreateTripRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -85,16 +85,16 @@ func (h *Handler) CreateTrip(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case IsCargoExceedsCapacity(err):
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			httputil.RespondError(c, http.StatusBadRequest, err, err.Error())
 			return
 		case errors.Is(err, ErrValidationFailed):
-			c.JSON(http.StatusForbidden, gin.H{"error": "validation failed"})
+			httputil.RespondError(c, http.StatusForbidden, err, "validation failed")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -105,21 +105,21 @@ func (h *Handler) CreateTrip(c *gin.Context) {
 func (h *Handler) StartTrip(c *gin.Context) {
 	tripID, err := parseTripIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trip id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid trip id")
 		return
 	}
 
 	trip, err := h.service.StartTrip(c.Request.Context(), tripID)
 	if err != nil {
 		if errors.Is(err, ErrTripNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "trip not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "trip not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidState) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trip state"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid trip state")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -129,31 +129,31 @@ func (h *Handler) StartTrip(c *gin.Context) {
 func (h *Handler) FinishTrip(c *gin.Context) {
 	tripID, err := parseTripIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trip id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid trip id")
 		return
 	}
 
 	var req FinishTripRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
 	trip, err := h.service.FinishTrip(c.Request.Context(), tripID, req.ActualDistanceKm)
 	if err != nil {
 		if errors.Is(err, ErrTripNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "trip not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "trip not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
 		if errors.Is(err, ErrInvalidState) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trip state"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid trip state")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -163,21 +163,21 @@ func (h *Handler) FinishTrip(c *gin.Context) {
 func (h *Handler) AbortTrip(c *gin.Context) {
 	tripID, err := parseTripIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trip id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid trip id")
 		return
 	}
 
 	trip, err := h.service.AbortTrip(c.Request.Context(), tripID)
 	if err != nil {
 		if errors.Is(err, ErrTripNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "trip not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "trip not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidState) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid trip state"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid trip state")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -187,4 +187,3 @@ func (h *Handler) AbortTrip(c *gin.Context) {
 func parseTripIDParam(c *gin.Context) (int64, error) {
 	return httputil.ParsePositiveInt64Param(c, "id")
 }
-

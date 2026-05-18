@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 
+	"fleet-management/internal/httputil"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,7 +30,7 @@ type calculateRequest struct {
 func (h *Handler) Calculate(c *gin.Context) {
 	var req calculateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 	if req.Waypoints == nil {
@@ -39,19 +41,19 @@ func (h *Handler) Calculate(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrAPIKeyNotConfigured):
-			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "directions service not configured"})
+			httputil.RespondError(c, http.StatusServiceUnavailable, err, "directions service not configured")
 		case errors.Is(err, ErrRouteNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "route not found between points"})
+			httputil.RespondError(c, http.StatusNotFound, err, "route not found between points")
 		case errors.Is(err, ErrTooManyWaypoints):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "too many waypoints"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "too many waypoints")
 		case errors.Is(err, ErrGeocodingDenied):
-			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "directions request denied"})
+			httputil.RespondError(c, http.StatusServiceUnavailable, err, "directions request denied")
 		case errors.Is(err, ErrGeocodingQuotaExceeded):
-			c.JSON(http.StatusTooManyRequests, gin.H{"error": "directions quota exceeded"})
+			httputil.RespondError(c, http.StatusTooManyRequests, err, "directions quota exceeded")
 		case errors.Is(err, ErrInvalidRequest):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid directions request"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid directions request")
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "directions calculation failed"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "directions calculation failed")
 		}
 		return
 	}
@@ -62,7 +64,7 @@ func (h *Handler) Calculate(c *gin.Context) {
 func (h *Handler) Geocode(c *gin.Context) {
 	var req geocodeRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -70,19 +72,19 @@ func (h *Handler) Geocode(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrAPIKeyNotConfigured):
-			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "geocoding service not configured"})
+			httputil.RespondError(c, http.StatusServiceUnavailable, err, "geocoding service not configured")
 		case errors.Is(err, ErrAddressRequired):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "address is required"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "address is required")
 		case errors.Is(err, ErrAddressNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "address not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "address not found")
 		case errors.Is(err, ErrGeocodingDenied):
-			c.JSON(http.StatusServiceUnavailable, gin.H{"error": "geocoding request denied"})
+			httputil.RespondError(c, http.StatusServiceUnavailable, err, "geocoding request denied")
 		case errors.Is(err, ErrGeocodingQuotaExceeded):
-			c.JSON(http.StatusTooManyRequests, gin.H{"error": "geocoding quota exceeded"})
+			httputil.RespondError(c, http.StatusTooManyRequests, err, "geocoding quota exceeded")
 		case errors.Is(err, ErrInvalidRequest):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid geocoding request"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid geocoding request")
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "geocoding failed"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "geocoding failed")
 		}
 		return
 	}

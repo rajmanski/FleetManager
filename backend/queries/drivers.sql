@@ -58,9 +58,13 @@ INSERT INTO Drivers (
   pesel,
   phone,
   email,
-  status
+  status,
+  license_number,
+  license_expiry_date,
+  adr_certified,
+  adr_expiry_date
 )
-VALUES (?, ?, ?, ?, ?, ?, ?);
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: UpdateDriver :execrows
 UPDATE Drivers
@@ -90,7 +94,7 @@ SELECT EXISTS(
 
 -- name: SoftDeleteDriver :execrows
 UPDATE Drivers
-SET deleted_at = NOW(), updated_at = NOW()
+SET status = 'Inactive', deleted_at = NOW(), updated_at = NOW()
 WHERE driver_id = ?
   AND deleted_at IS NULL;
 

@@ -164,7 +164,7 @@ export function CreateTripModal({
   const isSubmitting = createTripMutation.isPending
 
   return (
-    <Modal title="Create trip" error={error}>
+    <Modal title="Create trip" error={error} onClose={onClose}>
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         <Select
           label="Vehicle"

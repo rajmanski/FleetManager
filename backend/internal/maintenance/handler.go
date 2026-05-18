@@ -28,7 +28,7 @@ func (h *Handler) ListMaintenance(c *gin.Context) {
 	if vehicleIDStr != "" {
 		id, err := strconv.ParseInt(vehicleIDStr, 10, 64)
 		if err != nil || id <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle_id"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid vehicle_id")
 			return
 		}
 		vehicleID = id
@@ -42,10 +42,10 @@ func (h *Handler) ListMaintenance(c *gin.Context) {
 	})
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) || errors.Is(err, ErrInvalidStatus) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid query params")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -55,21 +55,21 @@ func (h *Handler) ListMaintenance(c *gin.Context) {
 func (h *Handler) GetMaintenance(c *gin.Context) {
 	maintenanceID, err := parseMaintenanceIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid maintenance id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid maintenance id")
 		return
 	}
 
 	m, err := h.service.GetMaintenanceByID(c.Request.Context(), maintenanceID)
 	if err != nil {
 		if errors.Is(err, ErrMaintenanceNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "maintenance not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "maintenance not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -79,7 +79,7 @@ func (h *Handler) GetMaintenance(c *gin.Context) {
 func (h *Handler) CreateMaintenance(c *gin.Context) {
 	var req CreateMaintenanceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -87,10 +87,10 @@ func (h *Handler) CreateMaintenance(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput), errors.Is(err, ErrInvalidType), errors.Is(err, ErrInvalidStatus):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -101,13 +101,13 @@ func (h *Handler) CreateMaintenance(c *gin.Context) {
 func (h *Handler) UpdateMaintenance(c *gin.Context) {
 	maintenanceID, err := parseMaintenanceIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid maintenance id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid maintenance id")
 		return
 	}
 
 	var req UpdateMaintenanceRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -115,13 +115,13 @@ func (h *Handler) UpdateMaintenance(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput), errors.Is(err, ErrInvalidType), errors.Is(err, ErrInvalidStatus):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrMaintenanceNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "maintenance not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "maintenance not found")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -132,13 +132,13 @@ func (h *Handler) UpdateMaintenance(c *gin.Context) {
 func (h *Handler) UpdateMaintenanceStatus(c *gin.Context) {
 	maintenanceID, err := parseMaintenanceIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid maintenance id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid maintenance id")
 		return
 	}
 
 	var req UpdateMaintenanceStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -146,13 +146,13 @@ func (h *Handler) UpdateMaintenanceStatus(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput), errors.Is(err, ErrInvalidStatus):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrMaintenanceNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "maintenance not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "maintenance not found")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -163,4 +163,3 @@ func (h *Handler) UpdateMaintenanceStatus(c *gin.Context) {
 func parseMaintenanceIDParam(c *gin.Context) (int64, error) {
 	return httputil.ParsePositiveInt64Param(c, "id")
 }
-

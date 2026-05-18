@@ -48,7 +48,7 @@ function FinishTripModal({
   }
 
   return (
-    <Modal title="Finish trip" error={error}>
+    <Modal title="Finish trip" error={error} onClose={onClose}>
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">
         <Input
           label="Actual distance (km)"

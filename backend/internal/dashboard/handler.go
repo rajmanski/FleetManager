@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 
+	"fleet-management/internal/httputil"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,10 +21,10 @@ func (h *Handler) GetKPI(c *gin.Context) {
 	resp, err := h.service.GetKPI(c.Request.Context())
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 

@@ -32,10 +32,10 @@ func (h *Handler) ListOrders(c *gin.Context) {
 	})
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid query params")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -45,21 +45,21 @@ func (h *Handler) ListOrders(c *gin.Context) {
 func (h *Handler) GetOrder(c *gin.Context) {
 	orderID, err := parseOrderIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid order id")
 		return
 	}
 
 	order, err := h.service.GetOrderByID(c.Request.Context(), orderID)
 	if err != nil {
 		if errors.Is(err, ErrOrderNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "order not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "order not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -69,7 +69,7 @@ func (h *Handler) GetOrder(c *gin.Context) {
 func (h *Handler) CreateOrder(c *gin.Context) {
 	var req CreateOrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -77,13 +77,13 @@ func (h *Handler) CreateOrder(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrOrderNumberExists):
-			c.JSON(http.StatusConflict, gin.H{"error": "order number already exists"})
+			httputil.RespondError(c, http.StatusConflict, err, "order number already exists")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -94,13 +94,13 @@ func (h *Handler) CreateOrder(c *gin.Context) {
 func (h *Handler) UpdateOrder(c *gin.Context) {
 	orderID, err := parseOrderIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid order id")
 		return
 	}
 
 	var req UpdateOrderRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -108,16 +108,16 @@ func (h *Handler) UpdateOrder(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrOrderNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "order not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "order not found")
 			return
 		case errors.Is(err, ErrOrderNumberExists):
-			c.JSON(http.StatusConflict, gin.H{"error": "order number already exists"})
+			httputil.RespondError(c, http.StatusConflict, err, "order number already exists")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -128,21 +128,21 @@ func (h *Handler) UpdateOrder(c *gin.Context) {
 func (h *Handler) DeleteOrder(c *gin.Context) {
 	orderID, err := parseOrderIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid order id")
 		return
 	}
 
 	err = h.service.DeleteOrder(c.Request.Context(), orderID)
 	if err != nil {
 		if errors.Is(err, ErrOrderNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "order not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "order not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 

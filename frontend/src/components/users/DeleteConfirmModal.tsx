@@ -16,7 +16,7 @@ export function DeleteConfirmModal({
   isDeleting,
 }: DeleteConfirmModalProps) {
   return (
-    <Modal title="Delete user">
+    <Modal title="Delete user" onClose={onClose}>
       <p className="mt-2 text-sm text-gray-600">
         Are you sure you want to delete user <strong>{user.login}</strong>? This
         action cannot be undone.

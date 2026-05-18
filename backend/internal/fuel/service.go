@@ -73,6 +73,10 @@ func (s *Service) CreateFuelLog(ctx context.Context, req CreateFuelRequest) (Cre
 		}
 	}
 
+	var alertInput *CreateFuelAlertInput
+	if alert != nil {
+		alertInput = &CreateFuelAlertInput{Message: alert.Message}
+	}
 	fuelID, err := s.repo.CreateFuelLogAndUpdate(ctx, CreateFuelRepositoryInput{
 		VehicleID:     req.VehicleID,
 		Date:          date,
@@ -81,12 +85,7 @@ func (s *Service) CreateFuelLog(ctx context.Context, req CreateFuelRequest) (Cre
 		TotalCost:     totalCost,
 		Mileage:       req.Mileage,
 		Location:      location,
-	}, func() *CreateFuelAlertInput {
-		if alert == nil {
-			return nil
-		}
-		return &CreateFuelAlertInput{FuelLogID: 0, Message: alert.Message}
-	}())
+	}, alertInput)
 	if err != nil {
 		return CreateFuelResponse{}, err
 	}
@@ -156,8 +155,8 @@ func (s *Service) ListFuelLogs(ctx context.Context, query ListFuelLogsQuery) (Li
 		VehicleID: vehicleID,
 		DateFrom:  dateFromStr,
 		DateTo:    dateToStr,
-		Page:       page,
-		Limit:      limit,
+		Page:      page,
+		Limit:     limit,
 	})
 	if err != nil {
 		return ListFuelLogsResponse{}, err
@@ -170,4 +169,3 @@ func (s *Service) ListFuelLogs(ctx context.Context, query ListFuelLogsQuery) (Li
 		Total: total,
 	}, nil
 }
-

@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"fleet-management/internal/httputil"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,16 +21,16 @@ func NewHandler(service *Service) *Handler {
 func (h *Handler) ListWaypoints(c *gin.Context) {
 	routeID, err := parseRouteID(c.Param("route_id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid route id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid route id")
 		return
 	}
 	list, err := h.service.ListWaypoints(c.Request.Context(), routeID)
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrRouteIDNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "route not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "route not found")
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		}
 		return
 	}
@@ -41,27 +43,27 @@ func (h *Handler) ListWaypoints(c *gin.Context) {
 func (h *Handler) CreateWaypoint(c *gin.Context) {
 	routeID, err := parseRouteID(c.Param("route_id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid route id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid route id")
 		return
 	}
 	var req CreateWaypointRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 	wp, err := h.service.CreateWaypoint(c.Request.Context(), routeID, req)
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrRouteIDNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "route not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "route not found")
 		case errors.Is(err, ErrRouteHasActiveTrip):
-			c.JSON(http.StatusForbidden, gin.H{"error": "cannot modify waypoints: order has active or scheduled trip"})
+			httputil.RespondError(c, http.StatusForbidden, err, "cannot modify waypoints: order has active or scheduled trip")
 		case errors.Is(err, ErrWaypointLimitExceeded):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "maximum 10 waypoints per route"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "maximum 10 waypoints per route")
 		case errors.Is(err, ErrInvalidWaypointInput):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid waypoint input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid waypoint input")
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		}
 		return
 	}
@@ -71,25 +73,25 @@ func (h *Handler) CreateWaypoint(c *gin.Context) {
 func (h *Handler) UpdateWaypoint(c *gin.Context) {
 	waypointID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || waypointID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid waypoint id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid waypoint id")
 		return
 	}
 	var req UpdateWaypointRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 	wp, err := h.service.UpdateWaypoint(c.Request.Context(), waypointID, req)
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrWaypointNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "waypoint not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "waypoint not found")
 		case errors.Is(err, ErrRouteHasActiveTrip):
-			c.JSON(http.StatusForbidden, gin.H{"error": "cannot modify waypoints: order has active or scheduled trip"})
+			httputil.RespondError(c, http.StatusForbidden, err, "cannot modify waypoints: order has active or scheduled trip")
 		case errors.Is(err, ErrInvalidWaypointInput):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid waypoint input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid waypoint input")
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		}
 		return
 	}
@@ -99,18 +101,18 @@ func (h *Handler) UpdateWaypoint(c *gin.Context) {
 func (h *Handler) DeleteWaypoint(c *gin.Context) {
 	waypointID, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil || waypointID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid waypoint id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid waypoint id")
 		return
 	}
 	err = h.service.DeleteWaypoint(c.Request.Context(), waypointID)
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrWaypointNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "waypoint not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "waypoint not found")
 		case errors.Is(err, ErrRouteHasActiveTrip):
-			c.JSON(http.StatusForbidden, gin.H{"error": "cannot modify waypoints: order has active or scheduled trip"})
+			httputil.RespondError(c, http.StatusForbidden, err, "cannot modify waypoints: order has active or scheduled trip")
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		}
 		return
 	}
@@ -125,7 +127,7 @@ func (h *Handler) ReorderWaypoints(c *gin.Context) {
 		} `json:"waypoints"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 	updates := make([]WaypointReorderItem, 0, len(req.Waypoints))
@@ -139,13 +141,13 @@ func (h *Handler) ReorderWaypoints(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrRouteIDNotFound), errors.Is(err, ErrWaypointNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "waypoint or route not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "waypoint or route not found")
 		case errors.Is(err, ErrRouteHasActiveTrip):
-			c.JSON(http.StatusForbidden, gin.H{"error": "cannot modify waypoints: order has active or scheduled trip"})
+			httputil.RespondError(c, http.StatusForbidden, err, "cannot modify waypoints: order has active or scheduled trip")
 		case errors.Is(err, ErrInvalidWaypointInput):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "sequence_order must be continuous (1,2,3...)"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "sequence_order must be continuous (1,2,3...)")
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		}
 		return
 	}

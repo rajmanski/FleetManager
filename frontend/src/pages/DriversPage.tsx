@@ -43,6 +43,9 @@ function DriversPage() {
     onSuccess: () => setEditDriver(null),
   })
 
+  const effectiveLimit = validCertificatesOnly ? 100 : limit
+  const effectivePage = validCertificatesOnly ? 1 : page
+
   const {
     driversQuery,
     restoreMutation,
@@ -50,7 +53,7 @@ function DriversPage() {
     updateMutation,
     softDeleteMutation,
     isAdmin: isAdminFromHook,
-  } = useDrivers({ page, limit, statusFilter, search, showDeleted })
+  } = useDrivers({ page: effectivePage, limit: effectiveLimit, statusFilter, search, showDeleted })
 
   const allDrivers = useMemo(() => driversQuery.data?.data ?? [], [driversQuery.data])
   const drivers = useMemo(
@@ -59,7 +62,7 @@ function DriversPage() {
     [allDrivers, validCertificatesOnly]
   )
   const total = validCertificatesOnly ? drivers.length : (driversQuery.data?.total ?? 0)
-  const pagination = usePagination({ page, setPage, limit, setLimit, total })
+  const pagination = usePagination({ page: effectivePage, setPage, limit: effectiveLimit, setLimit, total })
 
   const handleStatusFilterChange = useCallback(
     (value: string) => {
@@ -86,11 +89,6 @@ function DriversPage() {
   const handleSoftDelete = useCallback(
     (driver: Driver) => {
       if (!isAdmin) return
-      const confirmed = window.confirm(
-        `Are you sure you want to soft delete driver "${driver.first_name} ${driver.last_name}"?`
-      )
-      if (!confirmed) return
-
       setSoftDeletingId(driver.id)
       softDeleteMutation.mutate(driver.id, {
         onSuccess: softDeleteCallbacks.onSuccess,
@@ -165,6 +163,7 @@ function DriversPage() {
 
       {editDriver && (
         <DriverFormModal
+          key={editDriver.id}
           title="Edit driver"
           submitLabel={updateMutation.isPending ? 'Saving...' : 'Save'}
           initialData={driverToFormInitialData(editDriver)}

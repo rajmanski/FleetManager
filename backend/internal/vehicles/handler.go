@@ -44,10 +44,10 @@ func (h *Handler) ListVehicles(c *gin.Context) {
 	})
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) || errors.Is(err, ErrInvalidStatus) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid query params")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -57,21 +57,21 @@ func (h *Handler) ListVehicles(c *gin.Context) {
 func (h *Handler) GetVehicle(c *gin.Context) {
 	vehicleID, err := parseVehicleIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid vehicle id")
 		return
 	}
 
 	vehicle, err := h.service.GetVehicleByID(c.Request.Context(), vehicleID)
 	if err != nil {
 		if errors.Is(err, ErrVehicleNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "vehicle not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "vehicle not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -81,7 +81,7 @@ func (h *Handler) GetVehicle(c *gin.Context) {
 func (h *Handler) CreateVehicle(c *gin.Context) {
 	var req CreateVehicleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -89,13 +89,13 @@ func (h *Handler) CreateVehicle(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput), errors.Is(err, ErrInvalidVIN), errors.Is(err, ErrInvalidStatus):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrVehicleVINConflict):
-			c.JSON(http.StatusConflict, gin.H{"error": "vin already exists"})
+			httputil.RespondError(c, http.StatusConflict, err, "vin already exists")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -106,13 +106,13 @@ func (h *Handler) CreateVehicle(c *gin.Context) {
 func (h *Handler) UpdateVehicle(c *gin.Context) {
 	vehicleID, err := parseVehicleIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid vehicle id")
 		return
 	}
 
 	var req UpdateVehicleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -120,16 +120,16 @@ func (h *Handler) UpdateVehicle(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput), errors.Is(err, ErrInvalidVIN), errors.Is(err, ErrInvalidStatus):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrVehicleNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "vehicle not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "vehicle not found")
 			return
 		case errors.Is(err, ErrVehicleVINConflict):
-			c.JSON(http.StatusConflict, gin.H{"error": "vin already exists"})
+			httputil.RespondError(c, http.StatusConflict, err, "vin already exists")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -140,25 +140,25 @@ func (h *Handler) UpdateVehicle(c *gin.Context) {
 func (h *Handler) DeleteVehicle(c *gin.Context) {
 	vehicleID, err := parseVehicleIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid vehicle id")
 		return
 	}
 
 	err = h.service.DeleteVehicle(c.Request.Context(), vehicleID)
 	if err != nil {
 		if errors.Is(err, ErrVehicleHasActiveTrips) {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Cannot delete vehicle with active trips"})
+			httputil.RespondError(c, http.StatusForbidden, err, "Cannot delete vehicle with active trips")
 			return
 		}
 		if errors.Is(err, ErrVehicleNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "vehicle not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "vehicle not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -168,13 +168,13 @@ func (h *Handler) DeleteVehicle(c *gin.Context) {
 func (h *Handler) UpdateVehicleStatus(c *gin.Context) {
 	vehicleID, err := parseVehicleIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid vehicle id")
 		return
 	}
 
 	var req UpdateVehicleStatusRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -182,13 +182,13 @@ func (h *Handler) UpdateVehicleStatus(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput), errors.Is(err, ErrInvalidStatus):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrVehicleNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "vehicle not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "vehicle not found")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -211,7 +211,7 @@ func (h *Handler) RestoreVehicle(c *gin.Context) {
 
 	vehicleID, err := parseVehicleIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid vehicle id")
 		return
 	}
 
@@ -219,16 +219,16 @@ func (h *Handler) RestoreVehicle(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrVehicleRestoreConflict):
-			c.JSON(http.StatusConflict, gin.H{"error": "vin conflicts with another active vehicle"})
+			httputil.RespondError(c, http.StatusConflict, err, "vin conflicts with another active vehicle")
 			return
 		case errors.Is(err, ErrVehicleNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "vehicle not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "vehicle not found")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -239,7 +239,7 @@ func (h *Handler) RestoreVehicle(c *gin.Context) {
 func (h *Handler) GetVehicleAvailability(c *gin.Context) {
 	vehicleID, err := parseVehicleIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid vehicle id")
 		return
 	}
 
@@ -253,14 +253,14 @@ func (h *Handler) GetVehicleAvailability(c *gin.Context) {
 	resp, err := h.service.GetVehicleAvailability(c.Request.Context(), vehicleID, dateFrom, dateTo)
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
 		if errors.Is(err, ErrVehicleNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "vehicle not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "vehicle not found")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -270,7 +270,7 @@ func (h *Handler) GetVehicleAvailability(c *gin.Context) {
 func (h *Handler) GetVehicleMaintenanceHistory(c *gin.Context) {
 	vehicleID, err := parseVehicleIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid vehicle id")
 		return
 	}
 
@@ -280,14 +280,14 @@ func (h *Handler) GetVehicleMaintenanceHistory(c *gin.Context) {
 	rows, err := h.service.GetVehicleMaintenanceHistory(c.Request.Context(), vehicleID, typeFilter, statusFilter)
 	if err != nil {
 		if errors.Is(err, ErrVehicleNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "vehicle not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "vehicle not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid query params")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 

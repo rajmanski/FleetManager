@@ -125,7 +125,16 @@ func (r *FuelRepository) CreateFuelLogAndUpdate(
 		return 0, fuel.ErrVehicleNotFound
 	}
 
-	_ = alert
+	if alert != nil {
+		_, err = qtx.CreateFuelAnomalyAlert(ctx, sqlc.CreateFuelAnomalyAlertParams{
+			VehicleID: sql.NullInt32{Int32: int32(input.VehicleID), Valid: true},
+			FuelLogID: sql.NullInt32{Int32: int32(fuelLogID), Valid: true},
+			Message:   sql.NullString{String: alert.Message, Valid: true},
+		})
+		if err != nil {
+			return 0, err
+		}
+	}
 
 	if err := tx.Commit(); err != nil {
 		return 0, err
@@ -169,26 +178,26 @@ func (r *FuelRepository) ListFuelLogs(ctx context.Context, query fuel.ListFuelLo
 	}
 
 	rows, err := r.queries.ListFuelLog(ctx, sqlc.ListFuelLogParams{
-		Column1: vehicleFilter,
+		Column1:   vehicleFilter,
 		VehicleID: vehicleID,
-		Column3: dateFromColumn,
-		Date:    dateFrom,
-		Column5: dateToColumn,
-		Date_2:  dateTo,
-		Limit:   query.Limit,
-		Offset:  offset,
+		Column3:   dateFromColumn,
+		Date:      dateFrom,
+		Column5:   dateToColumn,
+		Date_2:    dateTo,
+		Limit:     query.Limit,
+		Offset:    offset,
 	})
 	if err != nil {
 		return nil, 0, err
 	}
 
 	total, err := r.queries.CountFuelLog(ctx, sqlc.CountFuelLogParams{
-		Column1: vehicleFilter,
+		Column1:   vehicleFilter,
 		VehicleID: vehicleID,
-		Column3: dateFromColumn,
-		Date:    dateFrom,
-		Column5: dateToColumn,
-		Date_2:  dateTo,
+		Column3:   dateFromColumn,
+		Date:      dateFrom,
+		Column5:   dateToColumn,
+		Date_2:    dateTo,
 	})
 	if err != nil {
 		return nil, 0, err
@@ -220,17 +229,17 @@ func mapFuelLogRow(row sqlc.ListFuelLogRow) fuel.FuelLog {
 	}
 
 	return fuel.FuelLog{
-		ID:             int64(row.ID),
-		VehicleID:     int64(row.VehicleID),
-		Date:          row.Date,
-		Liters:        liters,
-		PricePerLiter: pricePerLiter,
-		TotalCost:     totalCost,
-		Mileage:       int64(row.Mileage),
-		Location:      row.Location,
-		CreatedAt:     createdAt,
-		HasAlert:      row.HasAlert,
-		IsAnomaly:      row.IsAnomaly,
+		ID:                     int64(row.ID),
+		VehicleID:              int64(row.VehicleID),
+		Date:                   row.Date,
+		Liters:                 liters,
+		PricePerLiter:          pricePerLiter,
+		TotalCost:              totalCost,
+		Mileage:                int64(row.Mileage),
+		Location:               row.Location,
+		CreatedAt:              createdAt,
+		HasAlert:               row.HasAlert,
+		IsAnomaly:              row.IsAnomaly,
 		ConsumptionPer100km:    row.ConsumptionPer100km,
 		AvgConsumptionPer100km: row.AvgConsumptionPer100km,
 		DeviationPercent:       row.DeviationPercent,

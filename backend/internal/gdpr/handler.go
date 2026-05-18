@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"fleet-management/internal/httputil"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,18 +22,18 @@ func (h *Handler) ForgetDriver(c *gin.Context) {
 	idStr := c.Param("id")
 	driverID, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil || driverID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid driver id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid driver id")
 		return
 	}
 
 	if err := h.service.ForgetDriver(c.Request.Context(), driverID); err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 		case errors.Is(err, ErrDriverNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "driver not found")
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		}
 		return
 	}

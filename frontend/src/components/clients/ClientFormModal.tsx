@@ -64,7 +64,7 @@ export function ClientFormModal({
   }
 
   return (
-    <Modal title={title} error={errorMessage}>
+    <Modal title={title} error={errorMessage} onClose={onClose}>
       <form className="mt-4 space-y-4" onSubmit={handleSubmit(onFormSubmit)}>
         <Input
           label="Company name"

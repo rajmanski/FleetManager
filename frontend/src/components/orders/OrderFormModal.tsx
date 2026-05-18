@@ -96,7 +96,7 @@ export function OrderFormModal({
   }
 
   return (
-    <Modal title={title} contentClassName="max-w-4xl" error={errorMessage}>
+    <Modal title={title} contentClassName="max-w-4xl" error={errorMessage} onClose={onClose}>
       <form onSubmit={handleSubmit(onFormSubmit)}>
         <div className="scrollbar-styled mt-4 max-h-[min(70vh,600px)] overflow-y-auto overflow-x-hidden pr-1">
           <div className="space-y-4">

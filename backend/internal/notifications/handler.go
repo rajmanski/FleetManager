@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"fleet-management/internal/auth"
+	"fleet-management/internal/httputil"
 
 	"github.com/gin-gonic/gin"
 )
@@ -29,10 +30,10 @@ func (h *Handler) ListNotifications(c *gin.Context) {
 	items, err := h.service.ListForUser(c.Request.Context(), userID)
 	if err != nil {
 		if errors.Is(err, ErrInvalidUserID) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid user")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -49,7 +50,7 @@ func (h *Handler) MarkNotificationRead(c *gin.Context) {
 	idStr := c.Param("id")
 	nid64, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil || nid64 <= 0 || nid64 > math.MaxInt32 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid notification id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid notification id")
 		return
 	}
 
@@ -57,13 +58,13 @@ func (h *Handler) MarkNotificationRead(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidUserID):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrNotificationNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "notification not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "notification not found")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}

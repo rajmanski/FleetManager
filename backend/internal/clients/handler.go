@@ -42,10 +42,10 @@ func (h *Handler) ListClients(c *gin.Context) {
 	})
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid query params")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -55,21 +55,21 @@ func (h *Handler) ListClients(c *gin.Context) {
 func (h *Handler) GetClient(c *gin.Context) {
 	clientID, err := parseClientIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid client id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid client id")
 		return
 	}
 
 	client, err := h.service.GetClientByID(c.Request.Context(), clientID)
 	if err != nil {
 		if errors.Is(err, ErrClientNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "client not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "client not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -79,7 +79,7 @@ func (h *Handler) GetClient(c *gin.Context) {
 func (h *Handler) CreateClient(c *gin.Context) {
 	var req CreateClientRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -87,13 +87,13 @@ func (h *Handler) CreateClient(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrClientNIPConflict):
-			c.JSON(http.StatusConflict, gin.H{"error": "nip already exists"})
+			httputil.RespondError(c, http.StatusConflict, err, "nip already exists")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -104,13 +104,13 @@ func (h *Handler) CreateClient(c *gin.Context) {
 func (h *Handler) UpdateClient(c *gin.Context) {
 	clientID, err := parseClientIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid client id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid client id")
 		return
 	}
 
 	var req UpdateClientRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -118,16 +118,16 @@ func (h *Handler) UpdateClient(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrClientNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "client not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "client not found")
 			return
 		case errors.Is(err, ErrClientNIPConflict):
-			c.JSON(http.StatusConflict, gin.H{"error": "nip already exists"})
+			httputil.RespondError(c, http.StatusConflict, err, "nip already exists")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -138,21 +138,21 @@ func (h *Handler) UpdateClient(c *gin.Context) {
 func (h *Handler) DeleteClient(c *gin.Context) {
 	clientID, err := parseClientIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid client id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid client id")
 		return
 	}
 
 	err = h.service.DeleteClient(c.Request.Context(), clientID)
 	if err != nil {
 		if errors.Is(err, ErrClientNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "client not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "client not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -174,7 +174,7 @@ func (h *Handler) RestoreClient(c *gin.Context) {
 
 	clientID, err := parseClientIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid client id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid client id")
 		return
 	}
 
@@ -182,16 +182,16 @@ func (h *Handler) RestoreClient(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrClientNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "client not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "client not found")
 			return
 		case errors.Is(err, ErrClientRestoreConflict):
-			c.JSON(http.StatusConflict, gin.H{"error": "nip conflicts with another active client"})
+			httputil.RespondError(c, http.StatusConflict, err, "nip conflicts with another active client")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -202,4 +202,3 @@ func (h *Handler) RestoreClient(c *gin.Context) {
 func parseClientIDParam(c *gin.Context) (int64, error) {
 	return httputil.ParsePositiveInt64Param(c, "id")
 }
-

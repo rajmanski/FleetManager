@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 
+	"fleet-management/internal/httputil"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,7 +20,7 @@ func NewHandler(service *Service) *Handler {
 func (h *Handler) CreatePlannedOrderWorkflow(c *gin.Context) {
 	var req PlanOrderWorkflowRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -41,7 +43,7 @@ func (h *Handler) CreatePlannedOrderWorkflow(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 

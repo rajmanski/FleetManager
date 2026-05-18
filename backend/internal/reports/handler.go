@@ -94,16 +94,14 @@ func (h *Handler) GetGlobalCosts(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-
-
 func handleServiceError(c *gin.Context, err error) bool {
 	if err == nil {
 		return true
 	}
 	if errors.Is(err, ErrInvalidInput) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid query params")
 		return false
 	}
-	c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+	httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 	return false
 }

@@ -1,10 +1,16 @@
 package httputil
 
 import (
+	"log"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
+
+func RespondError(c *gin.Context, httpStatus int, err error, userMsg string) {
+	log.Printf("[%d] %s: %s: %v", httpStatus, c.FullPath(), userMsg, err)
+	c.JSON(httpStatus, gin.H{"error": err.Error()})
+}
 
 func ParsePositiveInt64Param(c *gin.Context, name string) (int64, error) {
 	value := c.Param(name)

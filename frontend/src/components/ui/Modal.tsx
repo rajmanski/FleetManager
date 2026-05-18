@@ -1,4 +1,5 @@
-import { useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
+import { X } from 'lucide-react'
 
 type ModalProps = {
   title: string
@@ -24,12 +25,36 @@ export function Modal({ title, children, contentClassName, error, onClose }: Mod
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose])
 
+  const handleBackdropClick = useCallback(() => {
+    onClose?.()
+  }, [onClose])
+
+  const handleContentClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+  }, [])
+
   return (
-    <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/50 max-md:items-stretch md:p-4">
+    <div
+      className="fixed inset-0 z-10 flex items-center justify-center bg-black/50 max-md:items-stretch md:p-4"
+      onClick={handleBackdropClick}
+    >
       <div
+        onClick={handleContentClick}
         className={`w-full overflow-y-auto overflow-x-hidden border border-gray-200 bg-white p-4 shadow-lg max-md:max-h-full max-md:rounded-none md:max-h-[90vh] md:rounded-lg md:p-6 ${contentClassName ?? 'md:max-w-md'}`}
       >
-        <h2 className="text-lg font-semibold">{title}</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">{title}</h2>
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              aria-label="Close"
+            >
+              <X className="size-5" />
+            </button>
+          )}
+        </div>
         {error && (
           <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}

@@ -44,10 +44,10 @@ func (h *Handler) ListDrivers(c *gin.Context) {
 	})
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) || errors.Is(err, ErrInvalidStatus) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid query params")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -57,21 +57,21 @@ func (h *Handler) ListDrivers(c *gin.Context) {
 func (h *Handler) GetDriver(c *gin.Context) {
 	driverID, err := parseDriverIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid driver id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid driver id")
 		return
 	}
 
 	driver, err := h.service.GetDriverByID(c.Request.Context(), driverID)
 	if err != nil {
 		if errors.Is(err, ErrDriverNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "driver not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -81,7 +81,7 @@ func (h *Handler) GetDriver(c *gin.Context) {
 func (h *Handler) CreateDriver(c *gin.Context) {
 	var req CreateDriverRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -89,13 +89,13 @@ func (h *Handler) CreateDriver(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput), errors.Is(err, ErrInvalidPESEL), errors.Is(err, ErrInvalidStatus):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrDriverPESELConflict):
-			c.JSON(http.StatusConflict, gin.H{"error": "pesel already exists"})
+			httputil.RespondError(c, http.StatusConflict, err, "pesel already exists")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -106,13 +106,13 @@ func (h *Handler) CreateDriver(c *gin.Context) {
 func (h *Handler) UpdateDriver(c *gin.Context) {
 	driverID, err := parseDriverIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid driver id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid driver id")
 		return
 	}
 
 	var req UpdateDriverRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -120,16 +120,16 @@ func (h *Handler) UpdateDriver(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput), errors.Is(err, ErrInvalidPESEL), errors.Is(err, ErrInvalidStatus), errors.Is(err, ErrInvalidCertificates):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrDriverNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "driver not found")
 			return
 		case errors.Is(err, ErrDriverPESELConflict):
-			c.JSON(http.StatusConflict, gin.H{"error": "pesel already exists"})
+			httputil.RespondError(c, http.StatusConflict, err, "pesel already exists")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -140,25 +140,25 @@ func (h *Handler) UpdateDriver(c *gin.Context) {
 func (h *Handler) DeleteDriver(c *gin.Context) {
 	driverID, err := parseDriverIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid driver id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid driver id")
 		return
 	}
 
 	err = h.service.DeleteDriver(c.Request.Context(), driverID)
 	if err != nil {
 		if errors.Is(err, ErrDriverHasActiveTrips) {
-			c.JSON(http.StatusForbidden, gin.H{"error": "Cannot delete driver with active trips"})
+			httputil.RespondError(c, http.StatusForbidden, err, "Cannot delete driver with active trips")
 			return
 		}
 		if errors.Is(err, ErrDriverNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "driver not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -180,7 +180,7 @@ func (h *Handler) RestoreDriver(c *gin.Context) {
 
 	driverID, err := parseDriverIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid driver id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid driver id")
 		return
 	}
 
@@ -188,16 +188,16 @@ func (h *Handler) RestoreDriver(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrDriverNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "driver not found")
 			return
 		case errors.Is(err, ErrDriverRestoreConflict):
-			c.JSON(http.StatusConflict, gin.H{"error": "pesel conflicts with another active driver"})
+			httputil.RespondError(c, http.StatusConflict, err, "pesel conflicts with another active driver")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -208,7 +208,7 @@ func (h *Handler) RestoreDriver(c *gin.Context) {
 func (h *Handler) GetDriverAvailability(c *gin.Context) {
 	driverID, err := parseDriverIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid driver id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid driver id")
 		return
 	}
 
@@ -225,14 +225,14 @@ func (h *Handler) GetDriverAvailability(c *gin.Context) {
 		resp, err := h.service.GetDriverAvailabilityInRange(c.Request.Context(), driverID, dateFrom, dateTo)
 		if err != nil {
 			if errors.Is(err, ErrDriverNotFound) {
-				c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})
+				httputil.RespondError(c, http.StatusNotFound, err, "driver not found")
 				return
 			}
 			if errors.Is(err, ErrInvalidInput) {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid date range (expected YYYY-MM-DD)"})
+				httputil.RespondError(c, http.StatusBadRequest, err, "invalid date range (expected YYYY-MM-DD)")
 				return
 			}
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 
@@ -243,14 +243,14 @@ func (h *Handler) GetDriverAvailability(c *gin.Context) {
 		resp, err := h.service.GetDriverAvailabilityByDate(c.Request.Context(), driverID, date)
 		if err != nil {
 			if errors.Is(err, ErrDriverNotFound) {
-				c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})
+				httputil.RespondError(c, http.StatusNotFound, err, "driver not found")
 				return
 			}
 			if errors.Is(err, ErrInvalidInput) {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid date format (expected YYYY-MM-DD)"})
+				httputil.RespondError(c, http.StatusBadRequest, err, "invalid date format (expected YYYY-MM-DD)")
 				return
 			}
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 
@@ -266,7 +266,7 @@ func (h *Handler) GetDriverAvailability(c *gin.Context) {
 func (h *Handler) CanDriverTransportHazardous(c *gin.Context) {
 	driverID, err := parseDriverIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid driver id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid driver id")
 		return
 	}
 
@@ -277,17 +277,17 @@ func (h *Handler) CanDriverTransportHazardous(c *gin.Context) {
 	}
 	orderID, err := strconv.ParseInt(orderIDStr, 10, 64)
 	if err != nil || orderID <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order_id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid order_id")
 		return
 	}
 
 	resp, err := h.service.CanDriverTransportHazardousCargo(c.Request.Context(), driverID, orderID)
 	if err != nil {
 		if errors.Is(err, ErrDriverNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "driver not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "driver not found")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 

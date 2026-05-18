@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"fleet-management/internal/httputil"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,7 +21,7 @@ func NewHandler(service *Service) *Handler {
 func (h *Handler) CreateFuelLog(c *gin.Context) {
 	var req CreateFuelRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
@@ -27,13 +29,13 @@ func (h *Handler) CreateFuelLog(c *gin.Context) {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidInput):
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		case errors.Is(err, ErrVehicleNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": "vehicle not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "vehicle not found")
 			return
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
 	}
@@ -52,7 +54,7 @@ func (h *Handler) ListFuelLogs(c *gin.Context) {
 	if vehicleIDStr != "" {
 		id, err := strconv.ParseInt(vehicleIDStr, 10, 64)
 		if err != nil || id <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid vehicle_id"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid vehicle_id")
 			return
 		}
 		vehicleID = id
@@ -62,18 +64,17 @@ func (h *Handler) ListFuelLogs(c *gin.Context) {
 		VehicleID: vehicleID,
 		DateFrom:  dateFrom,
 		DateTo:    dateTo,
-		Page:       int32(page),
-		Limit:      int32(limit),
+		Page:      int32(page),
+		Limit:     int32(limit),
 	})
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid query params")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
 	c.JSON(http.StatusOK, resp)
 }
-

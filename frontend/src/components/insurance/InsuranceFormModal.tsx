@@ -58,7 +58,7 @@ export function InsuranceFormModal({
   })
 
   return (
-    <Modal title={title} error={errorMessage} contentClassName="max-w-lg">
+    <Modal title={title} error={errorMessage} contentClassName="max-w-lg" onClose={onClose}>
       <form
         className="mt-4 space-y-4"
         onSubmit={handleSubmit((v) => onSubmit(v as InsuranceFormValues))}

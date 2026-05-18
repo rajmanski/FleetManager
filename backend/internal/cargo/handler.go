@@ -20,16 +20,16 @@ func NewHandler(service *Service) *Handler {
 func (h *Handler) ListCargo(c *gin.Context) {
 	orderID, err := parseOrderIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid order id")
 		return
 	}
 	items, err := h.service.ListCargo(c.Request.Context(), orderID)
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"data": items})
@@ -38,20 +38,20 @@ func (h *Handler) ListCargo(c *gin.Context) {
 func (h *Handler) GetCargo(c *gin.Context) {
 	cargoID, err := parseCargoIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid cargo id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid cargo id")
 		return
 	}
 	cargo, err := h.service.GetCargoByID(c.Request.Context(), cargoID)
 	if err != nil {
 		if errors.Is(err, ErrCargoNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "cargo not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "cargo not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 	c.JSON(http.StatusOK, cargo)
@@ -60,21 +60,21 @@ func (h *Handler) GetCargo(c *gin.Context) {
 func (h *Handler) CreateCargo(c *gin.Context) {
 	orderID, err := parseOrderIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid order id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid order id")
 		return
 	}
 	var req CreateCargoRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 	cargo, err := h.service.CreateCargo(c.Request.Context(), orderID, req)
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 	c.JSON(http.StatusCreated, cargo)
@@ -83,29 +83,29 @@ func (h *Handler) CreateCargo(c *gin.Context) {
 func (h *Handler) UpdateCargo(c *gin.Context) {
 	cargoID, err := parseCargoIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid cargo id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid cargo id")
 		return
 	}
 	var req UpdateCargoRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 	cargo, err := h.service.UpdateCargo(c.Request.Context(), cargoID, req)
 	if err != nil {
 		if errors.Is(err, ErrCargoNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "cargo not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "cargo not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
 		if errors.Is(err, ErrOrderInProgress) {
-			c.JSON(http.StatusForbidden, gin.H{"error": "cannot modify cargo when order is in progress"})
+			httputil.RespondError(c, http.StatusForbidden, err, "cannot modify cargo when order is in progress")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 	c.JSON(http.StatusOK, cargo)
@@ -114,24 +114,24 @@ func (h *Handler) UpdateCargo(c *gin.Context) {
 func (h *Handler) DeleteCargo(c *gin.Context) {
 	cargoID, err := parseCargoIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid cargo id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid cargo id")
 		return
 	}
 	err = h.service.DeleteCargo(c.Request.Context(), cargoID)
 	if err != nil {
 		if errors.Is(err, ErrCargoNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "cargo not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "cargo not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
 		if errors.Is(err, ErrOrderInProgress) {
-			c.JSON(http.StatusForbidden, gin.H{"error": "cannot delete cargo when order is in progress"})
+			httputil.RespondError(c, http.StatusForbidden, err, "cannot delete cargo when order is in progress")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})
@@ -140,29 +140,29 @@ func (h *Handler) DeleteCargo(c *gin.Context) {
 func (h *Handler) AssignWaypoint(c *gin.Context) {
 	cargoID, err := parseCargoIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid cargo id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid cargo id")
 		return
 	}
 	var req AssignWaypointRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 	cargo, err := h.service.AssignWaypoint(c.Request.Context(), cargoID, req)
 	if err != nil {
 		if errors.Is(err, ErrCargoNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "cargo not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "cargo not found")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
 		if errors.Is(err, ErrWaypointNotInOrderRoute) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "waypoint does not belong to this order's route"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "waypoint does not belong to this order's route")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 	c.JSON(http.StatusOK, cargo)

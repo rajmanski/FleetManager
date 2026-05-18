@@ -16,7 +16,7 @@ export function DeleteDictionaryEntryModal({
   isDeleting,
 }: DeleteDictionaryEntryModalProps) {
   return (
-    <Modal title="Delete dictionary entry">
+    <Modal title="Delete dictionary entry" onClose={onClose}>
       <p className="mt-2 text-sm text-gray-600">
         Remove entry with key <strong className="font-mono">{entry.key}</strong>? This cannot be
         undone.

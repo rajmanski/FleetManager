@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"fleet-management/internal/httputil"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,7 +34,7 @@ func (h *Handler) ListAdminChangelog(c *gin.Context) {
 	if uidStr := strings.TrimSpace(c.Query("user_id")); uidStr != "" {
 		uid, err := strconv.ParseInt(uidStr, 10, 64)
 		if err != nil || uid <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user_id"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid user_id")
 			return
 		}
 		q.UserID = uid
@@ -40,7 +42,7 @@ func (h *Handler) ListAdminChangelog(c *gin.Context) {
 	if ridStr := strings.TrimSpace(c.Query("record_id")); ridStr != "" {
 		rid, err := strconv.ParseInt(ridStr, 10, 64)
 		if err != nil || rid <= 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid record_id"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid record_id")
 			return
 		}
 		q.RecordID = rid
@@ -49,7 +51,7 @@ func (h *Handler) ListAdminChangelog(c *gin.Context) {
 	if df := strings.TrimSpace(c.Query("date_from")); df != "" {
 		t, err := parseChangelogDateParam(df, false)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid date_from"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid date_from")
 			return
 		}
 		q.DateFrom = &t
@@ -57,7 +59,7 @@ func (h *Handler) ListAdminChangelog(c *gin.Context) {
 	if dt := strings.TrimSpace(c.Query("date_to")); dt != "" {
 		t, err := parseChangelogDateParam(dt, true)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid date_to"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid date_to")
 			return
 		}
 		q.DateTo = &t
@@ -66,10 +68,10 @@ func (h *Handler) ListAdminChangelog(c *gin.Context) {
 	resp, err := h.service.List(c.Request.Context(), q)
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid query params"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid query params")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 

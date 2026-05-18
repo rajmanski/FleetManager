@@ -25,8 +25,8 @@ type AssignmentsReader interface {
 }
 
 type Service struct {
-	repo             Repository
-	cargoChecker     CargoChecker
+	repo              Repository
+	cargoChecker      CargoChecker
 	assignmentsReader AssignmentsReader
 }
 
@@ -164,7 +164,7 @@ func (s *Service) RestoreDriver(ctx context.Context, driverID int64) (Driver, er
 
 func isAllowedDriverStatus(status string) bool {
 	switch status {
-	case "Available", "OnLeave", "InRoute":
+	case "Available", "Inactive", "OnLeave", "InRoute":
 		return true
 	default:
 		return false

@@ -131,14 +131,23 @@ func (r *DriversRepository) CreateDriver(ctx context.Context, input drivers.Crea
 		status = "Available"
 	}
 
+	adrCertified := false
+	if input.ADRCertified != nil {
+		adrCertified = *input.ADRCertified
+	}
+
 	id, err := r.queries.CreateDriver(ctx, sqlc.CreateDriverParams{
-		UserID:    toNullInt32(input.UserID),
-		FirstName: strings.TrimSpace(input.FirstName),
-		LastName:  strings.TrimSpace(input.LastName),
-		Pesel:     sql.NullString{String: encrypted, Valid: true},
-		Phone:     toNullString(input.Phone),
-		Email:     toNullString(input.Email),
-		Status:    toNullDriversStatus(status),
+		UserID:            toNullInt32(input.UserID),
+		FirstName:         strings.TrimSpace(input.FirstName),
+		LastName:          strings.TrimSpace(input.LastName),
+		Pesel:             sql.NullString{String: encrypted, Valid: true},
+		Phone:             toNullString(input.Phone),
+		Email:             toNullString(input.Email),
+		Status:            toNullDriversStatus(status),
+		LicenseNumber:     toNullString(input.LicenseNumber),
+		LicenseExpiryDate: toNullTimeFromTimePtr(input.LicenseExpiryDate, nil),
+		AdrCertified:      adrCertified,
+		AdrExpiryDate:     toNullTimeFromTimePtr(input.ADRExpiryDate, nil),
 	})
 	if err != nil {
 		if isDuplicateEntryError(err) {
@@ -470,4 +479,5 @@ func decryptDriverPESEL(pesel sql.NullString, encryptionKey []byte) string {
 	}
 	return plain
 }
+
 var _ drivers.Repository = (*DriversRepository)(nil)

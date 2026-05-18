@@ -126,7 +126,7 @@ func (q *Queries) GetVehicleCurrentMileage(ctx context.Context, vehicleID int32)
 const listFuelLog = `-- name: ListFuelLog :many
 WITH annotated AS (
   SELECT
-    fuellog.id, fuellog.vehicle_id, fuellog.date, fuellog.liters, fuellog.price_per_liter, fuellog.total_cost, fuellog.mileage, fuellog.location, fuellog.created_at,
+    FuelLog.id, FuelLog.vehicle_id, FuelLog.date, FuelLog.liters, FuelLog.price_per_liter, FuelLog.total_cost, FuelLog.mileage, FuelLog.location, FuelLog.created_at,
     LAG(FuelLog.mileage) OVER (
       PARTITION BY FuelLog.vehicle_id
       ORDER BY FuelLog.date, FuelLog.id

@@ -37,7 +37,7 @@ export function EditUserModal({
   })
 
   return (
-    <Modal title="Edit user" error={errorMessage}>
+    <Modal title="Edit user" error={errorMessage} onClose={onClose}>
       <form
         className="mt-4 space-y-4"
         onSubmit={handleSubmit((data) => onSubmit(data))}

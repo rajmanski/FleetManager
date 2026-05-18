@@ -143,6 +143,7 @@ type DriversStatus string
 
 const (
 	DriversStatusAvailable DriversStatus = "Available"
+	DriversStatusInactive  DriversStatus = "Inactive"
 	DriversStatusOnLeave   DriversStatus = "OnLeave"
 	DriversStatusInRoute   DriversStatus = "InRoute"
 )

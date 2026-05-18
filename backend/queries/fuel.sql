@@ -47,7 +47,7 @@ FROM (
 -- name: ListFuelLog :many
 WITH annotated AS (
   SELECT
-    FuelLog.*,
+    FuelLog.id, FuelLog.vehicle_id, FuelLog.date, FuelLog.liters, FuelLog.price_per_liter, FuelLog.total_cost, FuelLog.mileage, FuelLog.location, FuelLog.created_at,
     LAG(FuelLog.mileage) OVER (
       PARTITION BY FuelLog.vehicle_id
       ORDER BY FuelLog.date, FuelLog.id

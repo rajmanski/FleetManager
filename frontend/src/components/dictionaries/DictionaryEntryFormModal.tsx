@@ -50,7 +50,7 @@ export function DictionaryEntryFormModal({
   }, [mode, entry, reset])
 
   return (
-    <Modal title={title} error={errorMessage}>
+    <Modal title={title} error={errorMessage} onClose={onClose}>
       <p className="mt-2 text-sm text-gray-600">
         Category: <span className="font-medium text-gray-800">{categoryLabel}</span>
       </p>

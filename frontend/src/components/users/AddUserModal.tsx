@@ -29,7 +29,7 @@ export function AddUserModal({
   })
 
   return (
-    <Modal title="Add user" error={errorMessage}>
+    <Modal title="Add user" error={errorMessage} onClose={onClose}>
       <form
         className="mt-4 space-y-4"
         onSubmit={handleSubmit((data) => onSubmit(data))}

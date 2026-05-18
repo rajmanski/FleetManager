@@ -21,21 +21,21 @@ func NewHandler(service *Service) *Handler {
 func (h *Handler) UnlockUser(c *gin.Context) {
 	userID, err := parseUserIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid user id")
 		return
 	}
 
 	err = h.service.UnlockUserAccount(c.Request.Context(), userID)
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
 		if errors.Is(err, ErrUserNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "user not found")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -45,7 +45,7 @@ func (h *Handler) UnlockUser(c *gin.Context) {
 func (h *Handler) ListAdminUsers(c *gin.Context) {
 	users, err := h.service.ListAdminUsers(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 	c.JSON(http.StatusOK, users)
@@ -54,21 +54,21 @@ func (h *Handler) ListAdminUsers(c *gin.Context) {
 func (h *Handler) GetAdminUser(c *gin.Context) {
 	userID, err := parseUserIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid user id")
 		return
 	}
 
 	user, err := h.service.GetAdminUserByID(c.Request.Context(), userID)
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
 		if errors.Is(err, ErrUserNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "user not found")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -78,17 +78,17 @@ func (h *Handler) GetAdminUser(c *gin.Context) {
 func (h *Handler) CreateAdminUser(c *gin.Context) {
 	var req CreateAdminUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
 	user, err := h.service.CreateAdminUser(c.Request.Context(), req)
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) || errors.Is(err, ErrPasswordTooLong) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -98,27 +98,27 @@ func (h *Handler) CreateAdminUser(c *gin.Context) {
 func (h *Handler) UpdateAdminUser(c *gin.Context) {
 	userID, err := parseUserIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid user id")
 		return
 	}
 
 	var req UpdateAdminUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid request body")
 		return
 	}
 
 	user, err := h.service.UpdateAdminUser(c.Request.Context(), userID, req)
 	if err != nil {
 		if errors.Is(err, ErrInvalidInput) || errors.Is(err, ErrPasswordChangeForbidden) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
 		if errors.Is(err, ErrUserNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "user not found")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 
@@ -128,7 +128,7 @@ func (h *Handler) UpdateAdminUser(c *gin.Context) {
 func (h *Handler) DeleteAdminUser(c *gin.Context) {
 	targetUserID, err := parseUserIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid user id")
 		return
 	}
 
@@ -146,18 +146,18 @@ func (h *Handler) DeleteAdminUser(c *gin.Context) {
 	err = h.service.DeleteAdminUser(c.Request.Context(), targetUserID, requesterUserID)
 	if err != nil {
 		if errors.Is(err, ErrSelfDeleteForbidden) {
-			c.JSON(http.StatusForbidden, gin.H{"error": "administrator cannot delete own account"})
+			httputil.RespondError(c, http.StatusForbidden, err, "administrator cannot delete own account")
 			return
 		}
 		if errors.Is(err, ErrInvalidInput) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input"})
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
 		}
 		if errors.Is(err, ErrUserNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			httputil.RespondError(c, http.StatusNotFound, err, "user not found")
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}
 

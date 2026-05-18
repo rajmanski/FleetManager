@@ -70,19 +70,27 @@ INSERT INTO Drivers (
   pesel,
   phone,
   email,
-  status
+  status,
+  license_number,
+  license_expiry_date,
+  adr_certified,
+  adr_expiry_date
 )
-VALUES (?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type CreateDriverParams struct {
-	UserID    sql.NullInt32     `json:"user_id"`
-	FirstName string            `json:"first_name"`
-	LastName  string            `json:"last_name"`
-	Pesel     sql.NullString    `json:"pesel"`
-	Phone     sql.NullString    `json:"phone"`
-	Email     sql.NullString    `json:"email"`
-	Status    NullDriversStatus `json:"status"`
+	UserID            sql.NullInt32     `json:"user_id"`
+	FirstName         string            `json:"first_name"`
+	LastName          string            `json:"last_name"`
+	Pesel             sql.NullString    `json:"pesel"`
+	Phone             sql.NullString    `json:"phone"`
+	Email             sql.NullString    `json:"email"`
+	Status            NullDriversStatus `json:"status"`
+	LicenseNumber     sql.NullString    `json:"license_number"`
+	LicenseExpiryDate sql.NullTime      `json:"license_expiry_date"`
+	AdrCertified      bool              `json:"adr_certified"`
+	AdrExpiryDate     sql.NullTime      `json:"adr_expiry_date"`
 }
 
 func (q *Queries) CreateDriver(ctx context.Context, arg CreateDriverParams) (int64, error) {
@@ -94,6 +102,10 @@ func (q *Queries) CreateDriver(ctx context.Context, arg CreateDriverParams) (int
 		arg.Phone,
 		arg.Email,
 		arg.Status,
+		arg.LicenseNumber,
+		arg.LicenseExpiryDate,
+		arg.AdrCertified,
+		arg.AdrExpiryDate,
 	)
 	if err != nil {
 		return 0, err
@@ -505,7 +517,7 @@ func (q *Queries) RestoreDriverByID(ctx context.Context, driverID int32) (int64,
 
 const softDeleteDriver = `-- name: SoftDeleteDriver :execrows
 UPDATE Drivers
-SET deleted_at = NOW(), updated_at = NOW()
+SET status = 'Inactive', deleted_at = NOW(), updated_at = NOW()
 WHERE driver_id = ?
   AND deleted_at IS NULL
 `

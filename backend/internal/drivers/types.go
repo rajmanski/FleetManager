@@ -36,13 +36,17 @@ type ListDriversResponse struct {
 }
 
 type CreateDriverRequest struct {
-	UserID    *int32  `json:"user_id,omitempty"`
-	FirstName string  `json:"first_name"`
-	LastName  string  `json:"last_name"`
-	PESEL     string  `json:"pesel"`
-	Phone     *string `json:"phone,omitempty"`
-	Email     *string `json:"email,omitempty"`
-	Status    string  `json:"status,omitempty"`
+	UserID            *int32     `json:"user_id,omitempty"`
+	FirstName         string     `json:"first_name"`
+	LastName          string     `json:"last_name"`
+	PESEL             string     `json:"pesel"`
+	Phone             *string    `json:"phone,omitempty"`
+	Email             *string    `json:"email,omitempty"`
+	Status            string     `json:"status,omitempty"`
+	LicenseNumber     *string    `json:"license_number,omitempty"`
+	LicenseExpiryDate *time.Time `json:"license_expiry_date,omitempty"`
+	ADRCertified      *bool      `json:"adr_certified,omitempty"`
+	ADRExpiryDate     *time.Time `json:"adr_expiry_date,omitempty"`
 }
 
 type UpdateDriverRequest struct {
@@ -65,10 +69,10 @@ type DriverCurrentAssignment struct {
 }
 
 type DriverAvailabilityResponse struct {
-	DriverID          int64                   `json:"driver_id"`
-	Date              string                  `json:"date,omitempty"`
-	Available         bool                    `json:"available"`
-	Reason            *string                 `json:"reason,omitempty"`
+	DriverID          int64                    `json:"driver_id"`
+	Date              string                   `json:"date,omitempty"`
+	Available         bool                     `json:"available"`
+	Reason            *string                  `json:"reason,omitempty"`
 	CurrentAssignment *DriverCurrentAssignment `json:"current_assignment,omitempty"`
 }
 

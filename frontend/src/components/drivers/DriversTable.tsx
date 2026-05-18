@@ -3,10 +3,10 @@ import type { Driver } from '@/hooks/drivers/useDrivers'
 import type { PaginationHelpers } from '@/hooks/usePagination'
 import { CertificateStatusTooltip } from '@/components/drivers/CertificateStatusTooltip'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
-import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { TableActionsCell } from '@/components/ui/TableActionsCell'
 import { Button } from '@/components/ui/Button'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { useClickableRow } from '@/hooks/useClickableRow'
 
 const DRIVER_STATUS_CONFIG: Record<
   string,
@@ -15,6 +15,7 @@ const DRIVER_STATUS_CONFIG: Record<
   Available: { label: 'Available', Icon: UserCheck, color: 'text-green-600' },
   OnLeave: { label: 'On Leave', Icon: CalendarOff, color: 'text-amber-600' },
   InRoute: { label: 'In Route', Icon: Truck, color: 'text-blue-600' },
+  Inactive: { label: 'Inactive', Icon: Trash2, color: 'text-gray-500' },
 }
 
 function DriverStatusCell({ status, isDeleted }: { status: string; isDeleted: boolean }) {
@@ -58,6 +59,7 @@ export function DriversTable({
   onSoftDelete,
   softDeletingId,
 }: DriversTableProps) {
+  const { getRowProps } = useClickableRow()
   return (
     <DataTablePagination page={page} total={total} pagination={pagination}>
       <div className="rounded-lg border border-gray-200 bg-white">
@@ -76,11 +78,9 @@ export function DriversTable({
               {drivers.map((driver) => {
                 const isDeleted = Boolean(driver.deleted_at)
                 return (
-                  <tr key={driver.id} className={`${isDeleted ? 'bg-gray-100 text-gray-500' : 'bg-white transition-colors hover:bg-gray-50 focus-within:bg-gray-50'}`}>
+                  <tr key={driver.id} {...getRowProps(() => onEdit(driver), `Edit driver ${driver.first_name} ${driver.last_name}`)} className={`${isDeleted ? 'bg-gray-100 text-gray-500' : 'bg-white transition-colors hover:bg-gray-50 focus-within:bg-gray-50 cursor-pointer'}`}>
                     <td className="px-4 py-3">
-                      <EntityCellLink to={`/drivers/${driver.id}`}>
-                        <span className="font-medium">{driver.first_name} {driver.last_name}</span>
-                      </EntityCellLink>
+                      <span className="font-medium">{driver.first_name} {driver.last_name}</span>
                     </td>
                     <td className="px-4 py-3">{driver.pesel}</td>
                     <td className="px-4 py-3">

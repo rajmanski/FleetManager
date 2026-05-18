@@ -92,7 +92,7 @@ export function CargoItemRow({
             variant="compact"
             value={item.description}
             onChange={(e) => onUpdate({ description: e.target.value })}
-            placeholder="e.g. Palety z elektroniką"
+            placeholder="e.g. Pallets with electronics"
           />
         </div>
       </div>

@@ -21,7 +21,7 @@ export function AppHeader({ onLogout, onToggleSidebar }: AppHeaderProps) {
               type="button"
               onClick={onToggleSidebar}
               className="rounded-md p-2 text-gray-600 hover:bg-gray-100 lg:hidden"
-              aria-label="Otwórz menu"
+              aria-label="Open menu"
             >
               <Menu className="size-5" />
             </button>

@@ -82,7 +82,7 @@ WHERE vehicle_id = ?
 
 -- name: SoftDeleteVehicle :execrows
 UPDATE Vehicles
-SET deleted_at = NOW(), updated_at = NOW()
+SET status = 'Inactive', deleted_at = NOW(), updated_at = NOW()
 WHERE vehicle_id = ?
   AND deleted_at IS NULL;
 

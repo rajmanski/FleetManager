@@ -38,11 +38,11 @@ export function MaintenanceHistorySection({ vehicleId }: MaintenanceHistorySecti
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-5">
-      <h3 className="mb-3 text-base font-semibold text-gray-800">Fixing history</h3>
+      <h3 className="mb-3 text-base font-semibold text-gray-800">Maintenance history</h3>
 
       <div className="mb-4 flex flex-wrap items-end gap-3">
         <FilterSelect
-          label="Typ"
+          label="Type"
           value={typeFilter}
           onChange={setTypeFilter}
           options={['Routine', 'Repair', 'TireChange']}
@@ -69,11 +69,11 @@ export function MaintenanceHistorySection({ vehicleId }: MaintenanceHistorySecti
               <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    <ThWithIcon icon={Calendar}>Data</ThWithIcon>
-                    <ThWithIcon icon={AlertTriangle}>Typ</ThWithIcon>
+                    <ThWithIcon icon={Calendar}>Date</ThWithIcon>
+                    <ThWithIcon icon={AlertTriangle}>Type</ThWithIcon>
                     <ThWithIcon icon={CircleDot}>Status</ThWithIcon>
-                    <ThWithIcon icon={DollarSign}>Koszt całkowity</ThWithIcon>
-                    <ThWithIcon icon={FileText}>Opis</ThWithIcon>
+                    <ThWithIcon icon={DollarSign}>Total cost</ThWithIcon>
+                    <ThWithIcon icon={FileText}>Description</ThWithIcon>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">

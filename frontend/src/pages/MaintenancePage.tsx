@@ -12,7 +12,7 @@ import { useVehicles } from '@/hooks/vehicles/useVehicles'
 import { usePagination } from '@/hooks/usePagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
-import { extractApiError } from '@/utils/api'
+
 import type { MaintenanceFormValues } from '@/schemas/maintenance'
 
 function MaintenancePage() {
@@ -116,8 +116,6 @@ function MaintenancePage() {
     [updateMaintenanceStatusMutation],
   )
 
-  const createError = extractApiError(createMaintenanceMutation.error)
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -165,7 +163,6 @@ function MaintenancePage() {
           onClose={() => setIsCreateOpen(false)}
           onSubmit={handleCreate}
           isSubmitting={createMaintenanceMutation.isPending}
-          errorMessage={createError}
         />
       )}
     </div>

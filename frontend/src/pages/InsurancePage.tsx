@@ -12,7 +12,7 @@ import { useVehicles } from '@/hooks/vehicles/useVehicles'
 import { usePagination } from '@/hooks/usePagination'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
-import { extractApiError } from '@/utils/api'
+
 import type { InsuranceFormValues } from '@/schemas/insurance'
 
 function InsurancePage() {
@@ -89,8 +89,6 @@ function InsurancePage() {
     )
   }
 
-  const createError = extractApiError(createInsuranceMutation.error)
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -134,7 +132,6 @@ function InsurancePage() {
           onClose={() => setIsCreateOpen(false)}
           onSubmit={handleCreate}
           isSubmitting={createInsuranceMutation.isPending}
-          errorMessage={createError}
         />
       )}
     </div>

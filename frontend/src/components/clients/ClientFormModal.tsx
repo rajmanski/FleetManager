@@ -17,7 +17,7 @@ export type ClientFormModalProps = {
   onClose: () => void
   onSubmit: (values: ClientFormValues) => void
   isSubmitting: boolean
-  errorMessage: string | null
+  errorMessage?: string | null
 }
 
 export function ClientFormModal({

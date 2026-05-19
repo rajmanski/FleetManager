@@ -1,3 +1,4 @@
+import type { AxiosResponse } from 'axios'
 import api from '@/services/api'
 import type {
   DriverMileageReport,
@@ -51,16 +52,48 @@ export async function downloadVehicleProfitabilityExcel(
     responseType: 'blob',
   })
 
+  return extractExcelBlob(res, `vehicle-profitability-${vehicleId}-${month}.xlsx`)
+}
+
+export async function downloadDriverMileageExcel(
+  driverId: number,
+  dateFrom: string,
+  dateTo: string,
+): Promise<{ blob: Blob; filename: string }> {
+  const res = await api.get<Blob>('/api/v1/reports/driver-mileage/export', {
+    params: { driver_id: driverId, date_from: dateFrom, date_to: dateTo },
+    responseType: 'blob',
+  })
+
+  return extractExcelBlob(res, `driver-mileage-${driverId}.xlsx`)
+}
+
+export async function downloadGlobalCostsExcel(
+  dateFrom: string,
+  dateTo: string,
+): Promise<{ blob: Blob; filename: string }> {
+  const res = await api.get<Blob>('/api/v1/reports/global-costs/export', {
+    params: { date_from: dateFrom, date_to: dateTo },
+    responseType: 'blob',
+  })
+
+  return extractExcelBlob(res, `global-costs-${dateFrom}-${dateTo}.xlsx`)
+}
+
+async function extractExcelBlob(
+  res: AxiosResponse<Blob>,
+  fallbackFilename: string,
+): Promise<{ blob: Blob; filename: string }> {
   const blob = res.data
-  const contentType = res.headers['content-type'] ?? ''
+  const contentType = (res.headers['content-type'] as string | undefined) ?? ''
   if (contentType.includes('application/json')) {
     const text = await blob.text()
     const j = JSON.parse(text) as { error?: string }
     throw new Error(j.error ?? 'Export failed')
   }
 
-  let filename = `vehicle-profitability-${vehicleId}-${month}.xlsx`
-  const cd = res.headers['content-disposition']
+  let filename = fallbackFilename
+  const cd = res.headers['content-disposition'] as string | undefined
   if (cd) {
     const m = /filename="([^"]+)"/.exec(cd) ?? /filename=([^;\s]+)/.exec(cd)
     if (m?.[1]) {

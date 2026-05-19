@@ -582,9 +582,19 @@ func main() {
 		reportsHandler.GetVehicleProfitability,
 	)
 	protected.GET(
+		"/reports/driver-mileage/export",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
+		reportsHandler.ExportDriverMileage,
+	)
+	protected.GET(
 		"/reports/driver-mileage",
 		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
 		reportsHandler.GetDriverMileage,
+	)
+	protected.GET(
+		"/reports/global-costs/export",
+		auth.RBACMiddleware(auth.ResourceOrders, auth.PermissionRead),
+		reportsHandler.ExportGlobalCosts,
 	)
 	protected.GET(
 		"/reports/global-costs",
@@ -595,6 +605,7 @@ func main() {
 
 	protected.GET("/notifications", notificationHandler.ListNotifications)
 	protected.PATCH("/notifications/:id/read", notificationHandler.MarkNotificationRead)
+	protected.POST("/notifications/run-scheduler", notificationHandler.RunScheduler)
 
 	protected.GET("/db-check", func(c *gin.Context) {
 		var one int

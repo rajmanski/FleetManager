@@ -18,7 +18,7 @@ export type MaintenanceFormModalProps = {
   onClose: () => void
   onSubmit: (values: MaintenanceFormValues) => void
   isSubmitting: boolean
-  errorMessage: string | null
+  errorMessage?: string | null
 }
 
 const maintenanceTypeOptions = [

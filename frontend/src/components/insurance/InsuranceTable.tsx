@@ -1,10 +1,11 @@
-import { Truck, Shield, FileText, Calendar } from 'lucide-react'
+import { Truck, Shield, FileText, DollarSign, Calendar } from 'lucide-react'
 import type { InsurancePolicy } from '@/hooks/insurance/useInsurance'
 import type { PaginationHelpers } from '@/hooks/usePagination'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
 import { formatDateOnly, getInsuranceExpiryStatus } from '@/utils/date'
+import { formatPrice } from '@/utils/price'
 
 type InsuranceTableProps = {
   rows: InsurancePolicy[]
@@ -41,6 +42,7 @@ export function InsuranceTable({
                 <ThWithIcon icon={Truck}>Vehicle</ThWithIcon>
                 <ThWithIcon icon={Shield}>Type</ThWithIcon>
                 <ThWithIcon icon={FileText}>Policy number</ThWithIcon>
+                <ThWithIcon icon={DollarSign}>Cost</ThWithIcon>
                 <ThWithIcon icon={Calendar}>Valid until</ThWithIcon>
               </tr>
             </thead>
@@ -54,6 +56,7 @@ export function InsuranceTable({
                   </td>
                   <td className="px-4 py-3">{row.type}</td>
                   <td className="px-4 py-3">{row.policyNumber}</td>
+                  <td className="px-4 py-3 tabular-nums">{formatPrice(row.cost)}</td>
                   <td className="px-4 py-3">{formatDateOnly(row.endDate)}</td>
                 </tr>
               ))}

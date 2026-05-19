@@ -13,7 +13,7 @@ import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { usePagination } from '@/hooks/usePagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { driverToFormInitialData, hasValidCertificates } from '@/utils/driver'
-import { extractApiError } from '@/utils/api'
+
 
 function DriversPage() {
   const { isAdmin, canManageDrivers } = useAuth()
@@ -157,7 +157,6 @@ function DriversPage() {
             createMutation.mutate(payload, createCallbacks)
           }
           isSubmitting={createMutation.isPending}
-          errorMessage={extractApiError(createMutation.error)}
         />
       )}
 
@@ -172,7 +171,6 @@ function DriversPage() {
             updateMutation.mutate({ id: editDriver.id, payload }, updateCallbacks)
           }
           isSubmitting={updateMutation.isPending}
-          errorMessage={extractApiError(updateMutation.error)}
         />
       )}
 

@@ -1,7 +1,6 @@
 import { Download, TrendingUp, DollarSign, Fuel, Wrench, ShieldCheck, Map, Package } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
-import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
 import { useClickableRow } from '@/hooks/useClickableRow'
 import { HorizontalBarRow } from '@/components/reports/HorizontalBarRow'
@@ -11,12 +10,11 @@ import { formatPrice } from '@/utils/price'
 type VehicleProfitabilityResultProps = {
   data: VehicleProfitabilityReport
   exporting: boolean
-  exportError: string | null
   onExportExcel: () => void
 }
 
 export function VehicleProfitabilityResult({
-  data, exporting, exportError, onExportExcel,
+  data, exporting, onExportExcel,
 }: VehicleProfitabilityResultProps) {
   const costs = data.costs
   const costMax = Math.max(
@@ -42,7 +40,6 @@ export function VehicleProfitabilityResult({
           {exporting ? 'Exporting…' : 'Export to Excel'}
         </Button>
       </div>
-      {exportError && <ErrorMessage message={exportError} />}
 
       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
         <table className="min-w-full text-left text-sm">

@@ -13,7 +13,7 @@ export type CostsFormModalProps = {
   onClose: () => void
   onSubmit: (values: CostsFormValues) => void
   isSubmitting: boolean
-  errorMessage: string | null
+  errorMessage?: string | null
 }
 
 const categoryOptions = [

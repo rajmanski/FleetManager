@@ -17,7 +17,7 @@ export type InsuranceFormModalProps = {
   onClose: () => void
   onSubmit: (values: InsuranceFormValues) => void
   isSubmitting: boolean
-  errorMessage: string | null
+  errorMessage?: string | null
 }
 
 const policyTypeOptions = [

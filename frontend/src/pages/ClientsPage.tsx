@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { usePagination } from '@/hooks/usePagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
-import { extractApiError } from '@/utils/api'
+
 
 function ClientsPage() {
   const { role } = useAuth()
@@ -58,10 +58,6 @@ function ClientsPage() {
     [pagination]
   )
 
-  const restoreErrorMessage = extractApiError(restoreMutation.error)
-  const createErrorMessage = extractApiError(createMutation.error)
-  const updateErrorMessage = extractApiError(updateMutation.error)
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -101,10 +97,6 @@ function ClientsPage() {
         />
       )}
 
-      {restoreErrorMessage && !restoreMutation.isPending && (
-        <ErrorMessage message={restoreErrorMessage} />
-      )}
-
       {addModalOpen && (
         <ClientFormModal
           title="Add client"
@@ -122,7 +114,6 @@ function ClientsPage() {
             )
           }
           isSubmitting={createMutation.isPending}
-          errorMessage={createErrorMessage}
         />
       )}
 
@@ -152,7 +143,6 @@ function ClientsPage() {
             )
           }
           isSubmitting={updateMutation.isPending}
-          errorMessage={updateErrorMessage}
         />
       )}
     </div>

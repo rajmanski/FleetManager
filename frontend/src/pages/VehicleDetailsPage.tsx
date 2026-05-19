@@ -15,7 +15,7 @@ import { useAuth } from '@/hooks/useAuth'
 import type { VehicleMutationPayload } from '@/hooks/vehicles/useVehicles'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { vehicleToFormInitialData } from '@/utils/vehicle'
-import { extractApiError } from '@/utils/api'
+
 import { formatDateTime } from '@/utils/date'
 import { formatVehicleStatusLabel, getVehicleStatusMeta } from '@/utils/vehicleStatus'
 
@@ -146,10 +146,6 @@ function VehicleDetailsPage() {
         )}
       </div>
 
-      {deleteMutation.error && (
-        <ErrorMessage message={extractApiError(deleteMutation.error, 'Delete failed.') ?? 'Delete failed.'} />
-      )}
-
       {editOpen && vehicle && (
         <VehicleFormModal
           title="Edit vehicle"
@@ -164,7 +160,6 @@ function VehicleDetailsPage() {
             )
           }
           isSubmitting={updateMutation.isPending}
-          errorMessage={extractApiError(updateMutation.error)}
         />
       )}
 

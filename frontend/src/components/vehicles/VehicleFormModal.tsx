@@ -25,7 +25,7 @@ export type VehicleFormModalProps = {
   onClose: () => void
   onSubmit: (payload: VehicleMutationPayload & { status?: string }) => void
   isSubmitting: boolean
-  errorMessage: string | null
+  errorMessage?: string | null
 }
 
 type VehicleFormValues = {

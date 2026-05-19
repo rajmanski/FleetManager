@@ -5,8 +5,13 @@ import { VehicleProfitabilityResult } from '@/components/reports/VehicleProfitab
 import { DriverMileageResult } from '@/components/reports/DriverMileageResult'
 import { GlobalCostsResult } from '@/components/reports/GlobalCostsResult'
 import { useReportData } from '@/hooks/reports/useReportData'
-import { downloadVehicleProfitabilityExcel } from '@/services/reports'
+import {
+  downloadVehicleProfitabilityExcel,
+  downloadDriverMileageExcel,
+  downloadGlobalCostsExcel,
+} from '@/services/reports'
 import { isReportQueryReady } from '@/schemas/reports'
+import { useToast } from '@/context/ToastContext'
 import { extractApiError } from '@/utils/api'
 
 type ReportResultsPanelProps = {
@@ -14,33 +19,48 @@ type ReportResultsPanelProps = {
 }
 
 export function ReportResultsPanel({ searchParams }: ReportResultsPanelProps) {
+  const toast = useToast()
   const ready = isReportQueryReady(searchParams)
   const report = useReportData(searchParams)
-  const [exportError, setExportError] = useState<string | null>(null)
   const [exporting, setExporting] = useState(false)
 
   const handleExportExcel = useCallback(async () => {
-    const vehicleId = searchParams.get('vehicle_id')
-    const month = searchParams.get('month')
-    if (!vehicleId || !month) return
-    setExportError(null)
+    const reportType = searchParams.get('report')
+
     setExporting(true)
     try {
-      const { blob, filename } = await downloadVehicleProfitabilityExcel(
-        Number(vehicleId), month,
-      )
-      const url = URL.createObjectURL(blob)
+      let result: { blob: Blob; filename: string }
+
+      if (reportType === 'vehicle-profitability') {
+        const vehicleId = searchParams.get('vehicle_id')
+        const month = searchParams.get('month')
+        if (!vehicleId || !month) return
+        result = await downloadVehicleProfitabilityExcel(Number(vehicleId), month)
+      } else if (reportType === 'driver-mileage') {
+        const driverId = searchParams.get('driver_id')
+        const dateFrom = searchParams.get('date_from')
+        const dateTo = searchParams.get('date_to')
+        if (!driverId || !dateFrom || !dateTo) return
+        result = await downloadDriverMileageExcel(Number(driverId), dateFrom, dateTo)
+      } else {
+        const dateFrom = searchParams.get('date_from')
+        const dateTo = searchParams.get('date_to')
+        if (!dateFrom || !dateTo) return
+        result = await downloadGlobalCostsExcel(dateFrom, dateTo)
+      }
+
+      const url = URL.createObjectURL(result.blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = filename
+      a.download = result.filename
       a.click()
       URL.revokeObjectURL(url)
     } catch (e) {
-      setExportError(extractApiError(e, 'Could not download Excel file.'))
+      toast.error(extractApiError(e, 'Could not download Excel file.') ?? 'Could not download Excel file.')
     } finally {
       setExporting(false)
     }
-  }, [searchParams])
+  }, [searchParams, toast])
 
   if (!ready) {
     return (
@@ -64,16 +84,27 @@ export function ReportResultsPanel({ searchParams }: ReportResultsPanelProps) {
     return (
       <VehicleProfitabilityResult
         data={result.data}
-        exporting={exporting}
-        exportError={exportError}
         onExportExcel={handleExportExcel}
+        exporting={exporting}
       />
     )
   }
 
   if (result.kind === 'driver-mileage') {
-    return <DriverMileageResult data={result.data} />
+    return (
+      <DriverMileageResult
+        data={result.data}
+        onExportExcel={handleExportExcel}
+        exporting={exporting}
+      />
+    )
   }
 
-  return <GlobalCostsResult data={result.data} />
+  return (
+    <GlobalCostsResult
+      data={result.data}
+      onExportExcel={handleExportExcel}
+      exporting={exporting}
+    />
+  )
 }

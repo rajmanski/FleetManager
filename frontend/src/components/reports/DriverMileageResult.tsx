@@ -1,4 +1,5 @@
-import { Route, Package, DollarSign } from 'lucide-react'
+import { Download, Route, Package, DollarSign } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
 import { useClickableRow } from '@/hooks/useClickableRow'
@@ -6,17 +7,34 @@ import type { DriverMileageReport } from '@/types/reports'
 
 type DriverMileageResultProps = {
   data: DriverMileageReport
+  exporting: boolean
+  onExportExcel: () => void
 }
 
-export function DriverMileageResult({ data }: DriverMileageResultProps) {
+export function DriverMileageResult({
+  data, exporting, onExportExcel,
+}: DriverMileageResultProps) {
   const { getRowProps } = useClickableRow()
 
   return (
     <div className="space-y-4">
-      <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900">
-        <Route className="size-5 text-gray-500" aria-hidden="true" />
-        Results
-      </h3>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="flex items-center gap-2 text-lg font-medium text-gray-900">
+          <Route className="size-5 text-gray-500" aria-hidden="true" />
+          Results
+        </h3>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={exporting}
+          onClick={onExportExcel}
+          className="inline-flex items-center gap-2"
+        >
+          <Download className="size-4" />
+          {exporting ? 'Exporting…' : 'Export to Excel'}
+        </Button>
+      </div>
+
       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-gray-200 bg-gray-50">

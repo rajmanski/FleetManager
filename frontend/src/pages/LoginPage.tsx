@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
-import { ErrorMessage } from '@/components/ui/ErrorMessage'
+
 import { Input } from '@/components/ui/Input'
 import { getAccessToken } from '@/services/authStorage'
 import { loginSchema, type LoginFormValues } from '@/schemas/auth'
@@ -20,7 +20,6 @@ function LoginPage() {
     register,
     handleSubmit,
     formState: { errors },
-    setError,
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { login: '', password: '' },
@@ -37,12 +36,9 @@ function LoginPage() {
     if (result.success) {
       toast.success('Signed in successfully')
     } else {
-      setError('root', { message: result.error })
       toast.error(result.error)
     }
   }
-
-  const displayError = errors.root?.message
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -88,10 +84,6 @@ function LoginPage() {
                 id="password"
                 {...register('password')}
               />
-
-              {displayError && (
-                <ErrorMessage message={displayError} variant="soft" />
-              )}
 
               <Button
                 type="submit"

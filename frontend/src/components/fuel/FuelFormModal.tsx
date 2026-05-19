@@ -20,7 +20,7 @@ export type FuelFormModalProps = {
   onClose: () => void
   onSubmit: (values: FuelFormValues) => void
   isSubmitting: boolean
-  errorMessage: string | null
+  errorMessage?: string | null
 }
 
 export function FuelFormModal({

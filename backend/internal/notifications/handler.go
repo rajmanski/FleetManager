@@ -12,6 +12,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const defaultLookaheadDays = 30
+
 type Handler struct {
 	service *Service
 }
@@ -67,6 +69,22 @@ func (h *Handler) MarkNotificationRead(c *gin.Context) {
 			httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 			return
 		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+}
+
+func (h *Handler) RunScheduler(c *gin.Context) {
+	lookaheadDays := int64(defaultLookaheadDays)
+	if v := c.Query("lookahead_days"); v != "" {
+		if parsed, err := strconv.ParseInt(v, 10, 64); err == nil && parsed > 0 {
+			lookaheadDays = parsed
+		}
+	}
+
+	if err := h.service.RunDueTermNotifications(c.Request.Context(), lookaheadDays); err != nil {
+		httputil.RespondError(c, http.StatusInternalServerError, err, "scheduler run failed")
+		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})

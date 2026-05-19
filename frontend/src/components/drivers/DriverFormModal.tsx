@@ -18,7 +18,7 @@ export type DriverFormModalProps = {
   onClose: () => void
   onSubmit: (payload: DriverMutationPayload) => void
   isSubmitting: boolean
-  errorMessage: string | null
+  errorMessage?: string | null
 }
 
 export function DriverFormModal({

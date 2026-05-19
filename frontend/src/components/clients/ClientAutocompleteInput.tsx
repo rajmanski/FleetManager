@@ -7,7 +7,7 @@ import { useDebouncedCallback } from '@/hooks/useDebouncedCallback'
 import { ClientFormModal, type ClientFormValues } from '@/components/clients/ClientFormModal'
 import { useClients } from '@/hooks/clients/useClients'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
-import { extractApiError } from '@/utils/api'
+
 import { formatNipDisplay } from '@/utils/nip'
 import type { Client } from '@/hooks/clients/useClients'
 import type { PaginatedResponse } from '@/types/common'
@@ -160,7 +160,6 @@ export function ClientAutocompleteInput({
           onClose={() => setAddModalOpen(false)}
           onSubmit={handleCreateSubmit}
           isSubmitting={createMutation.isPending}
-          errorMessage={extractApiError(createMutation.error)}
         />
       )}
     </>

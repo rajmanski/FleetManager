@@ -10,7 +10,7 @@ type AddUserModalProps = {
   onClose: () => void
   onSubmit: (data: CreateUserFormValues) => void
   isSubmitting: boolean
-  errorMessage: string | null
+  errorMessage?: string | null
 }
 
 export function AddUserModal({

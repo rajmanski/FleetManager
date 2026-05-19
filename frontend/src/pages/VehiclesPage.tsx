@@ -12,7 +12,7 @@ import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { usePagination } from '@/hooks/usePagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { vehicleToFormInitialData } from '@/utils/vehicle'
-import { extractApiError } from '@/utils/api'
+
 
 function VehiclesPage() {
   const { canManageVehicles, isAdmin } = useAuth()
@@ -120,7 +120,6 @@ function VehiclesPage() {
             createMutation.mutate(payload, createCallbacks)
           }
           isSubmitting={createMutation.isPending}
-          errorMessage={extractApiError(createMutation.error)}
         />
       )}
 
@@ -140,7 +139,6 @@ function VehiclesPage() {
             )
           }
           isSubmitting={updateMutation.isPending}
-          errorMessage={extractApiError(updateMutation.error)}
         />
       )}
     </div>

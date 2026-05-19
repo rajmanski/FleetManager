@@ -12,7 +12,6 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
-import { extractApiError } from '@/utils/api'
 
 function AssignmentsPage() {
   const [page, setPage] = useState(1)
@@ -135,8 +134,6 @@ function AssignmentsPage() {
     [endAssignmentMutation, endCallbacks]
   )
 
-  const createError = extractApiError(createAssignmentMutation.error)
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -190,11 +187,6 @@ function AssignmentsPage() {
             </Button>
           </div>
         </form>
-        {createError && !createAssignmentMutation.isPending && (
-          <div className="mt-3">
-            <ErrorMessage message={createError} />
-          </div>
-        )}
       </div>
 
       {activeAssignmentsQuery.isLoading && <LoadingMessage />}

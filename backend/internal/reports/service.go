@@ -86,6 +86,38 @@ func (s *Service) ExportVehicleProfitabilityXLSX(
 	return data, filename, nil
 }
 
+func (s *Service) ExportDriverMileageXLSX(
+	ctx context.Context,
+	query DriverMileageQuery,
+) ([]byte, string, error) {
+	resp, err := s.GetDriverMileage(ctx, query)
+	if err != nil {
+		return nil, "", err
+	}
+	data, err := buildDriverMileageExcel(resp)
+	if err != nil {
+		return nil, "", err
+	}
+	filename := fmt.Sprintf("driver-mileage-%d-%s.xlsx", resp.DriverID, resp.Period)
+	return data, filename, nil
+}
+
+func (s *Service) ExportGlobalCostsXLSX(
+	ctx context.Context,
+	query GlobalCostsQuery,
+) ([]byte, string, error) {
+	resp, err := s.GetGlobalCosts(ctx, query)
+	if err != nil {
+		return nil, "", err
+	}
+	data, err := buildGlobalCostsExcel(resp)
+	if err != nil {
+		return nil, "", err
+	}
+	filename := fmt.Sprintf("global-costs-%s.xlsx", resp.Period)
+	return data, filename, nil
+}
+
 func (s *Service) GetDriverMileage(ctx context.Context, query DriverMileageQuery) (DriverMileageResponse, error) {
 	if query.DriverID <= 0 {
 		return DriverMileageResponse{}, ErrInvalidInput

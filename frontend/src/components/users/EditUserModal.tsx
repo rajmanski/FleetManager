@@ -12,7 +12,7 @@ type EditUserModalProps = {
   onClose: () => void
   onSubmit: (data: UpdateUserFormValues) => void
   isSubmitting: boolean
-  errorMessage: string | null
+  errorMessage?: string | null
 }
 
 export function EditUserModal({

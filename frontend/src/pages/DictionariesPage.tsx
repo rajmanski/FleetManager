@@ -14,7 +14,7 @@ import {
 } from '@/hooks/dictionaries/useDictionaries'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import type { DictionaryEntryFormValues } from '@/schemas/dictionaries'
-import { extractApiError } from '@/utils/api'
+
 
 function DictionariesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>(
@@ -99,9 +99,6 @@ function DictionariesPage() {
     setEditEntry(null)
   }
 
-  const activeMutation =
-    formMode === 'create' ? createMutation : updateMutation
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -144,8 +141,7 @@ function DictionariesPage() {
           entry={formMode === 'edit' ? editEntry : null}
           onClose={closeForm}
           onSubmit={handleFormSubmit}
-          isSubmitting={activeMutation.isPending}
-          errorMessage={extractApiError(activeMutation.error)}
+          isSubmitting={formMode === 'create' ? createMutation.isPending : updateMutation.isPending}
         />
       )}
 

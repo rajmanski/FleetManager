@@ -13,7 +13,7 @@ import { useVehicles } from '@/hooks/vehicles/useVehicles'
 import { usePagination } from '@/hooks/usePagination'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
-import { extractApiError } from '@/utils/api'
+
 import type { FuelFormValues } from '@/schemas/fuel'
 import { FilterCheckbox } from '@/components/ui/FilterCheckbox'
 
@@ -119,8 +119,6 @@ function FuelPage() {
     )
   }
 
-  const createError = extractApiError(createFuelLogMutation.error)
-
   return (
     <div className="space-y-6">
       <PageHeader
@@ -182,7 +180,6 @@ function FuelPage() {
           onClose={() => setIsCreateOpen(false)}
           onSubmit={handleCreate}
           isSubmitting={createFuelLogMutation.isPending}
-          errorMessage={createError}
         />
       )}
     </div>

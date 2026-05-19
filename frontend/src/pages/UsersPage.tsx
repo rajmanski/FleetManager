@@ -9,7 +9,7 @@ import { LoadingMessage } from '@/components/ui/LoadingMessage'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useUsers, type AdminUser } from '@/hooks/users/useUsers'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
-import { extractApiError } from '@/utils/api'
+
 
 function UsersPage() {
   const [addModalOpen, setAddModalOpen] = useState(false)
@@ -74,7 +74,6 @@ function UsersPage() {
             createMutation.mutate(data, createCallbacks)
           }
           isSubmitting={createMutation.isPending}
-          errorMessage={extractApiError(createMutation.error)}
         />
       )}
 
@@ -86,7 +85,6 @@ function UsersPage() {
             updateMutation.mutate({ id: editUser.id, data }, updateCallbacks)
           }
           isSubmitting={updateMutation.isPending}
-          errorMessage={extractApiError(updateMutation.error)}
         />
       )}
 

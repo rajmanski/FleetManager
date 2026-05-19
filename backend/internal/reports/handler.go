@@ -80,6 +80,43 @@ func (h *Handler) GetDriverMileage(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+func (h *Handler) ExportDriverMileage(c *gin.Context) {
+	driverID, ok := httputil.ParsePositiveInt64Query(c, "driver_id")
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid driver_id"})
+		return
+	}
+
+	dateFrom := c.Query("date_from")
+	dateTo := c.Query("date_to")
+	data, filename, err := h.service.ExportDriverMileageXLSX(c.Request.Context(), DriverMileageQuery{
+		DriverID: driverID,
+		DateFrom: dateFrom,
+		DateTo:   dateTo,
+	})
+	if !handleServiceError(c, err) {
+		return
+	}
+
+	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+	c.Data(http.StatusOK, xlsxContentType, data)
+}
+
+func (h *Handler) ExportGlobalCosts(c *gin.Context) {
+	dateFrom := c.Query("date_from")
+	dateTo := c.Query("date_to")
+	data, filename, err := h.service.ExportGlobalCostsXLSX(c.Request.Context(), GlobalCostsQuery{
+		DateFrom: dateFrom,
+		DateTo:   dateTo,
+	})
+	if !handleServiceError(c, err) {
+		return
+	}
+
+	c.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+	c.Data(http.StatusOK, xlsxContentType, data)
+}
+
 func (h *Handler) GetGlobalCosts(c *gin.Context) {
 	dateFrom := c.Query("date_from")
 	dateTo := c.Query("date_to")

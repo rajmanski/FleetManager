@@ -277,8 +277,10 @@ func (r *DriversRepository) GetDriverTripOrderNumberOnDate(ctx context.Context, 
 		return "", drivers.ErrInvalidInput
 	}
 	orderNumber, err := r.queries.GetDriverTripOnDate(ctx, sqlc.GetDriverTripOnDateParams{
-		DriverID:  int32(driverID),
-		CheckDate: sql.NullTime{Time: parsed, Valid: true},
+		DriverID:    int32(driverID),
+		CheckDate:   sql.NullTime{Time: parsed, Valid: true},
+		CheckDate_2: sql.NullTime{Time: parsed, Valid: true},
+		CheckDate_3: sql.NullTime{Time: parsed, Valid: true},
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {

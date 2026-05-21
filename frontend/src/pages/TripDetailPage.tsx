@@ -149,7 +149,7 @@ function TripDetailPage() {
           <div className="flex flex-wrap items-center gap-2">
             {canStart && (
               <Button
-                variant="primary"
+                variant="success"
                 onClick={handleStart}
                 disabled={startTripMutation.isPending}
               >
@@ -253,7 +253,10 @@ function TripDetailPage() {
       </div>
 
       <div className="grid gap-4 text-sm sm:grid-cols-2">
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+        <Link
+          to={`/vehicles/${trip.vehicle_id}`}
+          className="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-colors hover:bg-gray-50"
+        >
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-800">
             <span className="rounded-md bg-slate-100 p-1.5">
               <Truck className="h-4 w-4 text-slate-700" />
@@ -271,13 +274,14 @@ function TripDetailPage() {
               <dt className="text-xs font-medium uppercase tracking-wide text-gray-500">
                 VIN
               </dt>
-              <dd className="font-mono text-sm text-gray-900">
-                {trip.vehicle_vin}
-              </dd>
+              <dd className="font-mono text-sm text-gray-900">{trip.vehicle_vin}</dd>
             </div>
           </dl>
-        </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+        </Link>
+        <Link
+          to={`/drivers/${trip.driver_id}`}
+          className="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-colors hover:bg-gray-50"
+        >
           <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-800">
             <span className="rounded-md bg-slate-100 p-1.5">
               <UserCircle className="h-4 w-4 text-slate-700" />
@@ -298,7 +302,7 @@ function TripDetailPage() {
               <dd className="font-medium text-gray-900">{trip.driver_name}</dd>
             </div>
           </dl>
-        </div>
+        </Link>
       </div>
 
       <FinishTripModal

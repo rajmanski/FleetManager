@@ -178,6 +178,8 @@ FROM Trips t
 JOIN Orders o ON t.order_id = o.order_id
 WHERE t.driver_id = sqlc.arg(driver_id)
   AND t.status IN ('Scheduled', 'Active')
-  AND DATE(t.start_time) <= sqlc.arg(check_date)
-  AND (t.end_time IS NULL OR DATE(t.end_time) >= sqlc.arg(check_date))
+  AND (
+    (t.status = 'Scheduled' AND DATE(t.start_time) = sqlc.arg(check_date))
+    OR (t.status = 'Active' AND DATE(t.start_time) <= sqlc.arg(check_date) AND (t.end_time IS NULL OR DATE(t.end_time) >= sqlc.arg(check_date)))
+  )
 LIMIT 1;

@@ -48,7 +48,7 @@ function OrdersPage() {
                 className="inline-flex items-center"
               >
                 <Plus className="mr-2 h-4 w-4 shrink-0" />
-                New order (integrated flow)
+                New order
               </Button>
             </div>
           ) : undefined

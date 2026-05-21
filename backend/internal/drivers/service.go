@@ -191,7 +191,7 @@ func (s *Service) GetDriverAvailabilityByDate(ctx context.Context, driverID int6
 		Available: true,
 	}
 
-	if driver.Status != "Available" {
+	if driver.Status == "OnLeave" || driver.Status == "Inactive" {
 		reason := fmt.Sprintf("Driver status is %s", driver.Status)
 		resp.Available = false
 		resp.Reason = &reason
@@ -255,7 +255,7 @@ func (s *Service) GetDriverAvailabilityInRange(ctx context.Context, driverID int
 		Available: true,
 	}
 
-	if driver.Status != "Available" {
+	if driver.Status == "OnLeave" || driver.Status == "Inactive" {
 		reason := fmt.Sprintf("Driver status is %s", driver.Status)
 		resp.Available = false
 		resp.Reason = &reason

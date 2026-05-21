@@ -127,20 +127,6 @@ func (r *TripsRepository) CreateTripAndSetInRoute(ctx context.Context, input tri
 		return 0, err
 	}
 
-	if _, err := qtx.UpdateVehicleStatusByID(ctx, sqlc.UpdateVehicleStatusByIDParams{
-		Status:    toNullVehiclesStatus("InRoute"),
-		VehicleID: int32(input.VehicleID),
-	}); err != nil {
-		return 0, err
-	}
-
-	if _, err := qtx.UpdateDriverStatusByID(ctx, sqlc.UpdateDriverStatusByIDParams{
-		Status:   toNullDriversStatus("InRoute"),
-		DriverID: int32(input.DriverID),
-	}); err != nil {
-		return 0, err
-	}
-
 	if _, err := qtx.UpdateOrderStatusByID(ctx, sqlc.UpdateOrderStatusByIDParams{
 		Status:  toNullOrdersStatus("Planned"),
 		OrderID: int32(input.OrderID),
@@ -168,6 +154,17 @@ func (r *TripsRepository) StartTripAndSetInRoute(ctx context.Context, tripID int
 		if errors.Is(err, sql.ErrNoRows) {
 			return trips.ErrTripNotFound
 		}
+		return err
+	}
+
+	var activeID int64
+	if err := tx.QueryRowContext(
+		ctx,
+		`SELECT trip_id FROM Trips WHERE trip_id != ? AND (vehicle_id = ? OR driver_id = ?) AND status = 'Active' LIMIT 1 FOR UPDATE`,
+		tripID, ids.VehicleID, ids.DriverID,
+	).Scan(&activeID); err == nil {
+		return trips.ErrDriverOrVehicleBusy
+	} else if !errors.Is(err, sql.ErrNoRows) {
 		return err
 	}
 
@@ -420,4 +417,5 @@ func mapGetTripRow(row sqlc.GetTripByIDRow) trips.Trip {
 	}
 	return t
 }
+
 var _ trips.Repository = (*TripsRepository)(nil)

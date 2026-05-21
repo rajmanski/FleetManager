@@ -119,6 +119,10 @@ func (h *Handler) StartTrip(c *gin.Context) {
 			httputil.RespondError(c, http.StatusBadRequest, err, "invalid trip state")
 			return
 		}
+		if errors.Is(err, ErrDriverOrVehicleBusy) {
+			httputil.RespondError(c, http.StatusConflict, err, "Cannot start trip - the selected driver or vehicle is already assigned to another active trip. Abort the conflicting trip first, or abort this trip and create a new one with different resources.")
+			return
+		}
 		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
 		return
 	}

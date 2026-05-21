@@ -272,7 +272,7 @@ func (r *OperationsRepository) validateVehicleAvailabilityTx(
 	if err := tx.QueryRowContext(ctx, `SELECT status FROM Vehicles WHERE vehicle_id = ? LIMIT 1`, vehicleID).Scan(&status); err != nil {
 		return err
 	}
-	if status != "Available" {
+	if status == "Service" || status == "Inactive" {
 		return &operations.ValidationError{
 			Message: "workflow validation failed",
 			FieldErrors: []operations.FieldError{
@@ -312,7 +312,7 @@ func (r *OperationsRepository) validateDriverAvailabilityTx(
 	if err := tx.QueryRowContext(ctx, `SELECT status FROM Drivers WHERE driver_id = ? LIMIT 1`, driverID).Scan(&status); err != nil {
 		return err
 	}
-	if status != "Available" {
+	if status == "OnLeave" || status == "Inactive" {
 		return &operations.ValidationError{
 			Message: "workflow validation failed",
 			FieldErrors: []operations.FieldError{
@@ -433,14 +433,6 @@ func (r *OperationsRepository) insertTripTx(
 	if err != nil {
 		return 0, err
 	}
-
-	if _, err := tx.ExecContext(ctx, `UPDATE Vehicles SET status = 'InRoute' WHERE vehicle_id = ?`, trip.VehicleID); err != nil {
-		return 0, err
-	}
-	if _, err := tx.ExecContext(ctx, `UPDATE Drivers SET status = 'InRoute' WHERE driver_id = ?`, trip.DriverID); err != nil {
-		return 0, err
-	}
-	// Order stays Planned until the trip is started (see StartTrip). Trip remains Scheduled.
 
 	return tripID, nil
 }

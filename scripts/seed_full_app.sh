@@ -62,21 +62,16 @@ docker run --rm \
   -e DB_NAME="${DB_NAME}" \
   "${GO_IMAGE}" go run ./cmd/migrate -direction up
 
-echo "Generating encrypted PESEL values..."
-PESEL1_ENC="$(docker run --rm -v "${ROOT_DIR}/backend:/app" -w /app -e ENCRYPTION_KEY="${ENCRYPTION_KEY}" "${GO_IMAGE}" go run ./tools/encrypt_pesel 90090515836 | tr -d '\r')"
-PESEL2_ENC="$(docker run --rm -v "${ROOT_DIR}/backend:/app" -w /app -e ENCRYPTION_KEY="${ENCRYPTION_KEY}" "${GO_IMAGE}" go run ./tools/encrypt_pesel 02070803628 | tr -d '\r')"
-
-TMP_SQL="$(mktemp)"
-trap 'rm -f "${TMP_SQL}" "${TMP_SQL}.bak"' EXIT
-cp "${TEMPLATE_SQL}" "${TMP_SQL}"
-sed -i.bak \
-  -e "s|__PASSWORD_HASH__|${PASSWORD_HASH}|g" \
-  -e "s|__DRIVER1_PESEL_ENC__|${PESEL1_ENC}|g" \
-  -e "s|__DRIVER2_PESEL_ENC__|${PESEL2_ENC}|g" \
-  "${TMP_SQL}"
-
 echo "Seeding database ${DB_NAME} via ${MYSQL_SERVICE}..."
-cat "${TMP_SQL}" | ${COMPOSE} exec -T -e MYSQL_PWD="${DB_PASSWORD}" "${MYSQL_SERVICE}" mysql -u"${DB_USER}" "${DB_NAME}"
+
+# Replace placeholder and pipe via docker cp to preserve UTF-8
+TMP_SQL="$(mktemp)"
+trap 'rm -f "${TMP_SQL}"' EXIT
+sed "s|__PASSWORD_HASH__|${PASSWORD_HASH}|g" "${TEMPLATE_SQL}" > "${TMP_SQL}"
+
+docker cp "${TMP_SQL}" "${MYSQL_CID}:/tmp/seed_template.sql"
+${COMPOSE} exec -T -e MYSQL_PWD="${DB_PASSWORD}" "${MYSQL_SERVICE}" mysql -u"${DB_USER}" --default-character-set=utf8mb4 "${DB_NAME}" -e "source /tmp/seed_template.sql"
+${COMPOSE} exec -T "${MYSQL_SERVICE}" rm -f /tmp/seed_template.sql 2>/dev/null
 
 echo
 echo "Seed completed."

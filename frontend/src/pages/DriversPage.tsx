@@ -11,8 +11,10 @@ import { useDrivers, type Driver } from '@/hooks/drivers/useDrivers'
 import { useAuth } from '@/hooks/useAuth'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { usePagination } from '@/hooks/usePagination'
+import { useSortable } from '@/hooks/useSortable'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { driverToFormInitialData, hasValidCertificates } from '@/utils/driver'
+import { driverSortGetter } from '@/utils/sortGetters'
 
 
 function DriversPage() {
@@ -56,10 +58,17 @@ function DriversPage() {
   } = useDrivers({ page: effectivePage, limit: effectiveLimit, statusFilter, search, showDeleted })
 
   const allDrivers = useMemo(() => driversQuery.data?.data ?? [], [driversQuery.data])
+
+  const { sortedData, sortConfig, onSort } = useSortable(
+    allDrivers,
+    'last_name',
+    driverSortGetter
+  )
+
   const drivers = useMemo(
     () =>
-      validCertificatesOnly ? allDrivers.filter(hasValidCertificates) : allDrivers,
-    [allDrivers, validCertificatesOnly]
+      validCertificatesOnly ? sortedData.filter(hasValidCertificates) : sortedData,
+    [sortedData, validCertificatesOnly]
   )
   const total = validCertificatesOnly ? drivers.length : (driversQuery.data?.total ?? 0)
   const pagination = usePagination({ page: effectivePage, setPage, limit: effectiveLimit, setLimit, total })
@@ -145,6 +154,8 @@ function DriversPage() {
           isRestoring={restoreMutation.isPending}
           onSoftDelete={handleSoftDelete}
           softDeletingId={softDeletingId}
+          sortConfig={sortConfig}
+          onSort={onSort}
         />
       )}
 

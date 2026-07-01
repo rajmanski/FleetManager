@@ -11,7 +11,9 @@ import { useFuelLogs } from '@/hooks/fuel/useFuel'
 import { useAuth } from '@/hooks/useAuth'
 import { useVehicles } from '@/hooks/vehicles/useVehicles'
 import { usePagination } from '@/hooks/usePagination'
+import { useSortable } from '@/hooks/useSortable'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
+import { fuelSortGetter } from '@/utils/sortGetters'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
 import type { FuelFormValues } from '@/schemas/fuel'
@@ -45,14 +47,22 @@ function FuelPage() {
 
   const total = fuelLogsQuery.data?.total ?? 0
   const pagination = usePagination({ page, setPage, limit, setLimit, total })
-  const rows = useMemo(() => fuelLogsQuery.data?.data ?? [], [fuelLogsQuery.data])
+  const allRows = useMemo(() => fuelLogsQuery.data?.data ?? [], [fuelLogsQuery.data])
+
+  const { sortedData, sortConfig, onSort } = useSortable(
+    allRows,
+    'date',
+    fuelSortGetter,
+    'desc'
+  )
+
   const anomaliesCount = useMemo(
-    () => rows.filter((r) => r.is_anomaly).length,
-    [rows],
+    () => sortedData.filter((r) => r.is_anomaly).length,
+    [sortedData],
   )
   const visibleRows = useMemo(
-    () => (onlyAnomalies ? rows.filter((r) => r.is_anomaly) : rows),
-    [onlyAnomalies, rows],
+    () => (onlyAnomalies ? sortedData.filter((r) => r.is_anomaly) : sortedData),
+    [onlyAnomalies, sortedData],
   )
 
   const vehicleOptions = useMemo(() => {
@@ -169,6 +179,8 @@ function FuelPage() {
           total={total}
           pagination={pagination}
           vehicleLabelsById={vehicleLabelsById}
+          sortConfig={sortConfig}
+          onSort={onSort}
         />
       )}
 

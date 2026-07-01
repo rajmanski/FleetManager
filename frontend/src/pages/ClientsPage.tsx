@@ -10,7 +10,9 @@ import { useClients, type Client } from '@/hooks/clients/useClients'
 import { useAuth } from '@/hooks/useAuth'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { usePagination } from '@/hooks/usePagination'
+import { useSortable } from '@/hooks/useSortable'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
+import { clientSortGetter } from '@/utils/sortGetters'
 
 
 function ClientsPage() {
@@ -46,7 +48,15 @@ function ClientsPage() {
     showDeleted,
   })
 
-  const clients = useMemo(() => clientsQuery.data?.data ?? [], [clientsQuery.data])
+  const allClients = useMemo(() => clientsQuery.data?.data ?? [], [clientsQuery.data])
+
+  const { sortedData, sortConfig, onSort } = useSortable(
+    allClients,
+    'companyName',
+    clientSortGetter
+  )
+
+  const clients = sortedData
   const total = clientsQuery.data?.total ?? 0
   const pagination = usePagination({ page, setPage, limit, setLimit, total })
 
@@ -94,6 +104,8 @@ function ClientsPage() {
           onEdit={setEditClient}
           onRestore={(id) => restoreMutation.mutate(id, restoreCallbacks)}
           isRestoring={restoreMutation.isPending}
+          sortConfig={sortConfig}
+          onSort={onSort}
         />
       )}
 

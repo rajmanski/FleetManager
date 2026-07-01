@@ -8,6 +8,8 @@ import {
 import { NotificationStatusBadge } from '@/components/notifications/NotificationStatusBadge'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { SortableTh } from '@/components/ui/SortableTh'
+import type { SortConfig } from '@/components/ui/SortableTh'
 import { useClickableRow } from '@/hooks/useClickableRow'
 import {
   extractVehicleVin,
@@ -28,6 +30,8 @@ type NotificationsTableProps = {
   pagination: Pick<PaginationHelpers, 'totalPages' | 'canGoPrev' | 'canGoNext' | 'goPrev' | 'goNext'>
   markingId: number | null
   onMarkRead: (id: number) => void
+  sortConfig: SortConfig
+  onSort: (column: string) => void
 }
 
 export function NotificationsTable({
@@ -37,6 +41,8 @@ export function NotificationsTable({
   pagination,
   markingId,
   onMarkRead,
+  sortConfig,
+  onSort,
 }: NotificationsTableProps) {
   const { getRowProps } = useClickableRow()
 
@@ -47,10 +53,10 @@ export function NotificationsTable({
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm table-sticky-last-col">
             <thead className="bg-gray-50">
               <tr>
-                <ThWithIcon icon={Bell}>Type</ThWithIcon>
-                <ThWithIcon icon={FileText}>Message</ThWithIcon>
-                <ThWithIcon icon={CalendarClock}>Created</ThWithIcon>
-                <ThWithIcon icon={CircleCheckBig}>Status</ThWithIcon>
+                <SortableTh column="type" sortConfig={sortConfig} onSort={onSort} icon={Bell}>Type</SortableTh>
+                <SortableTh column="message" sortConfig={sortConfig} onSort={onSort} icon={FileText}>Message</SortableTh>
+                <SortableTh column="created_at" sortConfig={sortConfig} onSort={onSort} icon={CalendarClock}>Created</SortableTh>
+                <SortableTh column="is_read" sortConfig={sortConfig} onSort={onSort} icon={CircleCheckBig}>Status</SortableTh>
                 <ThWithIcon icon={Wrench}>Actions</ThWithIcon>
               </tr>
             </thead>

@@ -8,10 +8,12 @@ import { useAssignments } from '@/hooks/assignments/useAssignments'
 import { useVehicles } from '@/hooks/vehicles/useVehicles'
 import { useDrivers } from '@/hooks/drivers/useDrivers'
 import { usePagination } from '@/hooks/usePagination'
+import { useSortable } from '@/hooks/useSortable'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
+import { assignmentSortGetter } from '@/utils/sortGetters'
 
 function AssignmentsPage() {
   const [page, setPage] = useState(1)
@@ -111,6 +113,26 @@ function AssignmentsPage() {
     }
   }, [drivers, driverId])
 
+  const {
+    sortedData: sortedActive,
+    sortConfig: activeSortConfig,
+    onSort: onActiveSort,
+  } = useSortable(
+    activeAssignments,
+    'assignment_id',
+    assignmentSortGetter
+  )
+
+  const {
+    sortedData: sortedHistory,
+    sortConfig: historySortConfig,
+    onSort: onHistorySort,
+  } = useSortable(
+    historyAssignments,
+    'assignment_id',
+    assignmentSortGetter
+  )
+
   const handleCreateAssignment = (e: React.FormEvent) => {
     e.preventDefault()
     if (!vehicleId || !driverId || !assignedFromDate) {
@@ -195,13 +217,15 @@ function AssignmentsPage() {
       )}
       {activeAssignmentsQuery.isSuccess && (
         <AssignmentsTable
-          assignments={activeAssignments}
+          assignments={sortedActive}
           page={page}
           total={totalActive}
           pagination={pagination}
           showActions
           onEndAssignment={handleEndAssignment}
           isEnding={endAssignmentMutation.isPending}
+          sortConfig={activeSortConfig}
+          onSort={onActiveSort}
         />
       )}
 
@@ -225,7 +249,7 @@ function AssignmentsPage() {
 
             {allAssignmentsQuery.isSuccess && historyAssignments.length > 0 && (
               <AssignmentsTable
-                assignments={historyAssignments}
+                assignments={sortedHistory}
                 page={1}
                 total={historyAssignments.length}
                 pagination={{
@@ -235,6 +259,8 @@ function AssignmentsPage() {
                   goPrev: () => {},
                   goNext: () => {},
                 }}
+                sortConfig={historySortConfig}
+                onSort={onHistorySort}
               />
             )}
           </>

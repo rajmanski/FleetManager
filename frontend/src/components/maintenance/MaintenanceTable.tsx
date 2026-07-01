@@ -1,10 +1,12 @@
 import { Wrench, AlertTriangle, CircleDot, Calendar } from 'lucide-react'
 import type { Maintenance, MaintenanceStatus } from '@/hooks/maintenance/useMaintenance'
 import type { PaginationHelpers } from '@/hooks/usePagination'
+import type { SortConfig } from '@/components/ui/SortableTh'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { MaintenanceStatusBadge } from '@/components/maintenance/MaintenanceStatusBadge'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { SortableTh } from '@/components/ui/SortableTh'
 import { formatDateTime } from '@/utils/date'
 
 type MaintenanceTableProps = {
@@ -18,6 +20,8 @@ type MaintenanceTableProps = {
   vehicleLabelsById: Record<number, string>
   updatingId: number | null
   onStatusChange: (id: number, status: MaintenanceStatus) => void
+  sortConfig: SortConfig
+  onSort: (column: string) => void
 }
 
 const formatMaintenanceDate = (row: Maintenance) => {
@@ -35,6 +39,8 @@ export function MaintenanceTable({
   vehicleLabelsById,
   updatingId,
   onStatusChange,
+  sortConfig,
+  onSort,
 }: MaintenanceTableProps) {
   const nextStatus = (current: string): MaintenanceStatus | null => {
     if (current === 'Scheduled') return 'InProgress' as MaintenanceStatus
@@ -49,10 +55,10 @@ export function MaintenanceTable({
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <ThWithIcon icon={Wrench}>Vehicle</ThWithIcon>
-                <ThWithIcon icon={AlertTriangle}>Type</ThWithIcon>
-                <ThWithIcon icon={CircleDot}>Status</ThWithIcon>
-                <ThWithIcon icon={Calendar}>Date</ThWithIcon>
+                <SortableTh column="vehicleId" sortConfig={sortConfig} onSort={onSort} icon={Wrench}>Vehicle</SortableTh>
+                <SortableTh column="type" sortConfig={sortConfig} onSort={onSort} icon={AlertTriangle}>Type</SortableTh>
+                <SortableTh column="status" sortConfig={sortConfig} onSort={onSort} icon={CircleDot}>Status</SortableTh>
+                <SortableTh column="startDate" sortConfig={sortConfig} onSort={onSort} icon={Calendar}>Date</SortableTh>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">

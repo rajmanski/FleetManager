@@ -9,6 +9,8 @@ import { CostsTable } from '@/components/costs/CostsTable'
 import { useCosts } from '@/hooks/costs/useCosts'
 import { useAuth } from '@/hooks/useAuth'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
+import { useSortable } from '@/hooks/useSortable'
+import { costSortGetter } from '@/utils/sortGetters'
 import { useVehicles } from '@/hooks/vehicles/useVehicles'
 import { usePagination } from '@/hooks/usePagination'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
@@ -40,7 +42,16 @@ function CostsPage() {
 
   const total = costsQuery.data?.total ?? 0
   const pagination = usePagination({ page, setPage, limit, setLimit, total })
-  const rows = useMemo(() => costsQuery.data?.data ?? [], [costsQuery.data])
+  const allRows = useMemo(() => costsQuery.data?.data ?? [], [costsQuery.data])
+
+  const { sortedData, sortConfig, onSort } = useSortable(
+    allRows,
+    'date',
+    costSortGetter,
+    'desc'
+  )
+
+  const rows = sortedData
 
   const vehicleOptions = useMemo(() => {
     const vehicles = vehiclesQuery.data?.data ?? []
@@ -131,6 +142,8 @@ function CostsPage() {
           total={total}
           pagination={pagination}
           vehicleLabelsById={vehicleLabelsById}
+          sortConfig={sortConfig}
+          onSort={onSort}
         />
       )}
 

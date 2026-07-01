@@ -9,6 +9,8 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { SortableTh } from '@/components/ui/SortableTh'
+import type { SortConfig } from '@/components/ui/SortableTh'
 import { useClickableRow } from '@/hooks/useClickableRow'
 import type { Order } from '@/hooks/orders/useOrders'
 import type { PaginationHelpers } from '@/hooks/usePagination'
@@ -23,6 +25,8 @@ type OrdersTableProps = {
   page: number
   total: number
   pagination: Pick<PaginationHelpers, 'totalPages' | 'canGoPrev' | 'canGoNext' | 'goPrev' | 'goNext'>
+  sortConfig: SortConfig
+  onSort: (column: string) => void
 }
 
 export function OrdersTable({
@@ -30,6 +34,8 @@ export function OrdersTable({
   page,
   total,
   pagination,
+  sortConfig,
+  onSort,
 }: OrdersTableProps) {
   const { getRowProps } = useClickableRow()
 
@@ -40,13 +46,13 @@ export function OrdersTable({
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <ThWithIcon icon={Hash}>ID</ThWithIcon>
-                <ThWithIcon icon={FileText}>Order number</ThWithIcon>
-                <ThWithIcon icon={Building2}>Client</ThWithIcon>
+                <SortableTh column="id" sortConfig={sortConfig} onSort={onSort} icon={Hash}>ID</SortableTh>
+                <SortableTh column="orderNumber" sortConfig={sortConfig} onSort={onSort} icon={FileText}>Order number</SortableTh>
+                <SortableTh column="clientCompany" sortConfig={sortConfig} onSort={onSort} icon={Building2}>Client</SortableTh>
                 <ThWithIcon icon={Package}>Cargo type</ThWithIcon>
-                <ThWithIcon icon={CircleDot}>Status</ThWithIcon>
-                <ThWithIcon icon={Calendar}>Delivery</ThWithIcon>
-                <ThWithIcon icon={Banknote}>Price</ThWithIcon>
+                <SortableTh column="status" sortConfig={sortConfig} onSort={onSort} icon={CircleDot}>Status</SortableTh>
+                <SortableTh column="deliveryDeadline" sortConfig={sortConfig} onSort={onSort} icon={Calendar}>Delivery</SortableTh>
+                <SortableTh column="totalPricePln" sortConfig={sortConfig} onSort={onSort} icon={Banknote}>Price</SortableTh>
                 <th className="w-10 px-2" aria-hidden />
               </tr>
             </thead>

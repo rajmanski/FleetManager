@@ -10,7 +10,9 @@ import { OrdersTable } from '@/components/orders/OrdersTable'
 import { useOrders } from '@/hooks/orders/useOrders'
 import { useAuth } from '@/hooks/useAuth'
 import { usePagination } from '@/hooks/usePagination'
+import { useSortable } from '@/hooks/useSortable'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
+import { orderSortGetter } from '@/utils/sortGetters'
 
 function OrdersPage() {
   const navigate = useNavigate()
@@ -23,7 +25,16 @@ function OrdersPage() {
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE)
   const { ordersQuery } = useOrders({ page, limit, status, search })
 
-  const orders = useMemo(() => ordersQuery.data?.data ?? [], [ordersQuery.data])
+  const allOrders = useMemo(() => ordersQuery.data?.data ?? [], [ordersQuery.data])
+
+  const { sortedData, sortConfig, onSort } = useSortable(
+    allOrders,
+    'id',
+    orderSortGetter,
+    'desc'
+  )
+
+  const orders = sortedData
   const total = ordersQuery.data?.total ?? 0
   const pagination = usePagination({ page, setPage, limit, setLimit, total })
 
@@ -73,6 +84,8 @@ function OrdersPage() {
           page={page}
           total={total}
           pagination={pagination}
+          sortConfig={sortConfig}
+          onSort={onSort}
         />
       )}
 

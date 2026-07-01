@@ -10,8 +10,10 @@ import { useMaintenanceList } from '@/hooks/maintenance/useMaintenance'
 import type { MaintenanceStatus } from '@/hooks/maintenance/useMaintenance'
 import { useVehicles } from '@/hooks/vehicles/useVehicles'
 import { usePagination } from '@/hooks/usePagination'
+import { useSortable } from '@/hooks/useSortable'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
+import { maintenanceSortGetter } from '@/utils/sortGetters'
 
 import type { MaintenanceFormValues } from '@/schemas/maintenance'
 
@@ -45,7 +47,16 @@ function MaintenancePage() {
   const total = maintenanceQuery.data?.total ?? 0
   const pagination = usePagination({ page, setPage, limit, setLimit, total })
 
-  const rows = useMemo(() => maintenanceQuery.data?.data ?? [], [maintenanceQuery.data])
+  const allRows = useMemo(() => maintenanceQuery.data?.data ?? [], [maintenanceQuery.data])
+
+  const { sortedData, sortConfig, onSort } = useSortable(
+    allRows,
+    'startDate',
+    maintenanceSortGetter,
+    'desc'
+  )
+
+  const rows = sortedData
 
   const vehicleOptions = useMemo(() => {
     const vehicles = vehiclesQuery.data?.data ?? []
@@ -152,6 +163,8 @@ function MaintenancePage() {
           vehicleLabelsById={vehicleLabelsById}
           updatingId={updatingId}
           onStatusChange={handleTableStatusChange}
+          sortConfig={sortConfig}
+          onSort={onSort}
         />
       )}
 

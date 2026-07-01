@@ -7,10 +7,12 @@ import {
 } from 'lucide-react'
 import type { Client } from '@/hooks/clients/useClients'
 import type { PaginationHelpers } from '@/hooks/usePagination'
+import type { SortConfig } from '@/components/ui/SortableTh'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { TableActionsCell } from '@/components/ui/TableActionsCell'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { SortableTh } from '@/components/ui/SortableTh'
 
 type ClientsTableProps = {
   clients: Client[]
@@ -22,6 +24,8 @@ type ClientsTableProps = {
   onEdit: (client: Client) => void
   onRestore: (clientId: number) => void
   isRestoring: boolean
+  sortConfig: SortConfig
+  onSort: (column: string) => void
 }
 
 export function ClientsTable({
@@ -34,6 +38,8 @@ export function ClientsTable({
   onEdit,
   onRestore,
   isRestoring,
+  sortConfig,
+  onSort,
 }: ClientsTableProps) {
   return (
     <DataTablePagination page={page} total={total} pagination={pagination}>
@@ -42,10 +48,10 @@ export function ClientsTable({
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm table-sticky-last-col">
             <thead className="bg-gray-50">
               <tr>
-                <ThWithIcon icon={Building2}>Company name</ThWithIcon>
-                <ThWithIcon icon={BadgeInfo}>NIP</ThWithIcon>
-                <ThWithIcon icon={MapPin}>Address</ThWithIcon>
-                <ThWithIcon icon={Mail}>Contact email</ThWithIcon>
+                <SortableTh column="companyName" sortConfig={sortConfig} onSort={onSort} icon={Building2}>Company name</SortableTh>
+                <SortableTh column="nip" sortConfig={sortConfig} onSort={onSort} icon={BadgeInfo}>NIP</SortableTh>
+                <SortableTh column="address" sortConfig={sortConfig} onSort={onSort} icon={MapPin}>Address</SortableTh>
+                <SortableTh column="contactEmail" sortConfig={sortConfig} onSort={onSort} icon={Mail}>Contact email</SortableTh>
                 <ThWithIcon icon={ClipboardList}>Related data</ThWithIcon>
                 <ThWithIcon icon={BadgeInfo}>Actions</ThWithIcon>
               </tr>

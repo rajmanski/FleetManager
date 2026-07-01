@@ -10,8 +10,10 @@ import { useVehicles, type Vehicle, type VehicleMutationPayload } from '@/hooks/
 import { useAuth } from '@/hooks/useAuth'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { usePagination } from '@/hooks/usePagination'
+import { useSortable } from '@/hooks/useSortable'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { vehicleToFormInitialData } from '@/utils/vehicle'
+import { vehicleSortGetter } from '@/utils/sortGetters'
 
 
 function VehiclesPage() {
@@ -46,7 +48,15 @@ function VehiclesPage() {
     updateMutation,
   } = useVehicles({ page, limit, statusFilter, search, showDeleted })
 
-  const vehicles = useMemo(() => vehiclesQuery.data?.data ?? [], [vehiclesQuery.data])
+  const allVehicles = useMemo(() => vehiclesQuery.data?.data ?? [], [vehiclesQuery.data])
+
+  const { sortedData, sortConfig, onSort } = useSortable(
+    allVehicles,
+    'vin',
+    vehicleSortGetter
+  )
+
+  const vehicles = sortedData
   const total = vehiclesQuery.data?.total ?? 0
   const pagination = usePagination({ page, setPage, limit, setLimit, total })
 
@@ -108,6 +118,8 @@ function VehiclesPage() {
             restoreMutation.mutate(id, restoreCallbacks)
           }
           isRestoring={restoreMutation.isPending}
+          sortConfig={sortConfig}
+          onSort={onSort}
         />
       )}
 

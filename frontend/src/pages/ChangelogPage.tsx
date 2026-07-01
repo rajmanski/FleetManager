@@ -7,6 +7,8 @@ import { PageHeader } from '@/components/ui/PageHeader'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { useChangelog } from '@/hooks/changelog/useChangelog'
 import { usePagination } from '@/hooks/usePagination'
+import { useSortable } from '@/hooks/useSortable'
+import { changelogSortGetter } from '@/utils/sortGetters'
 
 function ChangelogPage() {
   const [userIdFilter, setUserIdFilter] = useState('')
@@ -28,8 +30,17 @@ function ChangelogPage() {
   })
 
   const total = changelogQuery.data?.total ?? 0
-  const rows = useMemo(() => changelogQuery.data?.data ?? [], [changelogQuery.data])
+  const allRows = useMemo(() => changelogQuery.data?.data ?? [], [changelogQuery.data])
   const pagination = usePagination({ page, setPage, limit, setLimit, total })
+
+  const { sortedData, sortConfig, onSort } = useSortable(
+    allRows,
+    'timestamp',
+    changelogSortGetter,
+    'desc'
+  )
+
+  const rows = sortedData
 
   const handleUserIdFilterChange = useCallback(
     (value: string) => {
@@ -102,7 +113,7 @@ function ChangelogPage() {
       )}
 
       {changelogQuery.isSuccess && rows.length > 0 && (
-        <ChangelogTable rows={rows} page={page} total={total} pagination={pagination} />
+        <ChangelogTable rows={rows} page={page} total={total} pagination={pagination} sortConfig={sortConfig} onSort={onSort} />
       )}
     </div>
   )

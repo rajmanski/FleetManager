@@ -1,9 +1,11 @@
 import { Truck, Shield, FileText, DollarSign, Calendar } from 'lucide-react'
 import type { InsurancePolicy } from '@/hooks/insurance/useInsurance'
 import type { PaginationHelpers } from '@/hooks/usePagination'
+import type { SortConfig } from '@/components/ui/SortableTh'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { SortableTh } from '@/components/ui/SortableTh'
 import { formatDateOnly, getInsuranceExpiryStatus } from '@/utils/date'
 import { formatPrice } from '@/utils/price'
 
@@ -16,6 +18,8 @@ type InsuranceTableProps = {
     'totalPages' | 'canGoPrev' | 'canGoNext' | 'goPrev' | 'goNext'
   >
   vehicleLabelsById: Record<number, string>
+  sortConfig: SortConfig
+  onSort: (column: string) => void
 }
 
 function rowClassForExpiry(endDateIso: string): string {
@@ -31,6 +35,8 @@ export function InsuranceTable({
   total,
   pagination,
   vehicleLabelsById,
+  sortConfig,
+  onSort,
 }: InsuranceTableProps) {
   return (
     <DataTablePagination page={page} total={total} pagination={pagination}>
@@ -39,11 +45,11 @@ export function InsuranceTable({
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <ThWithIcon icon={Truck}>Vehicle</ThWithIcon>
-                <ThWithIcon icon={Shield}>Type</ThWithIcon>
-                <ThWithIcon icon={FileText}>Policy number</ThWithIcon>
-                <ThWithIcon icon={DollarSign}>Cost</ThWithIcon>
-                <ThWithIcon icon={Calendar}>Valid until</ThWithIcon>
+                <SortableTh column="vehicleId" sortConfig={sortConfig} onSort={onSort} icon={Truck}>Vehicle</SortableTh>
+                <SortableTh column="type" sortConfig={sortConfig} onSort={onSort} icon={Shield}>Type</SortableTh>
+                <SortableTh column="policyNumber" sortConfig={sortConfig} onSort={onSort} icon={FileText}>Policy number</SortableTh>
+                <SortableTh column="cost" sortConfig={sortConfig} onSort={onSort} icon={DollarSign}>Cost</SortableTh>
+                <SortableTh column="endDate" sortConfig={sortConfig} onSort={onSort} icon={Calendar}>Valid until</SortableTh>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">

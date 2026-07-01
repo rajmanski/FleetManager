@@ -1,9 +1,11 @@
 import { Hash, FileText, Building2, Truck, User, CircleDot, Calendar, Route, ChevronRight } from 'lucide-react'
 import type { Trip } from '@/hooks/trips/useTrips'
 import type { PaginationHelpers } from '@/hooks/usePagination'
+import type { SortConfig } from '@/components/ui/SortableTh'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { SortableTh } from '@/components/ui/SortableTh'
 import { useClickableRow } from '@/hooks/useClickableRow'
 import { formatDateTime } from '@/utils/date'
 import { TripStatusBadge } from '@/components/trips/TripStatusBadge'
@@ -16,9 +18,11 @@ type TripsTableProps = {
     PaginationHelpers,
     'totalPages' | 'canGoPrev' | 'canGoNext' | 'goPrev' | 'goNext'
   >
+  sortConfig: SortConfig
+  onSort: (column: string) => void
 }
 
-export function TripsTable({ trips, page, total, pagination }: TripsTableProps) {
+export function TripsTable({ trips, page, total, pagination, sortConfig, onSort }: TripsTableProps) {
   const { getRowProps } = useClickableRow()
 
   return (
@@ -28,14 +32,14 @@ export function TripsTable({ trips, page, total, pagination }: TripsTableProps) 
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <ThWithIcon icon={Hash}>Trip ID</ThWithIcon>
-                <ThWithIcon icon={FileText}>Order</ThWithIcon>
-                <ThWithIcon icon={Building2}>Client</ThWithIcon>
-                <ThWithIcon icon={Truck}>Vehicle (VIN)</ThWithIcon>
-                <ThWithIcon icon={User}>Driver</ThWithIcon>
-                <ThWithIcon icon={CircleDot}>Status</ThWithIcon>
-                <ThWithIcon icon={Calendar}>Start time</ThWithIcon>
-                <ThWithIcon icon={Calendar}>End time</ThWithIcon>
+                <SortableTh column="id" sortConfig={sortConfig} onSort={onSort} icon={Hash}>Trip ID</SortableTh>
+                <SortableTh column="order_number" sortConfig={sortConfig} onSort={onSort} icon={FileText}>Order</SortableTh>
+                <SortableTh column="client_company" sortConfig={sortConfig} onSort={onSort} icon={Building2}>Client</SortableTh>
+                <SortableTh column="vehicle_vin" sortConfig={sortConfig} onSort={onSort} icon={Truck}>Vehicle (VIN)</SortableTh>
+                <SortableTh column="driver_name" sortConfig={sortConfig} onSort={onSort} icon={User}>Driver</SortableTh>
+                <SortableTh column="status" sortConfig={sortConfig} onSort={onSort} icon={CircleDot}>Status</SortableTh>
+                <SortableTh column="start_time" sortConfig={sortConfig} onSort={onSort} icon={Calendar}>Start time</SortableTh>
+                <SortableTh column="end_time" sortConfig={sortConfig} onSort={onSort} icon={Calendar}>End time</SortableTh>
                 <ThWithIcon icon={Route}>Distance</ThWithIcon>
                 <th className="w-10 px-2" aria-hidden />
               </tr>

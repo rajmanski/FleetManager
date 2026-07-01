@@ -10,7 +10,9 @@ import { useInsuranceList } from '@/hooks/insurance/useInsurance'
 import { useAuth } from '@/hooks/useAuth'
 import { useVehicles } from '@/hooks/vehicles/useVehicles'
 import { usePagination } from '@/hooks/usePagination'
+import { useSortable } from '@/hooks/useSortable'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
+import { insuranceSortGetter } from '@/utils/sortGetters'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 
 import type { InsuranceFormValues } from '@/schemas/insurance'
@@ -39,7 +41,15 @@ function InsurancePage() {
   const total = insuranceQuery.data?.total ?? 0
   const pagination = usePagination({ page, setPage, limit, setLimit, total })
 
-  const rows = useMemo(() => insuranceQuery.data?.data ?? [], [insuranceQuery.data])
+  const allRows = useMemo(() => insuranceQuery.data?.data ?? [], [insuranceQuery.data])
+
+  const { sortedData, sortConfig, onSort } = useSortable(
+    allRows,
+    'endDate',
+    insuranceSortGetter
+  )
+
+  const rows = sortedData
 
   const vehicleOptions = useMemo(() => {
     const vehicles = vehiclesQuery.data?.data ?? []
@@ -121,6 +131,8 @@ function InsurancePage() {
           total={total}
           pagination={pagination}
           vehicleLabelsById={vehicleLabelsById}
+          sortConfig={sortConfig}
+          onSort={onSort}
         />
       )}
 

@@ -3,11 +3,13 @@ import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { NotificationsFiltersBar } from '@/components/notifications/NotificationsFiltersBar'
 import { NotificationsTable } from '@/components/notifications/NotificationsTable'
 import { usePagination } from '@/hooks/usePagination'
+import { useSortable } from '@/hooks/useSortable'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
 import { useNotifications } from '@/hooks/notifications/useNotifications'
+import { notificationSortGetter } from '@/utils/sortGetters'
 
 function NotificationsPage() {
   const [typeFilter, setTypeFilter] = useState('')
@@ -25,13 +27,20 @@ function NotificationsPage() {
     if (!typeFilter) return data
     return data.filter((n) => n.type === typeFilter)
   }, [listQuery.data, typeFilter])
-  const total = filteredRows.length
+
+  const { sortedData, sortConfig, onSort } = useSortable(
+    filteredRows,
+    'created_at',
+    notificationSortGetter
+  )
+
+  const total = sortedData.length
   const pagination = usePagination({ page, setPage, limit, setLimit, total })
   const rows = useMemo(() => {
     const start = (page - 1) * limit
     const end = start + limit
-    return filteredRows.slice(start, end)
-  }, [filteredRows, page, limit])
+    return sortedData.slice(start, end)
+  }, [sortedData, page, limit])
 
   const markingId =
     markReadMutation.isPending && true
@@ -85,6 +94,8 @@ function NotificationsPage() {
           pagination={pagination}
           markingId={markingId}
           onMarkRead={handleMarkRead}
+          sortConfig={sortConfig}
+          onSort={onSort}
         />
       )}
     </div>

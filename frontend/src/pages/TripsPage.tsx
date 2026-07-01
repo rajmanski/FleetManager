@@ -1,9 +1,12 @@
+import { useMemo } from 'react'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 import { LoadingMessage } from '@/components/ui/LoadingMessage'
 import { TripsFiltersBar } from '@/components/trips/TripsFiltersBar'
 import { TripsTable } from '@/components/trips/TripsTable'
 import { useTripsPage } from '@/hooks/trips/useTripsPage'
+import { useSortable } from '@/hooks/useSortable'
+import { tripSortGetter } from '@/utils/sortGetters'
 
 function TripsPage() {
   const {
@@ -18,6 +21,13 @@ function TripsPage() {
     handleStatusFilterChange,
     handleSearchChange,
   } = useTripsPage()
+
+  const { sortedData, sortConfig, onSort } = useSortable(
+    pagedTrips,
+    'id',
+    tripSortGetter,
+    'desc'
+  )
 
   return (
     <div className="space-y-6">
@@ -42,10 +52,12 @@ function TripsPage() {
 
       {tripsQuery.isSuccess && (
         <TripsTable
-          trips={pagedTrips}
+          trips={sortedData}
           page={page}
           total={total}
           pagination={pagination}
+          sortConfig={sortConfig}
+          onSort={onSort}
         />
       )}
     </div>

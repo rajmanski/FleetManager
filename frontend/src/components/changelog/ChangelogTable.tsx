@@ -4,6 +4,8 @@ import { ChangelogDiffFields } from '@/components/changelog/ChangelogDiffFields'
 import { ChangelogOperationBadge } from '@/components/changelog/ChangelogOperationBadge'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { SortableTh } from '@/components/ui/SortableTh'
+import type { SortConfig } from '@/components/ui/SortableTh'
 import { useClickableRow } from '@/hooks/useClickableRow'
 import type { ChangelogEntry } from '@/hooks/changelog/useChangelog'
 import type { PaginationHelpers } from '@/hooks/usePagination'
@@ -17,9 +19,11 @@ type ChangelogTableProps = {
     PaginationHelpers,
     'totalPages' | 'canGoPrev' | 'canGoNext' | 'goPrev' | 'goNext'
   >
+  sortConfig: SortConfig
+  onSort: (column: string) => void
 }
 
-export function ChangelogTable({ rows, page, total, pagination }: ChangelogTableProps) {
+export function ChangelogTable({ rows, page, total, pagination, sortConfig, onSort }: ChangelogTableProps) {
   const [expandedId, setExpandedId] = useState<number | null>(null)
   const { getRowProps } = useClickableRow()
 
@@ -34,11 +38,11 @@ export function ChangelogTable({ rows, page, total, pagination }: ChangelogTable
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <ThWithIcon icon={Clock}>Timestamp</ThWithIcon>
-                <ThWithIcon icon={User}>User</ThWithIcon>
-                <ThWithIcon icon={Database}>Table</ThWithIcon>
-                <ThWithIcon icon={Hash}>Record ID</ThWithIcon>
-                <ThWithIcon icon={Activity}>Operation</ThWithIcon>
+                <SortableTh column="timestamp" sortConfig={sortConfig} onSort={onSort} icon={Clock}>Timestamp</SortableTh>
+                <SortableTh column="username" sortConfig={sortConfig} onSort={onSort} icon={User}>User</SortableTh>
+                <SortableTh column="tableName" sortConfig={sortConfig} onSort={onSort} icon={Database}>Table</SortableTh>
+                <SortableTh column="recordId" sortConfig={sortConfig} onSort={onSort} icon={Hash}>Record ID</SortableTh>
+                <SortableTh column="operation" sortConfig={sortConfig} onSort={onSort} icon={Activity}>Operation</SortableTh>
                 <ThWithIcon icon={Eye}>Details</ThWithIcon>
               </tr>
             </thead>

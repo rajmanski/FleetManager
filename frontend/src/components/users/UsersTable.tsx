@@ -1,6 +1,8 @@
 import { User, Mail, ShieldCheck, CircleDot, Wrench } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { SortableTh } from '@/components/ui/SortableTh'
+import type { SortConfig } from '@/components/ui/SortableTh'
 import type { AdminUser } from '@/hooks/users/useUsers'
 import { formatRole } from '@/utils/role'
 
@@ -8,20 +10,22 @@ type UsersTableProps = {
   users: AdminUser[]
   onEdit: (user: AdminUser) => void
   onDelete: (user: AdminUser) => void
+  sortConfig: SortConfig
+  onSort: (column: string) => void
 }
 
-export function UsersTable({ users, onEdit, onDelete }: UsersTableProps) {
+export function UsersTable({ users, onEdit, onDelete, sortConfig, onSort }: UsersTableProps) {
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 text-left text-sm table-sticky-last-col">
           <thead className="bg-gray-50">
             <tr>
-            <ThWithIcon icon={User}>Login</ThWithIcon>
-                <ThWithIcon icon={Mail}>Email</ThWithIcon>
-                <ThWithIcon icon={ShieldCheck}>Role</ThWithIcon>
-                <ThWithIcon icon={CircleDot}>Status</ThWithIcon>
-                <ThWithIcon icon={Wrench}>Actions</ThWithIcon>
+              <SortableTh column="login" sortConfig={sortConfig} onSort={onSort} icon={User}>Login</SortableTh>
+              <SortableTh column="email" sortConfig={sortConfig} onSort={onSort} icon={Mail}>Email</SortableTh>
+              <SortableTh column="role" sortConfig={sortConfig} onSort={onSort} icon={ShieldCheck}>Role</SortableTh>
+              <SortableTh column="is_active" sortConfig={sortConfig} onSort={onSort} icon={CircleDot}>Status</SortableTh>
+              <ThWithIcon icon={Wrench}>Actions</ThWithIcon>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 bg-white">

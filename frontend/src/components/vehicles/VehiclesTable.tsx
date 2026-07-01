@@ -1,10 +1,12 @@
 import { CalendarClock, FileText, Route, Truck, Trash2, Wrench } from 'lucide-react'
 import type { Vehicle } from '@/hooks/vehicles/useVehicles'
 import type { PaginationHelpers } from '@/hooks/usePagination'
+import type { SortConfig } from '@/components/ui/SortableTh'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { TableActionsCell } from '@/components/ui/TableActionsCell'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { SortableTh } from '@/components/ui/SortableTh'
 import { useClickableRow } from '@/hooks/useClickableRow'
 import { formatVehicleStatusLabel, getVehicleStatusMeta } from '@/utils/vehicleStatus'
 
@@ -18,6 +20,8 @@ type VehiclesTableProps = {
   onEdit: (vehicle: Vehicle) => void
   onRestore: (vehicleId: number) => void
   isRestoring: boolean
+  sortConfig: SortConfig
+  onSort: (column: string) => void
 }
 
 export function VehiclesTable({
@@ -30,6 +34,8 @@ export function VehiclesTable({
   onEdit,
   onRestore,
   isRestoring,
+  sortConfig,
+  onSort,
 }: VehiclesTableProps) {
   const { getRowProps } = useClickableRow()
 
@@ -40,12 +46,12 @@ export function VehiclesTable({
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm table-sticky-last-col">
             <thead className="bg-gray-50">
               <tr>
-                <ThWithIcon icon={FileText}>VIN</ThWithIcon>
-                <ThWithIcon icon={Truck}>Brand</ThWithIcon>
-                <ThWithIcon icon={Route}>Model</ThWithIcon>
-                <ThWithIcon icon={CalendarClock}>Production year</ThWithIcon>
-                <ThWithIcon icon={Route}>Mileage (km)</ThWithIcon>
-                <ThWithIcon icon={Wrench}>Status</ThWithIcon>
+                <SortableTh column="vin" sortConfig={sortConfig} onSort={onSort} icon={FileText}>VIN</SortableTh>
+                <SortableTh column="brand" sortConfig={sortConfig} onSort={onSort} icon={Truck}>Brand</SortableTh>
+                <SortableTh column="model" sortConfig={sortConfig} onSort={onSort} icon={Route}>Model</SortableTh>
+                <SortableTh column="production_year" sortConfig={sortConfig} onSort={onSort} icon={CalendarClock}>Production year</SortableTh>
+                <SortableTh column="current_mileage_km" sortConfig={sortConfig} onSort={onSort} icon={Route}>Mileage (km)</SortableTh>
+                <SortableTh column="status" sortConfig={sortConfig} onSort={onSort} icon={Wrench}>Status</SortableTh>
                 <ThWithIcon icon={Wrench}>Actions</ThWithIcon>
               </tr>
             </thead>

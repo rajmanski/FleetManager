@@ -1,11 +1,13 @@
 import { Trash2, UserCheck, CalendarOff, Truck, User, BadgeInfo, CircleDot, ShieldCheck } from 'lucide-react'
 import type { Driver } from '@/hooks/drivers/useDrivers'
 import type { PaginationHelpers } from '@/hooks/usePagination'
+import type { SortConfig } from '@/components/ui/SortableTh'
 import { CertificateStatusTooltip } from '@/components/drivers/CertificateStatusTooltip'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { TableActionsCell } from '@/components/ui/TableActionsCell'
 import { Button } from '@/components/ui/Button'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { SortableTh } from '@/components/ui/SortableTh'
 import { useClickableRow } from '@/hooks/useClickableRow'
 
 const DRIVER_STATUS_CONFIG: Record<
@@ -43,6 +45,8 @@ type DriversTableProps = {
   isRestoring: boolean
   onSoftDelete: (driver: Driver) => void
   softDeletingId?: number | null
+  sortConfig: SortConfig
+  onSort: (column: string) => void
 }
 
 export function DriversTable({
@@ -58,6 +62,8 @@ export function DriversTable({
   isRestoring,
   onSoftDelete,
   softDeletingId,
+  sortConfig,
+  onSort,
 }: DriversTableProps) {
   const { getRowProps } = useClickableRow()
   return (
@@ -67,10 +73,10 @@ export function DriversTable({
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm table-sticky-last-col">
             <thead className="bg-gray-50">
               <tr>
-                <ThWithIcon icon={User}>Name</ThWithIcon>
-                <ThWithIcon icon={BadgeInfo}>PESEL</ThWithIcon>
-                <ThWithIcon icon={CircleDot}>Status</ThWithIcon>
-                <ThWithIcon icon={ShieldCheck}>Certificate status</ThWithIcon>
+                <SortableTh column="last_name" sortConfig={sortConfig} onSort={onSort} icon={User}>Name</SortableTh>
+                <SortableTh column="pesel" sortConfig={sortConfig} onSort={onSort} icon={BadgeInfo}>PESEL</SortableTh>
+                <SortableTh column="status" sortConfig={sortConfig} onSort={onSort} icon={CircleDot}>Status</SortableTh>
+                <SortableTh column="adr_certified" sortConfig={sortConfig} onSort={onSort} icon={ShieldCheck}>Certificate status</SortableTh>
                 <ThWithIcon icon={Trash2}>Actions</ThWithIcon>
               </tr>
             </thead>

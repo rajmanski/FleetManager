@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { AddUserModal } from '@/components/users/AddUserModal'
 import { DeleteConfirmModal } from '@/components/users/DeleteConfirmModal'
 import { EditUserModal } from '@/components/users/EditUserModal'
@@ -9,6 +9,8 @@ import { LoadingMessage } from '@/components/ui/LoadingMessage'
 import { PageHeader } from '@/components/ui/PageHeader'
 import { useUsers, type AdminUser } from '@/hooks/users/useUsers'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
+import { useSortable } from '@/hooks/useSortable'
+import { userSortGetter } from '@/utils/sortGetters'
 
 
 function UsersPage() {
@@ -39,6 +41,14 @@ function UsersPage() {
     deleteMutation,
   } = useUsers()
 
+  const allUsers = useMemo(() => usersQuery.data ?? [], [usersQuery.data])
+
+  const { sortedData, sortConfig, onSort } = useSortable(
+    allUsers,
+    'login',
+    userSortGetter
+  )
+
   const handleDeleteConfirm = () => {
     if (deleteUser) {
       deleteMutation.mutate(deleteUser.id, deleteCallbacks)
@@ -61,9 +71,11 @@ function UsersPage() {
       )}
       {usersQuery.isSuccess && usersQuery.data && (
         <UsersTable
-          users={usersQuery.data}
+          users={sortedData}
           onEdit={setEditUser}
           onDelete={setDeleteUser}
+          sortConfig={sortConfig}
+          onSort={onSort}
         />
       )}
 

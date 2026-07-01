@@ -1,10 +1,12 @@
 import { CalendarClock, UserCheck, Truck, Users, CircleCheckBig, Ban } from 'lucide-react'
 import type { Assignment } from '@/hooks/assignments/useAssignments'
 import type { PaginationHelpers } from '@/hooks/usePagination'
+import type { SortConfig } from '@/components/ui/SortableTh'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { Button } from '@/components/ui/Button'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { SortableTh } from '@/components/ui/SortableTh'
 import { formatDateTime } from '@/utils/date'
 
 type AssignmentsTableProps = {
@@ -18,6 +20,8 @@ type AssignmentsTableProps = {
   showActions?: boolean
   onEndAssignment?: (assignmentId: number) => void
   isEnding?: boolean
+  sortConfig: SortConfig
+  onSort: (column: string) => void
 }
 
 export function AssignmentsTable({
@@ -28,6 +32,8 @@ export function AssignmentsTable({
   showActions = false,
   onEndAssignment,
   isEnding,
+  sortConfig,
+  onSort,
 }: AssignmentsTableProps) {
   return (
     <DataTablePagination page={page} total={total} pagination={pagination}>
@@ -36,11 +42,11 @@ export function AssignmentsTable({
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm table-sticky-last-col">
             <thead className="bg-gray-50">
               <tr>
-                <ThWithIcon icon={Users}>Assignment ID</ThWithIcon>
-                <ThWithIcon icon={Truck}>Vehicle</ThWithIcon>
-                <ThWithIcon icon={UserCheck}>Driver</ThWithIcon>
-                <ThWithIcon icon={CalendarClock}>Assigned from</ThWithIcon>
-                <ThWithIcon icon={CalendarClock}>Assigned to</ThWithIcon>
+                <SortableTh column="assignment_id" sortConfig={sortConfig} onSort={onSort} icon={Users}>Assignment ID</SortableTh>
+                <SortableTh column="vehicle_vin" sortConfig={sortConfig} onSort={onSort} icon={Truck}>Vehicle</SortableTh>
+                <SortableTh column="driver_name" sortConfig={sortConfig} onSort={onSort} icon={UserCheck}>Driver</SortableTh>
+                <SortableTh column="assigned_from" sortConfig={sortConfig} onSort={onSort} icon={CalendarClock}>Assigned from</SortableTh>
+                <SortableTh column="assigned_to" sortConfig={sortConfig} onSort={onSort} icon={CalendarClock}>Assigned to</SortableTh>
                 {showActions && (
                   <th className="px-4 py-3 font-medium text-gray-700">Actions</th>
                 )}
@@ -95,7 +101,7 @@ export function AssignmentsTable({
                       {formatDateTime(a.assigned_from)}
                     </td>
                     <td className="px-4 py-3">
-                      {a.assigned_to ? formatDateTime(a.assigned_to) : 'Active'}
+                      {a.assigned_to ? formatDateTime(a.assigned_to) : '—'}
                     </td>
                     {showActions && (
                       <td className="px-4 py-3">

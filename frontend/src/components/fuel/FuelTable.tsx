@@ -1,9 +1,11 @@
 import { Truck, Calendar, Droplets, DollarSign, Gauge, Flame, AlertTriangle } from 'lucide-react'
 import type { FuelLog } from '@/hooks/fuel/useFuel'
 import type { PaginationHelpers } from '@/hooks/usePagination'
+import type { SortConfig } from '@/components/ui/SortableTh'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { SortableTh } from '@/components/ui/SortableTh'
 import { formatDateOnly } from '@/utils/date'
 import { Tooltip } from '@/components/ui/Tooltip'
 
@@ -16,6 +18,8 @@ type FuelTableProps = {
     'totalPages' | 'canGoPrev' | 'canGoNext' | 'goPrev' | 'goNext'
   >
   vehicleLabelsById: Record<number, string>
+  sortConfig: SortConfig
+  onSort: (column: string) => void
 }
 
 const formatNumber = (value: number) =>
@@ -27,7 +31,7 @@ const formatNumber = (value: number) =>
 const formatOneDecimal = (value: number) =>
   value.toLocaleString('pl-PL', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 
-export function FuelTable({ rows, page, total, pagination, vehicleLabelsById }: FuelTableProps) {
+export function FuelTable({ rows, page, total, pagination, vehicleLabelsById, sortConfig, onSort }: FuelTableProps) {
   return (
     <DataTablePagination page={page} total={total} pagination={pagination}>
       <div className="rounded-lg border border-gray-200 bg-white">
@@ -35,11 +39,11 @@ export function FuelTable({ rows, page, total, pagination, vehicleLabelsById }: 
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <ThWithIcon icon={Truck}>Vehicle</ThWithIcon>
-                <ThWithIcon icon={Calendar}>Date</ThWithIcon>
-                <ThWithIcon icon={Droplets}>Liters</ThWithIcon>
-                <ThWithIcon icon={DollarSign}>Cost (PLN)</ThWithIcon>
-                <ThWithIcon icon={Gauge}>Mileage</ThWithIcon>
+                <SortableTh column="vehicle_id" sortConfig={sortConfig} onSort={onSort} icon={Truck}>Vehicle</SortableTh>
+                <SortableTh column="date" sortConfig={sortConfig} onSort={onSort} icon={Calendar}>Date</SortableTh>
+                <SortableTh column="liters" sortConfig={sortConfig} onSort={onSort} icon={Droplets}>Liters</SortableTh>
+                <SortableTh column="total_cost" sortConfig={sortConfig} onSort={onSort} icon={DollarSign}>Cost (PLN)</SortableTh>
+                <SortableTh column="mileage" sortConfig={sortConfig} onSort={onSort} icon={Gauge}>Mileage</SortableTh>
                 <ThWithIcon icon={Flame}>Consumption</ThWithIcon>
                 <ThWithIcon icon={AlertTriangle}>Alert</ThWithIcon>
               </tr>

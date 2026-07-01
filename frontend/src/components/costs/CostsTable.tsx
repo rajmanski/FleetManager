@@ -1,9 +1,11 @@
 import { Truck, Tag, DollarSign, Calendar } from 'lucide-react'
 import type { Cost } from '@/hooks/costs/useCosts'
 import type { PaginationHelpers } from '@/hooks/usePagination'
+import type { SortConfig } from '@/components/ui/SortableTh'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { SortableTh } from '@/components/ui/SortableTh'
 import { formatDateOnly } from '@/utils/date'
 
 type CostsTableProps = {
@@ -15,6 +17,8 @@ type CostsTableProps = {
     'totalPages' | 'canGoPrev' | 'canGoNext' | 'goPrev' | 'goNext'
   >
   vehicleLabelsById: Record<number, string>
+  sortConfig: SortConfig
+  onSort: (column: string) => void
 }
 
 const formatAmount = (value: number) =>
@@ -23,7 +27,7 @@ const formatAmount = (value: number) =>
     maximumFractionDigits: 2,
   })
 
-export function CostsTable({ rows, page, total, pagination, vehicleLabelsById }: CostsTableProps) {
+export function CostsTable({ rows, page, total, pagination, vehicleLabelsById, sortConfig, onSort }: CostsTableProps) {
   return (
     <DataTablePagination page={page} total={total} pagination={pagination}>
       <div className="rounded-lg border border-gray-200 bg-white">
@@ -31,10 +35,10 @@ export function CostsTable({ rows, page, total, pagination, vehicleLabelsById }:
           <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
             <thead className="bg-gray-50">
               <tr>
-                <ThWithIcon icon={Truck}>Vehicle</ThWithIcon>
-                <ThWithIcon icon={Tag}>Category</ThWithIcon>
-                <ThWithIcon icon={DollarSign}>Amount (PLN)</ThWithIcon>
-                <ThWithIcon icon={Calendar}>Date</ThWithIcon>
+                <SortableTh column="vehicleId" sortConfig={sortConfig} onSort={onSort} icon={Truck}>Vehicle</SortableTh>
+                <SortableTh column="category" sortConfig={sortConfig} onSort={onSort} icon={Tag}>Category</SortableTh>
+                <SortableTh column="amount" sortConfig={sortConfig} onSort={onSort} icon={DollarSign}>Amount (PLN)</SortableTh>
+                <SortableTh column="date" sortConfig={sortConfig} onSort={onSort} icon={Calendar}>Date</SortableTh>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 bg-white">

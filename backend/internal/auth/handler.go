@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"fleet-management/internal/httputil"
 
@@ -51,7 +50,7 @@ func (h *Handler) Login(c *gin.Context) {
 			c.JSON(http.StatusForbidden, gin.H{
 				"error": fmt.Sprintf(
 					"Account is locked until %s. Try again later or contact administrator.",
-					lockedErr.Until.UTC().Format(time.RFC3339),
+					lockedErr.Until.Format("2006-01-02 15:04:05 (MST)"),
 				),
 			})
 			return

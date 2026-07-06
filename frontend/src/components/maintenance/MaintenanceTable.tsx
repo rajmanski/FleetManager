@@ -5,7 +5,6 @@ import type { SortConfig } from '@/components/ui/SortableTh'
 import { DataTablePagination } from '@/components/ui/DataTablePagination'
 import { EntityCellLink } from '@/components/ui/EntityCellLink'
 import { MaintenanceStatusBadge } from '@/components/maintenance/MaintenanceStatusBadge'
-import { ThWithIcon } from '@/components/ui/ThWithIcon'
 import { SortableTh } from '@/components/ui/SortableTh'
 import { formatDateTime } from '@/utils/date'
 

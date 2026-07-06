@@ -57,13 +57,10 @@ export function mapCargoItemErrors(
   return out
 }
 
-export const DESTINATION_DROPFF_ID = '__destination__'
-
 export function buildWaypointDropoffOptions(
   waypoints: Array<{ tempId?: string; address: string; actionType: string }>,
-  destinationAddress?: string,
 ) {
-  const options = waypoints
+  return waypoints
     .filter((waypoint) => {
       return waypoint.actionType === 'Dropoff' || waypoint.actionType === 'Stopover'
     })
@@ -72,14 +69,4 @@ export function buildWaypointDropoffOptions(
       address: waypoint.address.trim() || `Waypoint ${index + 1}`,
       actionType: waypoint.actionType,
     }))
-
-  if (destinationAddress?.trim()) {
-    options.push({
-      id: DESTINATION_DROPFF_ID,
-      address: `Final destination: ${destinationAddress.trim()}`,
-      actionType: 'Dropoff',
-    })
-  }
-
-  return options
 }

@@ -45,7 +45,7 @@ export default function OrderDetailPage() {
     !orderTripsQuery.isError &&
     !hasBlockingTrip(orderTrips)
   const { waypoints, dropoffOptions, isLoading: waypointsLoading } =
-    useOrderWaypoints(order?.routeId, order?.routeEndLocation)
+    useOrderWaypoints(order?.routeId)
   const routeMapQuery = useOrderRouteMap({
     routeId: order?.routeId,
     startLocation: order?.routeStartLocation,
@@ -356,7 +356,7 @@ export default function OrderDetailPage() {
                       const v = e.target.value
                       handleDropoffChange(
                         item.id,
-                        v === '' || v === '__destination__' ? null : parseInt(v, 10)
+                        v === '' ? null : parseInt(v, 10)
                       )
                     }}
                     disabled={assignWaypointMutation.isPending}

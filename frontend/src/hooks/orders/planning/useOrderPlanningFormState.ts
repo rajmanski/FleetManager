@@ -20,7 +20,7 @@ export function useOrderPlanningFormState() {
       cargo: [{ ...EMPTY_CARGO_ITEM, id: generateCargoId() }],
       vehicleId: '',
       driverId: '',
-      startTime: '',
+      startTime: new Date().toISOString().slice(0, 16),
     },
   })
 

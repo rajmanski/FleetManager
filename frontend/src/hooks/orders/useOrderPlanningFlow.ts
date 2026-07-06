@@ -111,8 +111,8 @@ export function useOrderPlanningFlow() {
   ])
 
   const waypointDropoffOptions = useMemo(
-    () => buildWaypointDropoffOptions(routePlanning.waypoints, routePlanning.destination.address),
-    [routePlanning.waypoints, routePlanning.destination.address],
+    () => buildWaypointDropoffOptions(routePlanning.waypoints),
+    [routePlanning.waypoints],
   )
 
   const cargoItemErrors = useMemo(

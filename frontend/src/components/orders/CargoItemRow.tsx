@@ -5,7 +5,6 @@ import { CARGO_TYPES, type CargoItemDraft, type CargoType } from '@/schemas/carg
 import { Trash2 } from 'lucide-react'
 import type { CargoItemErrors } from '@/utils/cargo'
 import type { WaypointOption } from '@/types/waypoints'
-import { DESTINATION_DROPFF_ID } from '@/hooks/orders/planning/orderPlanningFlowData'
 
 type CargoItemRowProps = {
   item: CargoItemDraft
@@ -116,7 +115,7 @@ export function CargoItemRow({
             }
             onChange={(e) => {
               const v = e.target.value
-              if (v === '' || v === DESTINATION_DROPFF_ID) {
+              if (v === '') {
                 onUpdate({
                   destinationWaypointId: null,
                   destinationWaypointTempId: null,

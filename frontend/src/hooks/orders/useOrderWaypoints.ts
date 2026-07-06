@@ -1,9 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import api from '@/services/api'
-import type { WaypointOption } from '@/types/waypoints'
-import { DESTINATION_DROPFF_ID } from '@/hooks/orders/planning/orderPlanningFlowData'
 
-export function useOrderWaypoints(routeId: number | null | undefined, endLocation?: string | null) {
+export function useOrderWaypoints(routeId: number | null | undefined) {
   const effectiveRouteId = routeId ?? null
 
   type ApiWaypoint = {
@@ -37,19 +35,9 @@ export function useOrderWaypoints(routeId: number | null | undefined, endLocatio
   })
 
   const waypoints = waypointsQuery.data ?? []
-  const dropoffOptions = (() => {
-    const opts: WaypointOption[] = waypoints.filter(
-      (w) => w.actionType === 'Dropoff' || w.actionType === 'Stopover'
-    )
-    if (endLocation?.trim()) {
-      opts.push({
-        id: DESTINATION_DROPFF_ID,
-        address: `Final destination: ${endLocation.trim()}`,
-        actionType: 'Dropoff',
-      })
-    }
-    return opts
-  })()
+  const dropoffOptions = waypoints.filter(
+    (w) => w.actionType === 'Dropoff' || w.actionType === 'Stopover'
+  )
 
   return {
     waypointsQuery,

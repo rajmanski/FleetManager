@@ -24,24 +24,6 @@ export function OrderPlanningResourcesSection({
         Driver and vehicle
       </h2>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Select
-          label="Vehicle"
-          required
-          options={vehicleOptions}
-          allowEmpty
-          emptyLabel="Select vehicle"
-          error={errors.vehicleId?.message}
-          {...register('vehicleId')}
-        />
-        <Select
-          label="Driver"
-          required
-          options={driverOptions}
-          allowEmpty
-          emptyLabel="Select driver"
-          error={errors.driverId?.message}
-          {...register('driverId')}
-        />
         <div className="md:col-span-2">
           <Input
             label="Trip start"
@@ -51,6 +33,24 @@ export function OrderPlanningResourcesSection({
             {...register('startTime')}
           />
         </div>
+        <Select
+          label="Driver"
+          required
+          options={driverOptions}
+          allowEmpty
+          emptyLabel="Select driver"
+          error={errors.driverId?.message}
+          {...register('driverId')}
+        />
+        <Select
+          label="Vehicle"
+          required
+          options={vehicleOptions}
+          allowEmpty
+          emptyLabel="Select vehicle"
+          error={errors.vehicleId?.message}
+          {...register('vehicleId')}
+        />
         <div className="md:col-span-2">
           {vehicleAvailabilityPending ? (
             <p className="text-sm text-gray-600">Checking vehicle availability...</p>

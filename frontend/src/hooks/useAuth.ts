@@ -14,6 +14,7 @@ export function useAuth() {
       canAccessAssignments: role === 'Administrator' || role === 'Mechanik',
       canManageInsurancePolicies: role === 'Administrator' || role === 'Mechanik',
       canManageFuelLogs: role === 'Administrator' || role === 'Mechanik',
+      canManageMaintenance: role === 'Administrator' || role === 'Mechanik',
     }),
     [role]
   )

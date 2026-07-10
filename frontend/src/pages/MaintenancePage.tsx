@@ -13,11 +13,13 @@ import { usePagination } from '@/hooks/usePagination'
 import { useSortable } from '@/hooks/useSortable'
 import { DEFAULT_PAGE_SIZE } from '@/constants/pagination'
 import { useMutationCallbacks } from '@/hooks/useMutationCallbacks'
+import { useAuth } from '@/hooks/useAuth'
 import { maintenanceSortGetter } from '@/utils/sortGetters'
 
 import type { MaintenanceFormValues } from '@/schemas/maintenance'
 
 function MaintenancePage() {
+  const { canManageMaintenance } = useAuth()
   const [statusFilter, setStatusFilter] = useState('')
   const [vehicleFilter, setVehicleFilter] = useState('')
   const [page, setPage] = useState(1)
@@ -132,11 +134,11 @@ function MaintenancePage() {
       <PageHeader
         title="Maintenance"
         description="Service and repair records"
-        action={
+        action={canManageMaintenance ? (
           <Button type="button" onClick={() => setIsCreateOpen(true)}>
             Add maintenance
           </Button>
-        }
+        ) : undefined}
       />
 
       <MaintenanceFiltersBar

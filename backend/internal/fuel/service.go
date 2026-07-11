@@ -42,8 +42,8 @@ func (s *Service) CreateFuelLog(ctx context.Context, req CreateFuelRequest) (Cre
 	}
 
 	deltaKm := req.Mileage - prevMileage
-	if deltaKm <= 0 {
-		return CreateFuelResponse{}, ErrInvalidInput
+	if deltaKm == 0 {
+		return CreateFuelResponse{}, ErrMileageNotUpdated
 	}
 
 	totalCost := req.Liters * req.PricePerLiter

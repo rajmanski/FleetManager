@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Modal } from '@/components/ui/Modal'
@@ -36,6 +36,7 @@ export function FuelFormModal({
     register,
     watch,
     setValue,
+    setError,
     handleSubmit,
     formState: { errors },
   } = useForm<FuelFormInput>({
@@ -54,6 +55,11 @@ export function FuelFormModal({
   const liters = watch('liters')
   const pricePerLiter = watch('pricePerLiter')
 
+  const selectedVehicle = useMemo(
+    () => vehicleOptions.find((v) => v.value === selectedVehicleId),
+    [selectedVehicleId, vehicleOptions],
+  )
+
   const totalCost = useMemo(() => {
     const l = Number(liters as number | string) || 0
     const p = Number(pricePerLiter as number | string) || 0
@@ -67,9 +73,23 @@ export function FuelFormModal({
     }
   }, [selectedVehicleId, vehicleOptions, setValue])
 
+  const handleFormSubmit = useCallback(
+    (values: FuelFormInput) => {
+      const currentKm = selectedVehicle?.currentMileageKm ?? 0
+      if (Number(values.mileage) <= currentKm) {
+        setError('mileage', {
+          message: `Mileage must be greater than current odometer reading (${currentKm} km).`,
+        })
+        return
+      }
+      onSubmit(values as FuelFormValues)
+    },
+    [selectedVehicle, setError, onSubmit],
+  )
+
   return (
     <Modal title={title} error={errorMessage} contentClassName="max-w-lg" onClose={onClose}>
-      <form className="mt-4 space-y-4" onSubmit={handleSubmit((v) => onSubmit(v as FuelFormValues))}>
+      <form className="mt-4 space-y-4" onSubmit={handleSubmit(handleFormSubmit)}>
         <Select
           label="Vehicle"
           error={errors.vehicleId?.message}

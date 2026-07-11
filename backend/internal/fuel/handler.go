@@ -31,6 +31,9 @@ func (h *Handler) CreateFuelLog(c *gin.Context) {
 		case errors.Is(err, ErrInvalidInput):
 			httputil.RespondError(c, http.StatusBadRequest, err, "invalid input")
 			return
+		case errors.Is(err, ErrMileageNotUpdated):
+			httputil.RespondError(c, http.StatusBadRequest, err, "mileage must be updated to reflect the current odometer reading")
+			return
 		case errors.Is(err, ErrVehicleNotFound):
 			httputil.RespondError(c, http.StatusNotFound, err, "vehicle not found")
 			return

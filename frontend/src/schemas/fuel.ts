@@ -18,4 +18,3 @@ export const fuelFormSchema = z.object({
 
 export type FuelFormInput = z.input<typeof fuelFormSchema>
 export type FuelFormValues = z.output<typeof fuelFormSchema>
-

@@ -139,6 +139,7 @@ type Querier interface {
 	ListTripsByOrderID(ctx context.Context, orderID int32) ([]ListTripsByOrderIDRow, error)
 	ListUpcomingInspectionAlerts(ctx context.Context) ([]ListUpcomingInspectionAlertsRow, error)
 	ListVehicleMaintenanceHistory(ctx context.Context, arg ListVehicleMaintenanceHistoryParams) ([]ListVehicleMaintenanceHistoryRow, error)
+	ListVehicleMileageHistory(ctx context.Context, vehicleID int32) ([]ListVehicleMileageHistoryRow, error)
 	ListVehicles(ctx context.Context, arg ListVehiclesParams) ([]Vehicle, error)
 	ListWaypointIDsByRouteID(ctx context.Context, routeID int32) ([]ListWaypointIDsByRouteIDRow, error)
 	ListWaypointsByRouteID(ctx context.Context, routeID int32) ([]Routewaypoint, error)

@@ -16,4 +16,5 @@ type Repository interface {
 	RestoreVehicle(ctx context.Context, vehicleID int64) error
 	GetTripInRange(ctx context.Context, vehicleID int64, from, to time.Time) (*VehicleTripInfo, error)
 	ListVehicleMaintenanceHistory(ctx context.Context, vehicleID int64, typeFilter, statusFilter string) ([]MaintenanceHistoryItem, error)
+	ListVehicleMileageHistory(ctx context.Context, vehicleID int64) ([]MileageHistoryItem, error)
 }

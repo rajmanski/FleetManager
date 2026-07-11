@@ -108,6 +108,41 @@ func (q *Queries) GetAvgFuelConsumptionPer100Km(ctx context.Context, vehicleID i
 	return avg_consumption_per_100km, err
 }
 
+const listVehicleMileageHistory = `-- name: ListVehicleMileageHistory :many
+SELECT date, mileage
+FROM FuelLog
+WHERE vehicle_id = ?
+ORDER BY date ASC, id ASC
+`
+
+type ListVehicleMileageHistoryRow struct {
+	Date    time.Time `json:"date"`
+	Mileage uint32    `json:"mileage"`
+}
+
+func (q *Queries) ListVehicleMileageHistory(ctx context.Context, vehicleID int32) ([]ListVehicleMileageHistoryRow, error) {
+	rows, err := q.db.QueryContext(ctx, listVehicleMileageHistory, vehicleID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListVehicleMileageHistoryRow
+	for rows.Next() {
+		var i ListVehicleMileageHistoryRow
+		if err := rows.Scan(&i.Date, &i.Mileage); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getVehicleCurrentMileage = `-- name: GetVehicleCurrentMileage :one
 SELECT current_mileage_km
 FROM Vehicles

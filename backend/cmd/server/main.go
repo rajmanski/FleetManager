@@ -262,6 +262,11 @@ func main() {
 		assignmentsHandler.GetVehicleAssignmentHistory,
 	)
 	protected.GET(
+		"/vehicles/:id/mileage-history",
+		auth.RBACMiddleware(auth.ResourceVehicles, auth.PermissionRead),
+		vehiclesHandler.GetVehicleMileageHistory,
+	)
+	protected.GET(
 		"/vehicles/:id/maintenance-history",
 		auth.RBACMiddleware(auth.ResourceMaintenancePolicy, auth.PermissionRead),
 		vehiclesHandler.GetVehicleMaintenanceHistory,

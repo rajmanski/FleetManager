@@ -1,3 +1,9 @@
+-- name: ListVehicleMileageHistory :many
+SELECT date, mileage
+FROM FuelLog
+WHERE vehicle_id = ?
+ORDER BY date ASC, id ASC;
+
 -- name: GetVehicleCurrentMileage :one
 SELECT current_mileage_km
 FROM Vehicles

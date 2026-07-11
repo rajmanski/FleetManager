@@ -223,6 +223,18 @@ func isAllowedStatus(status string) bool {
 	}
 }
 
+func (s *Service) GetVehicleMileageHistory(ctx context.Context, vehicleID int64) ([]MileageHistoryItem, error) {
+	if vehicleID <= 0 {
+		return nil, ErrInvalidInput
+	}
+
+	if _, err := s.repo.GetVehicleByID(ctx, vehicleID); err != nil {
+		return nil, err
+	}
+
+	return s.repo.ListVehicleMileageHistory(ctx, vehicleID)
+}
+
 func (s *Service) GetVehicleMaintenanceHistory(ctx context.Context, vehicleID int64, typeFilter, statusFilter string) ([]MaintenanceHistoryItem, error) {
 	if vehicleID <= 0 {
 		return nil, ErrInvalidInput

@@ -116,6 +116,7 @@ function VehicleDetailsPage() {
       </div>
 
       <MileageHistorySection
+        vehicleId={vehicle.id}
         currentMileageKm={vehicle.current_mileage_km}
         recordedAt={vehicle.updated_at ?? vehicle.created_at}
       />

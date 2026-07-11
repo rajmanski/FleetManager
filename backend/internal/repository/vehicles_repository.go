@@ -225,6 +225,22 @@ func (r *VehiclesRepository) GetTripInRange(ctx context.Context, vehicleID int64
 	return info, nil
 }
 
+func (r *VehiclesRepository) ListVehicleMileageHistory(ctx context.Context, vehicleID int64) ([]vehicles.MileageHistoryItem, error) {
+	rows, err := r.queries.ListVehicleMileageHistory(ctx, int32(vehicleID))
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]vehicles.MileageHistoryItem, 0, len(rows))
+	for _, row := range rows {
+		result = append(result, vehicles.MileageHistoryItem{
+			Date:    row.Date.Format("2006-01-02"),
+			Mileage: int64(row.Mileage),
+		})
+	}
+	return result, nil
+}
+
 func (r *VehiclesRepository) ListVehicleMaintenanceHistory(ctx context.Context, vehicleID int64, typeFilter, statusFilter string) ([]vehicles.MaintenanceHistoryItem, error) {
 	typeColumnValue := interface{}(typeFilter)
 	typ := sqlc.MaintenanceType(typeFilter)

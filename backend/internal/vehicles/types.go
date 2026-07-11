@@ -72,6 +72,11 @@ type VehicleTripInfo struct {
 	End    *time.Time
 }
 
+type MileageHistoryItem struct {
+	Date    string `json:"date"`
+	Mileage int64  `json:"mileage"`
+}
+
 type MaintenanceHistoryItem struct {
 	MaintenanceID int64   `json:"maintenance_id"`
 	Type          string  `json:"type"`

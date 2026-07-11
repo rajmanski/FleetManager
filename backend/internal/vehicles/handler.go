@@ -267,6 +267,30 @@ func (h *Handler) GetVehicleAvailability(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+func (h *Handler) GetVehicleMileageHistory(c *gin.Context) {
+	vehicleID, err := parseVehicleIDParam(c)
+	if err != nil {
+		httputil.RespondError(c, http.StatusBadRequest, err, "invalid vehicle id")
+		return
+	}
+
+	rows, err := h.service.GetVehicleMileageHistory(c.Request.Context(), vehicleID)
+	if err != nil {
+		if errors.Is(err, ErrVehicleNotFound) {
+			httputil.RespondError(c, http.StatusNotFound, err, "vehicle not found")
+			return
+		}
+		if errors.Is(err, ErrInvalidInput) {
+			httputil.RespondError(c, http.StatusBadRequest, err, "invalid query params")
+			return
+		}
+		httputil.RespondError(c, http.StatusInternalServerError, err, "internal server error")
+		return
+	}
+
+	c.JSON(http.StatusOK, rows)
+}
+
 func (h *Handler) GetVehicleMaintenanceHistory(c *gin.Context) {
 	vehicleID, err := parseVehicleIDParam(c)
 	if err != nil {

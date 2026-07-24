@@ -3,6 +3,8 @@ package maintenance
 import (
 	"context"
 	"strings"
+
+	"fleet-management/internal/dictionaries"
 )
 
 const (
@@ -12,11 +14,12 @@ const (
 )
 
 type Service struct {
-	repo Repository
+	repo    Repository
+	dictVal dictionaries.Validator
 }
 
-func NewService(repo Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo Repository, dictVal dictionaries.Validator) *Service {
+	return &Service{repo: repo, dictVal: dictVal}
 }
 
 func (s *Service) ListMaintenance(ctx context.Context, query ListMaintenanceQuery) (ListMaintenanceResponse, error) {
@@ -33,7 +36,7 @@ func (s *Service) ListMaintenance(ctx context.Context, query ListMaintenanceQuer
 	}
 
 	status := strings.TrimSpace(query.Status)
-	if status != "" && !isValidStatus(status) {
+	if status != "" && !s.isValidStatus(ctx, status) {
 		return ListMaintenanceResponse{}, ErrInvalidStatus
 	}
 
@@ -71,7 +74,7 @@ func (s *Service) CreateMaintenance(ctx context.Context, req CreateMaintenanceRe
 	if req.VehicleID <= 0 {
 		return Maintenance{}, ErrInvalidInput
 	}
-	if !isValidType(req.Type) {
+	if !s.isValidType(ctx, req.Type) {
 		return Maintenance{}, ErrInvalidType
 	}
 
@@ -79,7 +82,7 @@ func (s *Service) CreateMaintenance(ctx context.Context, req CreateMaintenanceRe
 	if req.Status != nil {
 		status = strings.TrimSpace(*req.Status)
 	}
-	if status == "" || !isValidStatus(status) {
+	if status == "" || !s.isValidStatus(ctx, status) {
 		return Maintenance{}, ErrInvalidStatus
 	}
 
@@ -105,7 +108,7 @@ func (s *Service) UpdateMaintenance(ctx context.Context, maintenanceID int64, re
 	}
 
 	req.Type = strings.TrimSpace(req.Type)
-	if !isValidType(req.Type) {
+	if !s.isValidType(ctx, req.Type) {
 		return Maintenance{}, ErrInvalidType
 	}
 
@@ -113,7 +116,7 @@ func (s *Service) UpdateMaintenance(ctx context.Context, maintenanceID int64, re
 	if req.Status != nil {
 		status = strings.TrimSpace(*req.Status)
 	}
-	if status == "" || !isValidStatus(status) {
+	if status == "" || !s.isValidStatus(ctx, status) {
 		return Maintenance{}, ErrInvalidStatus
 	}
 
@@ -138,7 +141,7 @@ func (s *Service) UpdateMaintenanceStatus(ctx context.Context, maintenanceID int
 		return Maintenance{}, ErrInvalidInput
 	}
 	status = strings.TrimSpace(status)
-	if status == "" || !isValidStatus(status) {
+	if status == "" || !s.isValidStatus(ctx, status) {
 		return Maintenance{}, ErrInvalidStatus
 	}
 
@@ -158,7 +161,23 @@ func (s *Service) UpdateMaintenanceStatus(ctx context.Context, maintenanceID int
 	return s.repo.GetMaintenanceByID(ctx, maintenanceID)
 }
 
-func isValidType(t string) bool {
+func (s *Service) isValidType(ctx context.Context, t string) bool {
+	ok, err := s.dictVal.Exists(ctx, "maintenance_types", t)
+	if err == nil && ok {
+		return true
+	}
+	return isValidTypeHardcoded(t)
+}
+
+func (s *Service) isValidStatus(ctx context.Context, status string) bool {
+	ok, err := s.dictVal.Exists(ctx, "maintenance_statuses", status)
+	if err == nil && ok {
+		return true
+	}
+	return isValidStatusHardcoded(status)
+}
+
+func isValidTypeHardcoded(t string) bool {
 	switch t {
 	case "Routine", "Repair", "TireChange":
 		return true
@@ -167,7 +186,7 @@ func isValidType(t string) bool {
 	}
 }
 
-func isValidStatus(s string) bool {
+func isValidStatusHardcoded(s string) bool {
 	switch s {
 	case "Scheduled", "InProgress", "Completed":
 		return true

@@ -6,6 +6,7 @@ import { LoadingMessage } from '@/components/ui/LoadingMessage'
 import { MaintenanceStatusBadge } from '@/components/maintenance/MaintenanceStatusBadge'
 import { MaintenanceTypeBadge } from '@/components/maintenance/MaintenanceTypeBadge'
 import { ThWithIcon } from '@/components/ui/ThWithIcon'
+import { useDictionaryValues } from '@/hooks/useDictionaryValues'
 import { formatPrice } from '@/utils/price'
 import { useVehicleMaintenanceHistory } from '@/hooks/vehicles/useVehicleMaintenanceHistory'
 
@@ -23,6 +24,10 @@ const dateRangeLabel = (startDate?: string, endDate?: string) => {
 export function MaintenanceHistorySection({ vehicleId }: MaintenanceHistorySectionProps) {
   const [typeFilter, setTypeFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
+  const { data: dictTypes } = useDictionaryValues('maintenance_types')
+  const { data: dictStatuses } = useDictionaryValues('maintenance_statuses')
+  const typeOptions = dictTypes && dictTypes.length > 0 ? dictTypes : ['Routine', 'Repair', 'TireChange']
+  const statusFilterOptions = dictStatuses && dictStatuses.length > 0 ? dictStatuses : ['Scheduled', 'InProgress', 'Completed']
 
   const { maintenanceHistoryQuery } = useVehicleMaintenanceHistory({
     vehicleId,
@@ -45,13 +50,13 @@ export function MaintenanceHistorySection({ vehicleId }: MaintenanceHistorySecti
           label="Type"
           value={typeFilter}
           onChange={setTypeFilter}
-          options={['Routine', 'Repair', 'TireChange']}
+          options={typeOptions}
         />
         <FilterSelect
           label="Status"
           value={statusFilter}
           onChange={setStatusFilter}
-          options={['Scheduled', 'InProgress', 'Completed']}
+          options={statusFilterOptions}
         />
       </div>
 

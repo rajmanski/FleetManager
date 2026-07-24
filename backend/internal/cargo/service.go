@@ -3,18 +3,17 @@ package cargo
 import (
 	"context"
 	"strings"
+
+	"fleet-management/internal/dictionaries"
 )
 
-var allowedCargoTypes = map[string]bool{
-	"General": true, "Refrigerated": true, "Hazardous": true,
-}
-
 type Service struct {
-	repo Repository
+	repo     Repository
+	dictVal  dictionaries.Validator
 }
 
-func NewService(repo Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo Repository, dictVal dictionaries.Validator) *Service {
+	return &Service{repo: repo, dictVal: dictVal}
 }
 
 func (s *Service) ListCargo(ctx context.Context, orderID int64) ([]Cargo, error) {
@@ -50,7 +49,7 @@ func (s *Service) CreateCargo(ctx context.Context, orderID int64, req CreateCarg
 	if orderID <= 0 {
 		return Cargo{}, ErrInvalidInput
 	}
-	if err := validateCargoRequest(req.WeightKg, req.VolumeM3, req.CargoType); err != nil {
+	if err := s.validateCargoRequest(ctx, req.WeightKg, req.VolumeM3, req.CargoType); err != nil {
 		return Cargo{}, err
 	}
 	id, err := s.repo.CreateCargo(ctx, orderID, strings.TrimSpace(req.Description), req.WeightKg, req.VolumeM3, req.CargoType)
@@ -64,7 +63,7 @@ func (s *Service) UpdateCargo(ctx context.Context, cargoID int64, req UpdateCarg
 	if cargoID <= 0 {
 		return Cargo{}, ErrInvalidInput
 	}
-	if err := validateCargoRequest(req.WeightKg, req.VolumeM3, req.CargoType); err != nil {
+	if err := s.validateCargoRequest(ctx, req.WeightKg, req.VolumeM3, req.CargoType); err != nil {
 		return Cargo{}, err
 	}
 	_, found, err := s.repo.GetCargoByID(ctx, cargoID)
@@ -119,7 +118,7 @@ func (s *Service) DeleteCargo(ctx context.Context, cargoID int64) error {
 	return nil
 }
 
-func validateCargoRequest(weightKg, volumeM3 float64, cargoType string) error {
+func (s *Service) validateCargoRequest(ctx context.Context, weightKg, volumeM3 float64, cargoType string) error {
 	if weightKg <= 0 {
 		return ErrInvalidInput
 	}
@@ -127,10 +126,26 @@ func validateCargoRequest(weightKg, volumeM3 float64, cargoType string) error {
 		return ErrInvalidInput
 	}
 	cargoType = strings.TrimSpace(cargoType)
-	if cargoType == "" || !allowedCargoTypes[cargoType] {
+	if cargoType == "" {
+		return ErrInvalidInput
+	}
+	ok, err := s.dictVal.Exists(ctx, "cargo_types", cargoType)
+	if err == nil && ok {
+		return nil
+	}
+	if !isAllowedCargoTypeHardcoded(cargoType) {
 		return ErrInvalidInput
 	}
 	return nil
+}
+
+func isAllowedCargoTypeHardcoded(t string) bool {
+	switch t {
+	case "General", "Refrigerated", "Hazardous":
+		return true
+	default:
+		return false
+	}
 }
 
 func (s *Service) AssignWaypoint(ctx context.Context, cargoID int64, req AssignWaypointRequest) (Cargo, error) {

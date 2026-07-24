@@ -6,6 +6,7 @@ import { ModalFooter } from '@/components/ui/ModalFooter'
 import { Select } from '@/components/ui/Select'
 import type { VehicleMutationPayload } from '@/hooks/vehicles/useVehicles'
 import { VEHICLE_STATUSES } from '@/constants/vehicleStatuses'
+import { useDictionaryValues } from '@/hooks/useDictionaryValues'
 import { getVehicleStatusMeta } from '@/utils/vehicleStatus'
 import { isValidVin } from '@/utils/vin'
 
@@ -48,6 +49,7 @@ export function VehicleFormModal({
   isSubmitting,
   errorMessage,
 }: VehicleFormModalProps) {
+  const { data: dictStatuses } = useDictionaryValues('vehicle_statuses')
   const [selectedStatus, setSelectedStatus] = useState(initialStatus ?? 'Available')
 
   const {
@@ -82,7 +84,8 @@ export function VehicleFormModal({
     onSubmit(payload)
   }
   const statusMeta = getVehicleStatusMeta(selectedStatus)
-  const statusOptions = VEHICLE_STATUSES.map((status) => ({
+  const availableStatuses = dictStatuses && dictStatuses.length > 0 ? dictStatuses : VEHICLE_STATUSES
+  const statusOptions = availableStatuses.map((status) => ({
     value: status,
     label: getVehicleStatusMeta(status).label,
   }))

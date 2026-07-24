@@ -71,8 +71,11 @@ func main() {
 	usersRepository := repository.NewUsersRepository(queries)
 	usersService := users.NewService(usersRepository)
 	usersHandler := users.NewHandler(usersService)
+	dictionariesRepository := repository.NewDictionariesRepository(queries)
+	dictionariesService := dictionaries.NewService(dictionariesRepository)
+	dictionariesHandler := dictionaries.NewHandler(dictionariesService, dbConn)
 	vehiclesRepository := repository.NewVehiclesRepository(queries)
-	vehiclesService := vehicles.NewService(vehiclesRepository)
+	vehiclesService := vehicles.NewService(vehiclesRepository, dictionariesService)
 	vehiclesHandler := vehicles.NewHandler(vehiclesService)
 	driversRepository := repository.NewDriversRepository(queries, cfg.EncryptionKey)
 	gdprRepository := repository.NewGDPRRepository(dbConn, queries)
@@ -87,7 +90,7 @@ func main() {
 	ordersService := orders.NewService(ordersRepository)
 	ordersHandler := orders.NewHandler(ordersService)
 	maintenanceRepository := repository.NewMaintenanceRepository(queries)
-	maintenanceService := maintenance.NewService(maintenanceRepository)
+	maintenanceService := maintenance.NewService(maintenanceRepository, dictionariesService)
 	maintenanceHandler := maintenance.NewHandler(maintenanceService)
 	insuranceRepository := repository.NewInsuranceRepository(queries)
 	insuranceService := insurance.NewService(insuranceRepository)
@@ -107,10 +110,7 @@ func main() {
 	changelogRepository := repository.NewChangelogRepository(queries)
 	changelogService := changelog.NewService(changelogRepository)
 	changelogHandler := changelog.NewHandler(changelogService)
-	dictionariesRepository := repository.NewDictionariesRepository(queries)
-	dictionariesService := dictionaries.NewService(dictionariesRepository)
-	dictionariesHandler := dictionaries.NewHandler(dictionariesService)
-	cargoService := cargo.NewService(cargoRepository)
+	cargoService := cargo.NewService(cargoRepository, dictionariesService)
 	cargoHandler := cargo.NewHandler(cargoService)
 	routesService := routes.NewService(cfg.GoogleMapsAPIKey)
 	routesHandler := routes.NewHandler(routesService)
@@ -126,7 +126,7 @@ func main() {
 	tripsService := trips.NewService(tripsRepository, cargoRepository, vehiclesRepository, driversService, vehiclesService)
 	tripsHandler := trips.NewHandler(tripsService)
 	operationsRepository := repository.NewOperationsRepository(dbConn)
-	operationsService := operations.NewService(operationsRepository)
+	operationsService := operations.NewService(operationsRepository, dictionariesService)
 	operationsHandler := operations.NewHandler(operationsService)
 
 	r.GET("/ping", func(c *gin.Context) {
@@ -185,6 +185,10 @@ func main() {
 		"/admin/changelog",
 		auth.RBACMiddleware(auth.ResourceAuditLog, auth.PermissionRead),
 		changelogHandler.ListAdminChangelog,
+	)
+	protected.GET(
+		"/dictionaries",
+		dictionariesHandler.ListByCategoryPublic,
 	)
 	protected.GET(
 		"/admin/dictionaries",

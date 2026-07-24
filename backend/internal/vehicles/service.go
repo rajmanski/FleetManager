@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"fleet-management/internal/dictionaries"
 )
 
 const (
@@ -14,11 +16,12 @@ const (
 )
 
 type Service struct {
-	repo Repository
+	repo    Repository
+	dictVal dictionaries.Validator
 }
 
-func NewService(repo Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo Repository, dictVal dictionaries.Validator) *Service {
+	return &Service{repo: repo, dictVal: dictVal}
 }
 
 func (s *Service) ListVehicles(ctx context.Context, query ListVehiclesQuery) (ListVehiclesResponse, error) {
@@ -35,7 +38,7 @@ func (s *Service) ListVehicles(ctx context.Context, query ListVehiclesQuery) (Li
 	}
 
 	status := normalizeStatus(query.Status)
-	if status != "" && !isAllowedStatus(status) {
+	if status != "" && !s.isAllowedStatus(ctx, status) {
 		return ListVehiclesResponse{}, ErrInvalidStatus
 	}
 	search := strings.TrimSpace(query.Search)
@@ -76,7 +79,7 @@ func (s *Service) CreateVehicle(ctx context.Context, req CreateVehicleRequest) (
 	if status == "" {
 		status = "Available"
 	}
-	if !isAllowedStatus(status) {
+	if !s.isAllowedStatus(ctx, status) {
 		return Vehicle{}, ErrInvalidStatus
 	}
 
@@ -100,7 +103,7 @@ func (s *Service) UpdateVehicle(ctx context.Context, vehicleID int64, req Update
 	}
 
 	status := normalizeStatus(req.Status)
-	if !isAllowedStatus(status) {
+	if !s.isAllowedStatus(ctx, status) {
 		return Vehicle{}, ErrInvalidStatus
 	}
 
@@ -134,7 +137,7 @@ func (s *Service) UpdateVehicleStatus(ctx context.Context, vehicleID int64, req 
 	}
 
 	status := normalizeStatus(req.Status)
-	if !isAllowedStatus(status) {
+	if !s.isAllowedStatus(ctx, status) {
 		return Vehicle{}, ErrInvalidStatus
 	}
 
@@ -214,7 +217,15 @@ func normalizeStatus(status string) string {
 	return strings.TrimSpace(status)
 }
 
-func isAllowedStatus(status string) bool {
+func (s *Service) isAllowedStatus(ctx context.Context, status string) bool {
+	ok, err := s.dictVal.Exists(ctx, "vehicle_statuses", status)
+	if err == nil && ok {
+		return true
+	}
+	return isAllowedStatusHardcoded(status)
+}
+
+func isAllowedStatusHardcoded(status string) bool {
 	switch status {
 	case "Available", "InRoute", "Service", "Inactive":
 		return true
@@ -246,19 +257,35 @@ func (s *Service) GetVehicleMaintenanceHistory(ctx context.Context, vehicleID in
 	}
 
 	typeFilter = strings.TrimSpace(typeFilter)
-	if typeFilter != "" && !isAllowedMaintenanceType(typeFilter) {
+	if typeFilter != "" && !s.isAllowedMaintenanceType(ctx, typeFilter) {
 		return nil, ErrInvalidInput
 	}
 
 	statusFilter = strings.TrimSpace(statusFilter)
-	if statusFilter != "" && !isAllowedMaintenanceStatus(statusFilter) {
+	if statusFilter != "" && !s.isAllowedMaintenanceStatus(ctx, statusFilter) {
 		return nil, ErrInvalidInput
 	}
 
 	return s.repo.ListVehicleMaintenanceHistory(ctx, vehicleID, typeFilter, statusFilter)
 }
 
-func isAllowedMaintenanceType(value string) bool {
+func (s *Service) isAllowedMaintenanceType(ctx context.Context, value string) bool {
+	ok, err := s.dictVal.Exists(ctx, "maintenance_types", value)
+	if err == nil && ok {
+		return true
+	}
+	return isAllowedMaintenanceTypeHardcoded(value)
+}
+
+func (s *Service) isAllowedMaintenanceStatus(ctx context.Context, value string) bool {
+	ok, err := s.dictVal.Exists(ctx, "maintenance_statuses", value)
+	if err == nil && ok {
+		return true
+	}
+	return isAllowedMaintenanceStatusHardcoded(value)
+}
+
+func isAllowedMaintenanceTypeHardcoded(value string) bool {
 	switch value {
 	case "Routine", "Repair", "TireChange":
 		return true
@@ -267,7 +294,7 @@ func isAllowedMaintenanceType(value string) bool {
 	}
 }
 
-func isAllowedMaintenanceStatus(value string) bool {
+func isAllowedMaintenanceStatusHardcoded(value string) bool {
 	switch value {
 	case "Scheduled", "InProgress", "Completed":
 		return true

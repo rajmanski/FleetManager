@@ -5,6 +5,7 @@ import { ModalFooter } from '@/components/ui/ModalFooter'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
 import { Textarea } from '@/components/ui/Textarea'
+import { useDictionaryValues } from '@/hooks/useDictionaryValues'
 import {
   maintenanceFormSchema,
   type MaintenanceFormInput,
@@ -21,11 +22,11 @@ export type MaintenanceFormModalProps = {
   errorMessage?: string | null
 }
 
-const maintenanceTypeOptions = [
-  { value: 'Routine', label: 'Inspection (Routine)' },
-  { value: 'Repair', label: 'Repair' },
-  { value: 'TireChange', label: 'Tire change' },
-] as const
+const MAINTENANCE_TYPE_FALLBACK_MAP: Record<string, string> = {
+  Routine: 'Inspection (Routine)',
+  Repair: 'Repair',
+  TireChange: 'Tire change',
+}
 
 export function MaintenanceFormModal({
   title,
@@ -36,6 +37,14 @@ export function MaintenanceFormModal({
   isSubmitting,
   errorMessage,
 }: MaintenanceFormModalProps) {
+  const { data: dictTypes } = useDictionaryValues('maintenance_types')
+  const maintenanceTypeOptions = dictTypes && dictTypes.length > 0
+    ? dictTypes.map((t) => ({ value: t, label: MAINTENANCE_TYPE_FALLBACK_MAP[t] ?? t }))
+    : [
+        { value: 'Routine', label: 'Inspection (Routine)' },
+        { value: 'Repair', label: 'Repair' },
+        { value: 'TireChange', label: 'Tire change' },
+      ]
   const {
     register,
     handleSubmit,

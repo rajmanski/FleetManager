@@ -1,6 +1,6 @@
 export const CARGO_TYPES = ['General', 'Refrigerated', 'Hazardous'] as const
-export type CargoType = (typeof CARGO_TYPES)[number]
 
+export type CargoType = string
 export type CargoItemDraft = {
   id: string
   description: string

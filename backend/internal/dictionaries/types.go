@@ -1,6 +1,13 @@
 package dictionaries
 
-import "time"
+import (
+	"context"
+	"time"
+)
+
+type Validator interface {
+	Exists(ctx context.Context, category, key string) (bool, error)
+}
 
 type Entry struct {
 	ID        int64     `json:"id"`

@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { CARGO_TYPES } from '@/schemas/cargo'
 
 const planningCargoRowSchema = z
   .object({
@@ -8,7 +7,7 @@ const planningCargoRowSchema = z
     quantity: z.string(),
     weightPerUnitKg: z.string(),
     volumePerUnitM3: z.string(),
-    cargoType: z.enum(CARGO_TYPES),
+    cargoType: z.string().min(1, 'Cargo type is required'),
     destinationWaypointId: z.number().nullable().optional(),
     destinationWaypointTempId: z.string().nullable().optional(),
   })

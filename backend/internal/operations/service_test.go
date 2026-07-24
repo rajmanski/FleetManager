@@ -3,7 +3,23 @@ package operations
 import (
 	"context"
 	"testing"
+
+	"fleet-management/internal/dictionaries"
 )
+
+type dictValidatorStub struct {
+	exists map[string]bool
+}
+
+func (d *dictValidatorStub) Exists(_ context.Context, _, key string) (bool, error) {
+	if d.exists != nil {
+		ok, found := d.exists[key]
+		return ok && found, nil
+	}
+	return true, nil
+}
+
+var _ dictionaries.Validator = (*dictValidatorStub)(nil)
 
 type workflowStoreStub struct {
 	called       bool
@@ -32,7 +48,7 @@ func TestCreatePlannedOrderWorkflow_Success(t *testing.T) {
 		},
 	}
 	store := &workflowStoreStub{response: expected}
-	service := NewService(store)
+	service := NewService(store, &dictValidatorStub{})
 
 	got, err := service.CreatePlannedOrderWorkflow(context.Background(), req)
 	if err != nil {
@@ -50,7 +66,7 @@ func TestCreatePlannedOrderWorkflow_ValidationStopsBeforeStore(t *testing.T) {
 	req := validWorkflowRequest()
 	req.Order.ClientID = 0
 	store := &workflowStoreStub{}
-	service := NewService(store)
+	service := NewService(store, &dictValidatorStub{})
 
 	_, err := service.CreatePlannedOrderWorkflow(context.Background(), req)
 	if err == nil {
@@ -78,7 +94,7 @@ func TestCreatePlannedOrderWorkflow_RollbackErrorsArePropagated(t *testing.T) {
 			},
 		},
 	}
-	service := NewService(store)
+	service := NewService(store, &dictValidatorStub{})
 
 	_, err := service.CreatePlannedOrderWorkflow(context.Background(), req)
 	if err == nil {
@@ -114,7 +130,8 @@ func TestValidateWorkflowRequest_WaypointSequenceMustBeContinuous(t *testing.T) 
 		},
 	}
 
-	verr := validateWorkflowRequest(req)
+	srv := &Service{dictVal: &dictValidatorStub{}}
+	verr := srv.validateWorkflowRequest(context.Background(), req)
 	if verr == nil {
 		t.Fatalf("expected validation error")
 	}
@@ -128,7 +145,8 @@ func TestValidateWorkflowRequest_CargoWaypointReferenceMustExist(t *testing.T) {
 	badRef := "unknown-waypoint"
 	req.Cargo[0].DestinationWaypointTempID = &badRef
 
-	verr := validateWorkflowRequest(req)
+	srv := &Service{dictVal: &dictValidatorStub{}}
+	verr := srv.validateWorkflowRequest(context.Background(), req)
 	if verr == nil {
 		t.Fatalf("expected validation error")
 	}

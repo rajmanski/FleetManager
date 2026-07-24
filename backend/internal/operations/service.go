@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
+
+	"fleet-management/internal/dictionaries"
 )
 
 type WorkflowStore interface {
@@ -13,12 +15,16 @@ type WorkflowStore interface {
 
 type Service struct {
 	workflowStore WorkflowStore
+	dictVal       dictionaries.Validator
 }
 
-var allowedCargoTypes = map[string]bool{
-	"General":      true,
-	"Refrigerated": true,
-	"Hazardous":    true,
+func isAllowedCargoTypeHardcoded(t string) bool {
+	switch t {
+	case "General", "Refrigerated", "Hazardous":
+		return true
+	default:
+		return false
+	}
 }
 
 var allowedWaypointActions = map[string]bool{
@@ -27,9 +33,10 @@ var allowedWaypointActions = map[string]bool{
 	"Stopover": true,
 }
 
-func NewService(workflowStore WorkflowStore) *Service {
+func NewService(workflowStore WorkflowStore, dictVal dictionaries.Validator) *Service {
 	return &Service{
 		workflowStore: workflowStore,
+		dictVal:       dictVal,
 	}
 }
 
@@ -37,7 +44,7 @@ func (s *Service) CreatePlannedOrderWorkflow(
 	ctx context.Context,
 	req PlanOrderWorkflowRequest,
 ) (PlanOrderWorkflowResponse, error) {
-	if verr := validateWorkflowRequest(req); verr != nil {
+	if verr := s.validateWorkflowRequest(ctx, req); verr != nil {
 		return PlanOrderWorkflowResponse{}, verr
 	}
 
@@ -51,7 +58,7 @@ func (s *Service) CreatePlannedOrderWorkflow(
 	return response, nil
 }
 
-func validateWorkflowRequest(req PlanOrderWorkflowRequest) *ValidationError {
+func (s *Service) validateWorkflowRequest(ctx context.Context, req PlanOrderWorkflowRequest) *ValidationError {
 	verr := &ValidationError{Message: "workflow validation failed"}
 
 	if req.Order.ClientID <= 0 {
@@ -179,12 +186,16 @@ func validateWorkflowRequest(req PlanOrderWorkflowRequest) *ValidationError {
 				Message: "cargo_type is required",
 			})
 		}
-		if strings.TrimSpace(c.CargoType) != "" && !allowedCargoTypes[strings.TrimSpace(c.CargoType)] {
-			verr.FieldErrors = append(verr.FieldErrors, FieldError{
-				Field:   fieldPrefix + ".cargo_type",
-				Code:    "INVALID",
-				Message: "cargo_type must be one of: General, Refrigerated, Hazardous",
-			})
+		if strings.TrimSpace(c.CargoType) != "" {
+			ctype := strings.TrimSpace(c.CargoType)
+			ok, err := s.dictVal.Exists(ctx, "cargo_types", ctype)
+			if !(err == nil && ok) && !isAllowedCargoTypeHardcoded(ctype) {
+				verr.FieldErrors = append(verr.FieldErrors, FieldError{
+					Field:   fieldPrefix + ".cargo_type",
+					Code:    "INVALID",
+					Message: "cargo_type is not valid",
+				})
+			}
 		}
 		if c.DestinationWaypointTempID != nil && strings.TrimSpace(*c.DestinationWaypointTempID) != "" {
 			if !tempIDSeen[strings.TrimSpace(*c.DestinationWaypointTempID)] {

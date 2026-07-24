@@ -32,7 +32,7 @@ export type UseMaintenanceListParams = {
 export type CreateMaintenancePayload = {
   vehicleId: number
   startDate: string
-  type: 'Routine' | 'Repair' | 'TireChange'
+  type: string
   description?: string
   laborCostPln: number
   partsCostPln: number

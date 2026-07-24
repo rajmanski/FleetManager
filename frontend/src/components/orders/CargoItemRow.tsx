@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { CARGO_TYPES, type CargoItemDraft, type CargoType } from '@/schemas/cargo'
+import { CARGO_TYPES, type CargoItemDraft} from '@/schemas/cargo'
+import { useDictionaryValues } from '@/hooks/useDictionaryValues'
 import { Trash2 } from 'lucide-react'
 import type { CargoItemErrors } from '@/utils/cargo'
 import type { WaypointOption } from '@/types/waypoints'
@@ -21,6 +22,8 @@ export function CargoItemRow({
   dropoffOptions,
   errors = {},
 }: CargoItemRowProps) {
+  const { data: cargoTypeOptions } = useDictionaryValues('cargo_types')
+  const typeOptions = cargoTypeOptions && cargoTypeOptions.length > 0 ? cargoTypeOptions : CARGO_TYPES
   return (
     <div className="rounded-md border border-gray-200 bg-gray-50/50 p-3">
       <div className="mb-1.5 flex justify-end">
@@ -80,9 +83,9 @@ export function CargoItemRow({
             label="Type"
             required
             variant="compact"
-            options={CARGO_TYPES}
+            options={typeOptions}
             value={item.cargoType}
-            onChange={(e) => onUpdate({ cargoType: e.target.value as CargoType })}
+            onChange={(e) => onUpdate({ cargoType: e.target.value })}
             className="w-full min-w-0"
           />
         </div>

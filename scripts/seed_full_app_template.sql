@@ -554,7 +554,22 @@ INSERT INTO Changelog (`id`, `user_id`, `table_name`, `record_id`, `operation`, 
 INSERT INTO Changelog (`id`, `user_id`, `table_name`, `record_id`, `operation`, `old_data`, `new_data`, `timestamp`) SELECT 554,NULL,'cargo',34,'INSERT',NULL,'{\"cargo_id\": 34, \"order_id\": 23, \"volume_m3\": 2706.00, \"weight_kg\": 22000.00, \"cargo_type\": \"General\", \"description\": \"22 ?? Paleta  z puszkami\", \"destination_waypoint_id\": null}','2026-05-21 14:51:45' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Changelog WHERE id = 554);
 INSERT INTO Changelog (`id`, `user_id`, `table_name`, `record_id`, `operation`, `old_data`, `new_data`, `timestamp`) SELECT 555,NULL,'cargo',35,'INSERT',NULL,'{\"cargo_id\": 35, \"order_id\": 24, \"volume_m3\": 529.00, \"weight_kg\": 2806.00, \"cargo_type\": \"Refrigerated\", \"description\": \"23 ?? Paleta z mro??onk??\", \"destination_waypoint_id\": null}','2026-05-21 14:51:45' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Changelog WHERE id = 555);
 
-
+-- ============================================================================
+-- Dictionaries (default values)
+-- ============================================================================
+INSERT INTO Dictionaries (category, `key`, `value`) SELECT 'cargo_types', 'General', 'General cargo' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Dictionaries WHERE category = 'cargo_types' AND `key` = 'General');
+INSERT INTO Dictionaries (category, `key`, `value`) SELECT 'cargo_types', 'Refrigerated', 'Refrigerated cargo' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Dictionaries WHERE category = 'cargo_types' AND `key` = 'Refrigerated');
+INSERT INTO Dictionaries (category, `key`, `value`) SELECT 'cargo_types', 'Hazardous', 'Hazardous cargo' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Dictionaries WHERE category = 'cargo_types' AND `key` = 'Hazardous');
+INSERT INTO Dictionaries (category, `key`, `value`) SELECT 'vehicle_statuses', 'Available', 'Vehicle is available for assignments' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Dictionaries WHERE category = 'vehicle_statuses' AND `key` = 'Available');
+INSERT INTO Dictionaries (category, `key`, `value`) SELECT 'vehicle_statuses', 'InRoute', 'Vehicle is currently on a trip' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Dictionaries WHERE category = 'vehicle_statuses' AND `key` = 'InRoute');
+INSERT INTO Dictionaries (category, `key`, `value`) SELECT 'vehicle_statuses', 'Service', 'Vehicle is undergoing maintenance' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Dictionaries WHERE category = 'vehicle_statuses' AND `key` = 'Service');
+INSERT INTO Dictionaries (category, `key`, `value`) SELECT 'vehicle_statuses', 'Inactive', 'Vehicle is decommissioned or inactive' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Dictionaries WHERE category = 'vehicle_statuses' AND `key` = 'Inactive');
+INSERT INTO Dictionaries (category, `key`, `value`) SELECT 'maintenance_types', 'Routine', 'Routine inspection' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Dictionaries WHERE category = 'maintenance_types' AND `key` = 'Routine');
+INSERT INTO Dictionaries (category, `key`, `value`) SELECT 'maintenance_types', 'Repair', 'Repair work' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Dictionaries WHERE category = 'maintenance_types' AND `key` = 'Repair');
+INSERT INTO Dictionaries (category, `key`, `value`) SELECT 'maintenance_types', 'TireChange', 'Tire replacement' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Dictionaries WHERE category = 'maintenance_types' AND `key` = 'TireChange');
+INSERT INTO Dictionaries (category, `key`, `value`) SELECT 'maintenance_statuses', 'Scheduled', 'Maintenance is planned' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Dictionaries WHERE category = 'maintenance_statuses' AND `key` = 'Scheduled');
+INSERT INTO Dictionaries (category, `key`, `value`) SELECT 'maintenance_statuses', 'InProgress', 'Maintenance is in progress' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Dictionaries WHERE category = 'maintenance_statuses' AND `key` = 'InProgress');
+INSERT INTO Dictionaries (category, `key`, `value`) SELECT 'maintenance_statuses', 'Completed', 'Maintenance has been completed' FROM DUAL WHERE NOT EXISTS (SELECT 1 FROM Dictionaries WHERE category = 'maintenance_statuses' AND `key` = 'Completed');
 
 -- ============================================================================
 -- Summary

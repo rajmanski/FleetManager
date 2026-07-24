@@ -109,7 +109,7 @@ func TestCreatePlannedOrderWorkflowHandler_InvalidBody400(t *testing.T) {
 }
 
 func testRouter(store WorkflowStore) *gin.Engine {
-	service := NewService(store)
+	service := NewService(store, &dictValidatorStub{})
 	handler := NewHandler(service)
 	router := gin.New()
 	router.POST("/api/v1/operations/orders/plan", handler.CreatePlannedOrderWorkflow)

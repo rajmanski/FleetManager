@@ -28,6 +28,13 @@ func NewService(repo Repository) *Service {
 	return &Service{repo: repo}
 }
 
+func (s *Service) GetByID(ctx context.Context, id int64) (Entry, error) {
+	if id <= 0 {
+		return Entry{}, ErrInvalidInput
+	}
+	return s.repo.GetByID(ctx, id)
+}
+
 func (s *Service) ListByCategory(ctx context.Context, category string) ([]Entry, error) {
 	category = strings.TrimSpace(category)
 	if category == "" || utf8.RuneCountInString(category) > maxCategoryLen {
@@ -51,6 +58,24 @@ func (s *Service) Update(ctx context.Context, id int64, in UpdateRequest) (Entry
 		return Entry{}, err
 	}
 	return s.repo.Update(ctx, id, in)
+}
+
+func (s *Service) Exists(ctx context.Context, category, key string) (bool, error) {
+	category = strings.TrimSpace(category)
+	key = strings.TrimSpace(key)
+	if category == "" || key == "" {
+		return false, ErrInvalidInput
+	}
+	entries, err := s.repo.ListByCategory(ctx, category)
+	if err != nil {
+		return false, err
+	}
+	for _, e := range entries {
+		if e.Key == key {
+			return true, nil
+		}
+	}
+	return false, nil
 }
 
 func (s *Service) Delete(ctx context.Context, id int64) error {

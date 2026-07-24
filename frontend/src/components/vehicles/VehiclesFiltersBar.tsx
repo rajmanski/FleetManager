@@ -1,4 +1,5 @@
 import { VEHICLE_STATUSES } from '@/constants/vehicleStatuses'
+import { useDictionaryValues } from '@/hooks/useDictionaryValues'
 import { FilterCheckbox } from '@/components/ui/FilterCheckbox'
 import { FilterRowsSelect } from '@/components/ui/FilterRowsSelect'
 import { FilterSearchInput } from '@/components/ui/FilterSearchInput'
@@ -28,13 +29,15 @@ export function VehiclesFiltersBar({
   pagination,
   isAdmin,
 }: VehiclesFiltersBarProps) {
+  const { data: statusOptions } = useDictionaryValues('vehicle_statuses')
+  const statuses = statusOptions && statusOptions.length > 0 ? statusOptions : VEHICLE_STATUSES
   return (
     <div className="flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-4">
       <FilterSelect
         label="Status"
         value={statusFilter}
         onChange={onStatusFilterChange}
-        options={VEHICLE_STATUSES}
+        options={statuses}
       />
       <FilterSearchInput
         label="Search"
